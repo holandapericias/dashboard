@@ -1,0 +1,902 @@
+<!-- BUILD 1775589382 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holanda Perícias — Financial Dashboard v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--hd:#005F88;--ac:#00AEEF;--bg:#F2F8FC;--cd:#FFF;--tx:#1A1A1A;--tl:#6B7A8D;--t3:#A0AEC0;--bd:#D0E8F2;--gn:#0D7A3E;--gb:#E6F7ED;--gc:#A3D9B8;--rd:#C62828;--rb:#FDEDED;--rc:#F5C6C6;--or:#E65100;--ob:#FFF3E0}
+*{margin:0;padding:0;box-sizing:border-box}body{background:var(--bg);color:var(--tx);font-family:'Barlow',sans-serif}
+.hdr{background:var(--hd);padding:14px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Barlow Condensed';font-weight:700;font-size:22px;color:#fff;text-transform:uppercase;letter-spacing:1px;line-height:1.1}.logo span{display:block;font-size:13px;font-weight:500;letter-spacing:3px;opacity:.5}
+.hr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.hr label{font-size:12px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px}
+select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 14px;border-radius:5px;font-size:13px;font-family:'Barlow';font-weight:500;cursor:pointer}select option{background:var(--hd)}
+.hbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;padding:7px 16px;border-radius:5px;font-size:12px;font-family:'Barlow Condensed';font-weight:600;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:.2s}.hbtn:hover{background:rgba(255,255,255,.25)}
+.abar{height:3px;background:linear-gradient(90deg,var(--ac),var(--hd))}
+.tabs{display:flex;gap:0;background:var(--cd);border-bottom:2px solid var(--bd)}.tab{flex:1;padding:14px 20px;text-align:center;font-family:'Barlow Condensed';font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--tl);cursor:pointer;border-bottom:3px solid transparent;transition:.2s}.tab:hover{color:var(--hd);background:#F7FBFE}.tab.active{color:var(--hd);border-bottom-color:var(--ac);background:#F7FBFE}
+.ct{padding:24px 28px;max-width:1060px;margin:0 auto}
+.hero{border-radius:10px;padding:28px;margin-bottom:22px;text-align:center;border:1px solid}.hero.ps{background:var(--gb);border-color:var(--gc)}.hero.ng{background:var(--rb);border-color:var(--rc)}
+.hl{font-family:'Barlow Condensed';font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--tl);margin-bottom:6px;font-weight:600}
+.hv{font-family:'Barlow Condensed';font-size:42px;font-weight:700}.hs{font-size:12px;color:var(--tl);margin-top:8px}
+.g{color:var(--gn)}.r{color:var(--rd)}.o{color:var(--or)}
+.cds{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.crd{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:16px;border-top:3px solid var(--ac)}
+.cl{font-family:'Barlow Condensed';font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--tl);margin-bottom:5px;font-weight:600}
+.cv{font-family:'Barlow Condensed';font-size:24px;font-weight:700}.csb{font-size:11px;color:var(--t3);margin-top:3px}
+.sec{margin-bottom:24px}.st{font-family:'Barlow Condensed';font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--hd);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.st .cn{font-family:'Barlow';background:var(--ac);color:#fff;font-size:11px;padding:2px 10px;border-radius:10px;font-weight:600}.st.al{color:var(--rd);border-color:var(--rc)}.st.al .cn{background:var(--rd)}.st.ur{color:var(--or);border-color:#FF9800}.st.ur .cn{background:#FF9800}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:16px}.fb{background:var(--cd);border-radius:8px;padding:18px;border:1px solid var(--bd)}
+.fb h3{font-family:'Barlow Condensed';font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.fr{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}.fr .l{color:var(--tl)}.fr .v{font-weight:600}
+.ft{border-top:2px solid var(--bd);padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;font-weight:700;font-size:15px;font-family:'Barlow Condensed'}
+.tb{background:var(--cd);border-radius:8px;border:1px solid var(--bd);overflow:hidden}.tb.al{border-color:var(--rc)}
+.th{display:grid;padding:10px 16px;font-family:'Barlow Condensed';font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--tl);font-weight:600;background:var(--bg);border-bottom:1px solid var(--bd)}
+.tr{display:grid;padding:10px 16px;border-bottom:1px solid #EDF2F7;font-size:13px;align-items:center}.tr:last-child{border-bottom:none}.tr:hover{background:#F7FBFE}
+.tr .n{font-weight:500;word-break:break-word}.tr .d{color:var(--tl);font-size:12px}.tr .a{font-weight:600;text-align:right;font-family:'Barlow Condensed';font-size:14px}
+.tt{display:flex;justify-content:space-between;padding:12px 16px;background:var(--bg);font-weight:700;font-family:'Barlow Condensed';font-size:14px;border-top:2px solid var(--bd)}
+.sc{max-height:400px;overflow-y:auto}
+.bd{font-family:'Barlow Condensed';font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;display:inline-block}
+.bd-o{background:var(--rb);color:var(--rd)}.bd-e{background:#E3F2FD;color:#1565C0}.bd-m{background:var(--gb);color:var(--gn)}.bd-w{background:var(--ob);color:var(--or)}.bd-g{background:var(--gb);color:var(--gn)}.bd-r{background:var(--rb);color:var(--rd)}.bd-est{background:#EDE7F6;color:#5E35B1}.bd-conf{background:#E3F2FD;color:#0D47A1}.bd-50{background:#E8EAF6;color:#283593}.bd-100{background:#E0F2F1;color:#00695C}
+.alb{background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;font-size:13px}.alb .ic{font-size:18px;flex-shrink:0}.alb .mg{color:#4A5568}
+.abox{border-radius:10px;padding:20px;margin-bottom:16px;border:2px solid}.abox h3{font-family:'Barlow Condensed';font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}.abox .sub{font-size:12px;margin-bottom:14px}
+.abox-go{background:#E8F5E9;border-color:#66BB6A}.abox-go h3{color:#2E7D32}.abox-go .sub{color:#4E6E50}
+.abox-warn{background:#FFF8E1;border-color:#FFD54F}.abox-warn h3{color:#F57F17}.abox-warn .sub{color:#795548}
+.abox-blue{background:#E3F2FD;border-color:#42A5F5}.abox-blue h3{color:#1565C0}.abox-blue .sub{color:#546E7A}
+.abox-or{background:#FFF3E0;border-color:#FF9800}.abox-or h3{color:#E65100}.abox-or .sub{color:#795548}
+.abox-rd{background:var(--rb);border-color:var(--rc)}.abox-rd h3{color:var(--rd)}.abox-rd .sub{color:#795548}
+.cb{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:20px}
+.cg{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;align-items:end;height:100px;margin-bottom:6px}
+.bp{display:flex;gap:2px;align-items:end;justify-content:center}.b{width:8px;border-radius:2px 2px 0 0;min-height:2px}
+.ml{display:grid;grid-template-columns:repeat(12,1fr);gap:6px;text-align:center;font-size:10px;color:var(--tl);font-family:'Barlow Condensed';font-weight:500;text-transform:uppercase;margin-bottom:8px}.ml .cu{color:var(--hd);font-weight:700}
+.lg{display:flex;gap:16px;justify-content:center;font-size:11px;color:var(--tl);margin-bottom:14px}.ldd{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+.ar{display:grid;grid-template-columns:70px 1fr 1fr 1fr;padding:8px 16px;border-bottom:1px solid #EDF2F7;font-size:12px}.ar.ahd{background:var(--bg);font-weight:600;color:var(--tl);font-family:'Barlow Condensed';text-transform:uppercase;font-size:10px;letter-spacing:1.5px}.ar.acu{background:#E8F4FD;font-weight:600}
+.fo{text-align:center;padding:20px;font-size:11px;color:var(--t3);border-top:1px solid var(--bd);margin-top:12px}
+.lo{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--bg)}.lo .lic{font-size:42px;animation:pu 1.5s ease infinite}@keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
+.ls{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,95,136,.85);display:flex;align-items:center;justify-content:center;z-index:1000}
+.lbb{background:#fff;border-radius:12px;padding:40px 50px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}.lbb h2{font-family:'Barlow Condensed';font-size:22px;color:var(--hd);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px}.lbb p{color:var(--tl);font-size:14px;margin-bottom:24px}
+.lbn{display:inline-block;padding:14px 36px;margin:0 8px;border:2px solid var(--hd);border-radius:6px;font-family:'Barlow Condensed';font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:all .2s;background:transparent;color:var(--hd)}.lbn:hover{background:var(--hd);color:#fff}
+.nv{color:var(--t3);font-style:italic;font-size:12px}
+.pw-gate{position:fixed;top:0;left:0;right:0;bottom:0;background:#F2F8FC;z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{text-align:center;padding:40px}
+.pw-box h1{font-family:'Barlow Condensed';color:#005F88;font-size:28px;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.pw-box p{color:#6B7A8D;margin-bottom:24px;font-size:14px}
+.pw-box input{display:block;width:300px;margin:0 auto 12px;padding:12px 16px;border:2px solid #D0E8F2;border-radius:6px;font-size:14px;font-family:'Barlow';text-align:center;outline:none;transition:.2s}
+.pw-box input:focus{border-color:#00AEEF}
+.pw-box .btn{background:#005F88;color:#fff;border:none;padding:14px 44px;border-radius:6px;font-family:'Barlow Condensed';font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:.2s;margin-top:8px}
+.pw-box .btn:hover{background:#00AEEF}
+.pw-err{color:#C62828;font-size:13px;margin-top:10px;display:none}
+/* Editable form fields in action boxes */
+.ef{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;padding:10px 16px;border-top:1px dashed var(--bd);align-items:end}
+.ef label{font-size:10px;color:var(--tl);font-family:'Barlow Condensed';text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:3px}
+.ef input,.ef textarea{border:1px solid var(--bd);border-radius:4px;padding:6px 8px;font-size:12px;font-family:'Barlow';width:100%;outline:none;transition:.2s}.ef input:focus,.ef textarea:focus{border-color:var(--ac)}
+.ef textarea{resize:vertical;min-height:32px}
+.svbtn{background:var(--gn);color:#fff;border:none;padding:8px 14px;border-radius:5px;font-family:'Barlow Condensed';font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;cursor:pointer;transition:.2s;white-space:nowrap}.svbtn:hover{background:#0a6331}
+.svbtn.saving{opacity:.5;pointer-events:none}
+.sv-ok{color:var(--gn);font-size:11px;font-weight:600;margin-left:6px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* Pay button */
+.paybtn{background:var(--ac);color:#fff;border:none;padding:6px 12px;border-radius:4px;font-family:'Barlow Condensed';font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:.2s}.paybtn:hover{background:var(--hd)}
+/* Aging bars */
+.aging-bar{display:flex;height:24px;border-radius:4px;overflow:hidden;margin:8px 0}.aging-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'Barlow Condensed';color:#fff;min-width:30px;transition:width .3s}
+/* FPA metrics card */
+.mcard{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:18px;margin-bottom:16px}.mcard h3{font-family:'Barlow Condensed';font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--hd);margin-bottom:12px}
+.mcard .mv{font-family:'Barlow Condensed';font-size:28px;font-weight:700;margin-bottom:4px}.mcard .md{font-size:12px;color:var(--tl)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-family:'Barlow';z-index:9999;animation:slideUp .3s ease;box-shadow:0 4px 12px rgba(0,0,0,.2)}.toast.ok{background:var(--gn)}.toast.err{background:var(--rd)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+/* Comment history */
+.cm-hist{font-size:11px;color:var(--tl);margin-top:4px;max-height:60px;overflow-y:auto;line-height:1.5}
+@media(max-width:700px){.cds{grid-template-columns:1fr 1fr}.fg{grid-template-columns:1fr}.hv{font-size:30px}.tabs{flex-wrap:wrap}.tab{font-size:12px;padding:10px}.ef{grid-template-columns:1fr 1fr}.mgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="pw-gate" id="pwGate">
+<div class="pw-box">
+<div style="font-size:48px;margin-bottom:16px">⚖️</div>
+<h1>HOLANDA PERÍCIAS</h1>
+<p>Financial Dashboard — Restricted Access</p>
+<input type="password" id="pwIn" placeholder="Senha / Password" onkeydown="if(event.key==='Enter')pwTry()">
+<button class="btn" onclick="pwTry()">ACESSAR DASHBOARD</button>
+<div class="pw-err" id="pwErr"></div>
+</div>
+</div>
+
+<div class="ls" id="langSel" style="display:none"><div class="lbb"><h2>Holanda Perícias</h2><p>Choose your language / Escolha seu idioma</p><button class="lbn" onclick="go('en')">🇺🇸 English</button> <button class="lbn" onclick="go('pt')">🇧🇷 Português</button></div></div>
+<div id="ld" class="lo" style="display:none"><div class="lic">⚖️</div><div id="ldt" style="font-family:'Barlow Condensed';font-size:16px;color:var(--hd);text-transform:uppercase;letter-spacing:3px;font-weight:600"></div></div>
+
+<div id="app" style="display:none">
+<div class="hdr">
+<div class="logo">HOLANDA<span>PERÍCIAS</span></div>
+<div class="hr">
+<label id="lbP"></label><select id="sel" onchange="RR()"></select>
+<button class="hbtn" onclick="reload()">🔄</button>
+<button class="hbtn" onclick="logout()">🚪</button>
+</div>
+</div>
+<div class="abar"></div>
+<div class="tabs">
+<div class="tab active" id="tab1" onclick="switchTab(1)">💰 <span id="tabL1"></span></div>
+<div class="tab" id="tab2" onclick="switchTab(2)">📊 <span id="tabL2"></span></div>
+</div>
+<div class="ct" id="main"></div>
+</div>
+
+<script>
+let TK="",BS="appTEAYT5TYhnQwTn";
+let CO=[],CF=[],PZ=[],CA=[],CL={},L="en",TAB=1;
+// Local comments storage
+let LC=JSON.parse(localStorage.getItem("hp_comments")||"{}");
+function savLC(){localStorage.setItem("hp_comments",JSON.stringify(LC))}
+
+const I={en:{
+proj:"Projected Available Profit",pRev:"Projected revenue",pExp:"Projected expenses",
+rMonth:"Revenue This Month",eMonth:"Expenses This Month",sPL:"Simple P&L",acRec:"Accounts Receivable",
+pRec:"payments received",pMade:"payments made",rMinE:"Revenue − Expenses",pInv:"pending invoices",
+cfP:"Cash Flow Projection",infl:"Projected Inflows",outfl:"Projected Outflows",
+aRec:"Already received this month",pI90:"Pending invoices (<90 days)",tPR:"Total projected revenue",
+aSp:"Already spent this month",fxC:"Fixed monthly costs",eAss:"Estimated assistant fees",tPE:"Total projected expenses",
+tab1:"Payments & Billing",tab2:"Financial Analysis",
+payToDo:"Payments To Make",assUnpaid:"Unpaid Assistants",fxDue:"Fixed Costs Due Soon",
+case_:"Case",type:"Type",phase:"Phase",nf:"NF#",inv:"Invoiced",sts:"Status",fc:"Forecast",amt:"Amount",
+contract:"Contract",payType:"Payment",noValue:"No value",tRec:"Total receivable",
+oaWas:"was expected on",oaCheck:"— verify if received",conf:"Confirmed",noRet:"No return",
+uAss:"Upcoming Assistant Fees",exm:"exams",dte:"Date",asgn:"Assigned",eCst:"Cost",
+tEst:"Total estimated",estBd:"Estimated",confBd:"Confirmed",
+fxM:"Fixed Monthly Costs",mo:"mo",day:"Day",tot:"Total",
+ovd:"Overdue (+90 Days)",cli:"CLIENTS",tOut:"Total outstanding",dys:"Days",
+annOv:"Annual Overview",rev:"Revenue",exp:"Expenses",pl:"P&L",mth:"Month",
+lUpd:"Last updated",per:"Period",ldg:"Loading Financial Data",
+exam:"Exam",manif:"Manifestation",billAfter:"After",
+bill5050:"Bill 50% Upfront — New Cases",bill5050Sub:"These 50/50 cases have no invoices yet — bill the initial 50% now",half:"50%",
+billDirect:"Issue Invoice Directly",billDirectSub:"Reliable clients — issue the NF and send the invoice now",
+billConfirm:"⚠ Confirm With Client Before Issuing NF",billConfirmSub:"Contact these clients first to confirm before issuing",
+billPostP:"Post-Exam — Awaiting Manifestation",billPostPSub:"Exam done — waiting for manifestation milestone before billing",
+awaitPay:"Awaiting Payment",awaitPaySub:"Invoices sent, waiting for payment",
+billToDo:"Billing To Do",
+nfNum:"NF Number",nfVal:"NF Value",dtCob:"Billing Date",comments:"Comments",saveCob:"Save Billing",
+markPaid:"Mark Paid",datePaid:"Date Paid",assistant:"Assistant",pix:"PIX Key",reqDate:"Requested",
+pendNorm:"Pending Normal (<90d)",debtors:"Debtors (+90d)",
+predict:"Smart 30-Day Forecast",predSub:"Automatic projection of inflows and outflows for the next 30 days",
+predIn:"Predicted Inflows",predOut:"Predicted Outflows",
+predPend:"Pending invoices with payment forecast",predNoPrev:"Pending w/o forecast (client avg)",
+predToBill:"Cases ready to bill (probable)",predNew50:"New 50/50 initial charges",
+predProb:"Weighted by probability",predFx:"Fixed monthly costs",predAss:"Assistant fees (upcoming exams)",
+predUnpaidOut:"Unpaid outflows",predRevProj:"Projected Revenue",predExpProj:"Projected Expenses",
+predProfit:"Projected Profit",predSafe:"Safe Withdrawal",predReserve:"Reserve = 2× monthly costs",
+agingRec:"Receivables Aging",concRev:"Revenue Concentration by Client",
+dso:"DSO (Days Sales Outstanding)",dsoReal:"Actual avg",dsoExp:"Expected avg",dsoDays:"days",
+burnRate:"Burn Rate & Runway",burnAvg:"Avg monthly expenses (3mo)",runwaySaldo:"Current balance",
+runwayMo:"months of operation",workCap:"Working Capital",
+wcFree:"Available (received uncommitted)",wcOblig:"Pending obligations",
+annualSum:"Annual Summary",fxCosts:"Active Fixed Costs",categ:"Category",dueDay:"Due Day",
+resc:"Rescheduling fee",saved:"Saved!",error:"Error",
+noData:"No items",followUp:"Follow-up",addComment:"Add comment...",
+val:"Value",client:"Client",toBill:"To Bill"
+},
+pt:{
+proj:"Projeção de Lucro Disponível",pRev:"Receita projetada",pExp:"Gastos projetados",
+rMonth:"Receita do Mês",eMonth:"Gastos do Mês",sPL:"Lucro Simples",acRec:"A Receber",
+pRec:"pagamentos recebidos",pMade:"pagamentos feitos",rMinE:"Receita − Gastos",pInv:"cobranças pendentes",
+cfP:"Projeção de Fluxo de Caixa",infl:"Entradas Projetadas",outfl:"Saídas Projetadas",
+aRec:"Já recebido neste mês",pI90:"Cobranças pendentes (<90 dias)",tPR:"Total receita projetada",
+aSp:"Já gasto neste mês",fxC:"Custos fixos mensais",eAss:"Honorários assistentes (est.)",tPE:"Total gastos projetados",
+tab1:"Pagamentos & Cobranças",tab2:"Análise Financeira",
+payToDo:"Pagamentos a Fazer",assUnpaid:"Assistentes Não Pagos",fxDue:"Custos Fixos Próximos",
+case_:"Caso",type:"Tipo",phase:"Fase",nf:"NF",inv:"Cobrado em",sts:"Status",fc:"Previsão",amt:"Valor",
+contract:"Contrato",payType:"Pagamento",noValue:"Sem valor",tRec:"Total a receber",
+oaWas:"era previsto para",oaCheck:"— verifique se entrou",conf:"Confirmado",noRet:"Sem retorno",
+uAss:"Honorários de Assistentes",exm:"perícias",dte:"Data",asgn:"Designado",eCst:"Custo",
+tEst:"Total estimado",estBd:"Estimado",confBd:"Confirmado",
+fxM:"Custos Fixos Mensais",mo:"mês",day:"Dia",tot:"Total",
+ovd:"Devedores (+90 Dias)",cli:"CLIENTES",tOut:"Total em dívida",dys:"Dias",
+annOv:"Resumo Anual",rev:"Receita",exp:"Gastos",pl:"Lucro",mth:"Mês",
+lUpd:"Atualizado em",per:"Período",ldg:"Carregando Dados Financeiros",
+exam:"Perícia",manif:"Manifestação",billAfter:"Após",
+bill5050:"Cobrar 50% Inicial — Casos Novos",bill5050Sub:"Esses casos 50/50 não têm cobrança — cobre os 50% iniciais agora",half:"50%",
+billDirect:"Emitir NF Diretamente",billDirectSub:"Clientes confiáveis — emita a NF e envie a cobrança",
+billConfirm:"⚠ Confirmar Com Cliente Antes",billConfirmSub:"Confirme com esses clientes antes de emitir a NF",
+billPostP:"Pós-Perícia — Aguardando Manifestação",billPostPSub:"Perícia feita — aguardando manifestação para cobrar",
+awaitPay:"Aguardando Pagamento",awaitPaySub:"Cobranças enviadas, esperando pagamento",
+billToDo:"Cobranças a Fazer",
+nfNum:"Número NF",nfVal:"Valor NF",dtCob:"Data Cobrança",comments:"Comentários",saveCob:"Salvar Cobrança",
+markPaid:"Marcar Pago",datePaid:"Data Pagamento",assistant:"Assistente",pix:"Chave PIX",reqDate:"Solicitado",
+pendNorm:"Pendentes Normais (<90d)",debtors:"Devedores (+90d)",
+predict:"Previsão Inteligente 30 Dias",predSub:"Projeção automática de entradas e saídas nos próximos 30 dias",
+predIn:"Entradas Previstas",predOut:"Saídas Previstas",
+predPend:"Cobranças pendentes c/ previsão pagamento",predNoPrev:"Pendentes s/ previsão (média do cliente)",
+predToBill:"Casos prontos p/ cobrança (provável)",predNew50:"50% iniciais de casos novos",
+predProb:"Ponderado por probabilidade",predFx:"Custos fixos mensais",predAss:"Assistentes (perícias próximas)",
+predUnpaidOut:"Saídas não pagas",predRevProj:"Receita Projetada",predExpProj:"Gastos Projetados",
+predProfit:"Lucro Projetado",predSafe:"Retirada Segura",predReserve:"Reserva = 2× custos fixos mensais",
+agingRec:"Aging de Recebíveis",concRev:"Concentração de Receita por Cliente",
+dso:"DSO (Prazo Médio de Recebimento)",dsoReal:"Média real",dsoExp:"Média esperada",dsoDays:"dias",
+burnRate:"Burn Rate & Runway",burnAvg:"Gasto médio mensal (3m)",runwaySaldo:"Saldo atual",
+runwayMo:"meses de operação",workCap:"Capital de Giro",
+wcFree:"Disponível (recebido não comprometido)",wcOblig:"Obrigações pendentes",
+annualSum:"Resumo Anual",fxCosts:"Custos Fixos Ativos",categ:"Categoria",dueDay:"Dia Vcto",
+resc:"Taxa remarcação",saved:"Salvo!",error:"Erro",
+noData:"Nenhum item",followUp:"Follow-up",addComment:"Adicionar comentário...",
+val:"Valor",client:"Cliente",toBill:"A Cobrar"
+}};
+
+const t=k=>I[L][k]||k;
+const $=v=>(v==null||isNaN(v))?"R$ 0,00":new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(v);
+const lc=()=>L==="pt"?"pt-BR":"en-US";
+const fD=d=>{if(!d)return"—";return new Date(d).toLocaleDateString(lc(),{month:"short",day:"numeric"})};
+const fDF=d=>{if(!d)return"—";return new Date(d).toLocaleDateString(lc(),{month:"short",day:"numeric",year:"numeric"})};
+const daysBetween=(a,b)=>Math.floor((b-a)/864e5);
+function tpB(tp){return`<span class="bd ${(tp||"").match(/[Mm][eé]d/)?"bd-m":"bd-e"}">${tp||"—"}</span>`}
+function toast(msg,ok=true){const d=document.createElement("div");d.className="toast "+(ok?"ok":"err");d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),3000)}
+
+function switchTab(n){TAB=n;document.getElementById("tab1").className="tab"+(n===1?" active":"");document.getElementById("tab2").className="tab"+(n===2?" active":"");RR()}
+function logout(){sessionStorage.clear();location.reload()}
+function reload(){document.getElementById("app").style.display="none";document.getElementById("ld").style.display="flex";document.getElementById("ldt").textContent=t("ldg");load()}
+
+function go(l){L=l;sessionStorage.setItem("hp_lang",l);document.getElementById("langSel").style.display="none";document.getElementById("ld").style.display="flex";document.getElementById("ldt").textContent=t("ldg");load()}
+
+// ─── API ───
+async function F(tb,f,fl){let a=[],o=null;do{const p=new URLSearchParams;if(f)p.set("filterByFormula",f);if(o)p.set("offset",o);(fl||[]).forEach(x=>p.append("fields[]",x));p.set("pageSize","100");const r=await fetch(`https://api.airtable.com/v0/${BS}/${encodeURIComponent(tb)}?${p}`,{headers:{Authorization:`Bearer ${TK}`}});const d=await r.json();if(d.error)throw new Error(d.error.message);if(d.records)a=a.concat(d.records);o=d.offset||null}while(o);return a}
+
+async function patchAT(table,recId,fields){
+  const r=await fetch(`https://api.airtable.com/v0/${BS}/${encodeURIComponent(table)}/${recId}`,{
+    method:"PATCH",headers:{Authorization:`Bearer ${TK}`,"Content-Type":"application/json"},
+    body:JSON.stringify({fields})});
+  if(!r.ok)throw new Error("PATCH failed");return r.json();
+}
+async function postAT(table,fields){
+  const r=await fetch(`https://api.airtable.com/v0/${BS}/${encodeURIComponent(table)}`,{
+    method:"POST",headers:{Authorization:`Bearer ${TK}`,"Content-Type":"application/json"},
+    body:JSON.stringify({records:[{fields}]})});
+  if(!r.ok)throw new Error("POST failed");return r.json();
+}
+
+// ─── LOAD DATA ───
+async function load(){
+  try{
+    const[co,cf,pz,ca,cl]=await Promise.all([
+      F("Cobranças","",["Name","Tipo","Recebido?","Data recebimento","Valor a Receber","Data da cobrança","Previsão de Pagamento","Valor Líquido Recebido","Valor de Pagamento","Pago?","Retorno?","Número NF","Foi emitida NF?","NF Retida (devedor)","Tipo de Pagamento","Caso relacionado","Assistente Técnico","Chave PIX Assistente","Data do Pagamento","Valor Bruto NF"]),
+      F("Custos Fixos","{Ativo?}=TRUE()",["Name","Valor Estimado","Dia Vencimento","Categoria"]),
+      F("Prazos",'AND({Situação}!="Arquivado",{Data da Perícia}>=TODAY())',["Nome","Tipo de Prazos","Data da Perícia","Tipo de Perícia","Assistente","Local da Perícia","Valor Assistente","Caso Relacionado"]),
+      F("Casos",'NOT(OR({Fase}="Encerrado - Pago",{Fase}="Arquivado (serviço cancelado)"))',["Palavra Chave","Fase","Tipo de Caso","Cobranças","Recebido? (from Cobranças)","Valor (from Cobranças)","Valor Acordado","Formato de Pagamento","Cobrança Final Após","Cliente","Numero do Processo","Data da Perícia (from Prazos)","Pericia remarcada? (from Prazos)"]),
+      F("Clientes","",["Name","Confirmar antes da NF?","Prazo Médio Pgto (dias)","CNPJ"])
+    ]);
+    CO=co;CF=cf;PZ=pz;CA=ca;CL={};
+    cl.forEach(r=>{CL[r.id]={name:r.fields.Name||"",cnf:!!r.fields["Confirmar antes da NF?"],prazo:r.fields["Prazo Médio Pgto (dias)"]||45,cnpj:r.fields.CNPJ||""}});
+    
+    const s=document.getElementById("sel"),n=new Date(),y=n.getFullYear();
+    s.innerHTML="";
+    for(let m=1;m<=12;m++){const o=document.createElement("option");o.value=`${y}-${String(m).padStart(2,"0")}`;o.textContent=new Date(y,m-1).toLocaleString(lc(),{month:"long",year:"numeric"});if(m===n.getMonth()+1)o.selected=true;s.appendChild(o)}
+    document.getElementById("lbP").textContent=t("per");
+    document.getElementById("tabL1").textContent=t("tab1");
+    document.getElementById("tabL2").textContent=t("tab2");
+    RR();
+    document.getElementById("ld").style.display="none";
+    document.getElementById("app").style.display="block";
+  }catch(e){
+    document.getElementById("ld").innerHTML=`<div style="font-size:40px;margin-bottom:16px">❌</div><div style="color:var(--rd)">${e.message}</div>`;
+  }
+}
+
+// ─── HELPERS ───
+function clientName(c){const ids=c.fields.Cliente||[];for(const id of ids){if(CL[id])return CL[id].name}return"—"}
+function clientData(c){const ids=c.fields.Cliente||[];for(const id of ids){if(CL[id])return CL[id]}return null}
+// KNOWN DEBTOR client record IDs (from spec)
+const DEBTOR_CLIENTS=new Set(["recTeLOQoAANlYJiz","rectpEuF1HzHFDVCi"]); // Veneza, Rei do Sushi
+
+function isDebtorClient(c){
+  const ids=c.fields.Cliente||[];
+  for(const id of ids){
+    if(DEBTOR_CLIENTS.has(id))return true;
+    const cl=CL[id];
+    if(cl){const n=cl.name.toLowerCase();if(n.includes("veneza")||n.includes("rei do sushi"))return true}
+  }
+  return false;
+}
+function isDebtor(c){return(c.fields.Fase||"")==="Devedor"||isDebtorClient(c)}
+
+function needsCnf(c){
+  // Debtors are NEVER in the "confirm" section — they go to debtors
+  if(isDebtor(c))return false;
+  const cd=clientData(c);
+  if(cd&&cd.cnf)return true;
+  const cn=(cd?cd.name:"").toLowerCase();
+  if(cn.includes("moura")||cn.includes("doubex")||cn.includes("servis")||cn.includes("servtec")||cn.includes("parangaba"))return true;
+  return false;
+}
+function ec(p){const f=p.fields;const rv=f["Valor Assistente"];if(rv&&rv>0)return{v:rv,c:true};const tp=f["Tipo de Perícia"]||"",l=(f["Local da Perícia"]||"").toLowerCase();if(tp==="Engenharia")return{v:1000,c:false};const iF=l.includes("fortaleza")||l.includes("aldeota")||l.includes("fátima")||l.includes("meireles");return{v:iF?600:1000,c:false}}
+
+// Rescheduling fee: count distinct "Data da Perícia" dates from Prazos linked to case
+function rescFee(caso){
+  const dates=caso.fields["Data da Perícia (from Prazos)"]||[];
+  const extra=Math.max(0,dates.length-1);
+  return extra*500;
+}
+// Find all Entrada cobranças linked to a case (by link OR by name match)
+function findLinkedEntradas(caso){
+  const f=caso.fields;
+  const cobIds=f["Cobranças"]||[];
+  const kw=(f["Palavra Chave"]||"").toLowerCase().trim();
+  return CO.filter(c=>{
+    if(c.fields.Tipo!=="Entrada")return false;
+    // Match by link: case→cob
+    if(cobIds.includes(c.id))return true;
+    // Match by link: cob→case
+    if((c.fields["Caso relacionado"]||[]).includes(caso.id))return true;
+    // Fallback: match by name (cobrança Name contains case Palavra Chave)
+    if(kw.length>5){
+      const cn=(c.fields.Name||"").toLowerCase();
+      if(cn.includes(kw))return true;
+    }
+    return false;
+  });
+}
+
+// What remains to bill for a case
+function billCalc(caso){
+  const f=caso.fields;
+  const va=f["Valor Acordado"]||0;
+  const fmt=(f["Formato de Pagamento"]||"");
+  const is5050=fmt.includes("50/50");
+  const linked=findLinkedEntradas(caso);
+  const rf=rescFee(caso);
+  
+  if(is5050){
+    const has50i=linked.some(c=>(c.fields["Tipo de Pagamento"]||[]).some(t=>t.includes("Iniciais")));
+    const has50f=linked.some(c=>(c.fields["Tipo de Pagamento"]||[]).some(t=>t.includes("Finais")));
+    if(!has50i&&!has50f){
+      // No cobranças at all — but double check: if ANY entrada exists with NF, consider it billed
+      if(linked.length>0)return null;
+      return{type:"50i",val:va/2,label:"50% Iniciais",rf:0};
+    }
+    if(has50i&&!has50f){
+      return{type:"50f",val:va/2+rf,label:"50% Finais"+(rf?` + ${t("resc")} R$${rf}`:""),rf};
+    }
+    return null;
+  } else {
+    const hasNF=linked.some(c=>c.fields["Foi emitida NF?"]);
+    if(linked.length===0||!hasNF){
+      return{type:"100",val:va+rf,label:"100%"+(rf?` + ${t("resc")} R$${rf}`:""),rf};
+    }
+    return null;
+  }
+}
+
+// ─── RENDER ───
+function RR(){
+  if(TAB===1) renderTab1();
+  else renderTab2();
+}
+
+function renderTab1(){
+  const mk=document.getElementById("sel").value,yr=+mk.split("-")[0],mn=+mk.split("-")[1];
+  const hj=new Date(),h90=new Date(hj);h90.setDate(h90.getDate()-90);
+  let h="";
+  
+  // ═══ 4.1.A — PAYMENTS TO MAKE ═══
+  const assMinDate=new Date("2026-04-01");
+  const assUnpaid=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Saída"||f["Pago?"])return false;const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;return dc&&dc>=assMinDate});
+  const tAssUnpaid=assUnpaid.reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+  
+  // Fixed costs due soon (±5 days)
+  const today=hj.getDate();
+  const cfDue=CF.filter(r=>{const d=r.fields["Dia Vencimento"];return d&&Math.abs(d-today)<=5});
+  
+  h+=`<div class="sec"><div class="st">${t("payToDo")} <span class="cn">${assUnpaid.length+cfDue.length}</span></div>`;
+  
+  // Unpaid assistants
+  if(assUnpaid.length){
+    h+=`<div style="margin-bottom:16px"><div class="cl" style="margin-bottom:8px">👤 ${t("assUnpaid")} <span style="color:var(--rd);font-size:13px">(${$(tAssUnpaid)})</span></div>`;
+    h+=`<div class="tb"><div class="th" style="grid-template-columns:1fr 100px 80px 1fr 80px"><span>${t("case_")}</span><span>${t("assistant")}</span><span>${t("amt")}</span><span>${t("pix")}</span><span></span></div><div class="sc">`;
+    assUnpaid.forEach((r,i)=>{
+      const f=r.fields;const v=f["Valor de Pagamento"]||f["Valor a Receber"]||0;
+      h+=`<div class="tr" style="grid-template-columns:1fr 100px 80px 1fr 80px"><span class="n">${(f.Name||"—")}</span><span class="d">${f["Assistente Técnico"]?"✓":"—"}</span><span class="a r">${$(v)}</span><span class="d" style="font-size:11px;word-break:break-all">${f["Chave PIX Assistente"]||"—"}</span><span><button class="paybtn" onclick="markPaid('${r.id}',this)">💰 ${t("markPaid")}</button></span></div>`;
+    });
+    h+=`</div><div class="tt"><span>${t("tot")}</span><span class="r">${$(tAssUnpaid)}</span></div></div></div>`;
+  }
+  
+  // Fixed costs due
+  if(cfDue.length){
+    h+=`<div style="margin-bottom:16px"><div class="cl" style="margin-bottom:8px">📅 ${t("fxDue")}</div>`;
+    h+=`<div class="tb">`;
+    cfDue.forEach(r=>{const f=r.fields;
+      h+=`<div class="tr" style="grid-template-columns:1fr 80px 80px 80px"><span class="n">${f.Name}</span><span class="d">${t("day")} ${f["Dia Vencimento"]}</span><span><span class="bd bd-w">${f.Categoria||""}</span></span><span class="a r">${$(f["Valor Estimado"])}</span></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  if(!assUnpaid.length&&!cfDue.length) h+=`<div class="nv">${t("noData")}</div>`;
+  h+=`</div>`;
+  
+  // ═══ 4.1.B — BILLING TO DO ═══
+  // BOTH phases enter billing flow — exclude debtors and fully-billed cases
+  const billablePhases=["Encerrado PARA COBRANÇA","Para cobrança pós perícia, falta manifestação"];
+  const billAll=CA.filter(r=>billablePhases.includes(r.fields.Fase)&&!isDebtor(r));
+  const billAllNeed=billAll.filter(r=>billCalc(r)!==null);
+  
+  // Split by phase for visual grouping
+  const isPostP=r=>r.fields.Fase==="Para cobrança pós perícia, falta manifestação";
+  
+  // "Encerrado PARA COBRANÇA" cases
+  const encDir=billAllNeed.filter(r=>!isPostP(r)&&!needsCnf(r));
+  const encCnf=billAllNeed.filter(r=>!isPostP(r)&&needsCnf(r));
+  
+  // "Pós-Perícia" cases — same split
+  const postPDir=billAllNeed.filter(r=>isPostP(r)&&!needsCnf(r));
+  const postPCnf=billAllNeed.filter(r=>isPostP(r)&&needsCnf(r));
+  
+  // Merge for display: direct = encDir + postPDir, confirm = encCnf + postPCnf
+  const billDir=[...encDir,...postPDir];
+  const billCnf=[...encCnf,...postPCnf];
+  
+  // PostP informational: only cases in that phase that are ALREADY fully billed (nothing left to bill)
+  const postPInfo=CA.filter(r=>isPostP(r)&&!isDebtor(r)&&billCalc(r)===null);
+  
+  const active5050=CA.filter(r=>{const f=r.fields;
+    if(!(f["Formato de Pagamento"]||"").includes("50/50"))return false;
+    if(!(f.Fase||"").includes("Ativo"))return false;
+    if(isDebtor(r))return false;
+    const hasEntrada=findLinkedEntradas(r).length>0;
+    return !hasEntrada;
+  });
+  
+  const totalBillItems=billDir.length+billCnf.length+postPInfo.length+active5050.length;
+  
+  if(totalBillItems>0){
+    h+=`<div class="sec"><div class="st ur">🔥 ${t("billToDo")} <span class="cn">${totalBillItems}</span></div>`;
+    
+    // Sub-section 1: 50% Iniciais
+    if(active5050.length){
+      h+=`<div class="abox abox-or"><h3>💰 ${t("bill5050")}</h3><div class="sub">${t("bill5050Sub")}</div>`;
+      active5050.forEach((r,i)=>{
+        const f=r.fields;const va=f["Valor Acordado"]||0;const half=va/2;
+        const cn=clientName(r);
+        h+=`<div class="tb" style="margin-bottom:8px"><div class="tr" style="grid-template-columns:1fr 90px 80px 80px"><span class="n">${(f["Palavra Chave"]||"")}</span><span class="d">${cn}</span><span class="a" style="color:var(--tl)">${$(va)}</span><span class="a o">${$(half)}</span></div>`;
+        h+=billForm(r.id,"50i",half,i);
+        h+=`</div>`;
+      });
+      h+=`</div>`;
+    }
+    
+    // Sub-section 2: Emitir NF Direto (includes both phases)
+    if(billDir.length){
+      h+=`<div class="abox abox-go"><h3>✅ ${t("billDirect")}</h3><div class="sub">${t("billDirectSub")}</div>`;
+      billDir.forEach((r,i)=>{
+        const f=r.fields;const bc=billCalc(r);const va=bc?bc.val:(f["Valor Acordado"]||0);
+        const cn=clientName(r);
+        const phaseTag=isPostP(r)?` <span class="bd bd-e">${L==="pt"?"PÓS-PERÍCIA":"POST-EXAM"}</span>`:"";
+        h+=`<div class="tb" style="margin-bottom:8px"><div class="tr" style="grid-template-columns:1fr 90px 100px 80px"><span class="n">${(f["Palavra Chave"]||"")}${phaseTag}</span><span class="d">${cn}</span><span>${bc?`<span class="bd bd-100">${bc.label}</span>`:""}</span><span class="a o">${$(va)}</span></div>`;
+        h+=billForm(r.id,bc?bc.type:"100",va,100+i);
+        h+=`</div>`;
+      });
+      h+=`</div>`;
+    }
+    
+    // Sub-section 3: Confirmar com Cliente (includes both phases)
+    if(billCnf.length){
+      h+=`<div class="abox abox-warn"><h3>${t("billConfirm")}</h3><div class="sub">${t("billConfirmSub")}</div>`;
+      billCnf.forEach((r,i)=>{
+        const f=r.fields;const bc=billCalc(r);const va=bc?bc.val:(f["Valor Acordado"]||0);
+        const cn=clientName(r);
+        const phaseTag=isPostP(r)?` <span class="bd bd-e">${L==="pt"?"PÓS-PERÍCIA":"POST-EXAM"}</span>`:"";
+        h+=`<div class="tb" style="margin-bottom:8px"><div class="tr" style="grid-template-columns:1fr 90px 100px 80px"><span class="n">${(f["Palavra Chave"]||"")}${phaseTag}</span><span class="d">${cn}</span><span>${bc?`<span class="bd bd-50">${bc.label}</span>`:""}</span><span class="a o">${$(va)}</span></div>`;
+        h+=billForm(r.id,bc?bc.type:"100",va,200+i);
+        h+=`</div>`;
+      });
+      h+=`</div>`;
+    }
+    
+    // Sub-section 4: Pós-Perícia — Informational only (already billed, waiting manifestation)
+    if(postPInfo.length){
+      h+=`<div class="abox abox-blue"><h3>📋 ${t("billPostP")}</h3><div class="sub">${L==="pt"?"Já cobrados — aguardando manifestação para encerrar":"Already billed — waiting for manifestation to close"}</div><div class="tb">`;
+      postPInfo.forEach(r=>{
+        const f=r.fields;const cn=clientName(r);
+        h+=`<div class="tr" style="grid-template-columns:1fr 100px 80px"><span class="n">${(f["Palavra Chave"]||"")}</span><span class="d">${cn}</span><span class="a" style="color:var(--tl)">${$(f["Valor Acordado"])}</span></div>`;
+      });
+      h+=`</div></div>`;
+    }
+    
+    h+=`</div>`;
+  }
+  
+  // ═══ 4.1.C — AWAITING PAYMENT ═══
+  const arR=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||f["Recebido?"])return false;if(!f["Foi emitida NF?"])return false;if(f["NF Retida (devedor)"])return false;const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;return dc&&dc>=h90});
+  const tAR=arR.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0),0);
+  
+  if(arR.length){
+    // Overdue payment alerts
+    const oa=arR.filter(r=>{const p=r.fields["Previsão de Pagamento"];return p&&new Date(p)<hj});
+    oa.forEach(r=>{const f=r.fields;h+=`<div class="alb"><span class="ic">⚠️</span><div class="mg"><strong>${(f.Name||"")}</strong> — ${$(f["Valor a Receber"])} ${t("oaWas")} <strong>${fDF(f["Previsão de Pagamento"])}</strong> ${t("oaCheck")}${f["Número NF"]?` (NF ${f["Número NF"]})`:""}</div></div>`});
+    
+    h+=`<div class="sec"><div class="st">${t("pendNorm")} <span class="cn">${arR.length}</span></div>`;
+    h+=`<div class="tb"><div class="th" style="grid-template-columns:1fr 45px 65px 70px 65px 50px 80px"><span>${t("case_")}</span><span>${t("nf")}</span><span>${t("inv")}</span><span>${t("sts")}</span><span>${t("fc")}</span><span>${t("dys")}</span><span style="text-align:right">${t("amt")}</span></div><div class="sc">`;
+    arR.forEach(r=>{
+      const f=r.fields;const ret=f["Retorno?"];
+      const prev=f["Previsão de Pagamento"]?new Date(f["Previsão de Pagamento"]):null;
+      const pOv=prev&&prev<hj;
+      const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;
+      const dias=dc?daysBetween(dc,hj):0;
+      h+=`<div class="tr" style="grid-template-columns:1fr 45px 65px 70px 65px 50px 80px"><span class="n">${(f.Name||"—")}</span><span class="d">${f["Número NF"]||"—"}</span><span class="d">${fD(f["Data da cobrança"])}</span><span>${ret?`<span class="bd bd-g">${t("conf")}</span>`:`<span class="bd bd-w">${t("noRet")}</span>`}</span><span>${prev?`<span class="bd ${pOv?'bd-r':'bd-g'}">${fD(f["Previsão de Pagamento"])}</span>`:"—"}</span><span><span class="bd ${dias>60?'bd-r':dias>30?'bd-w':'bd-g'}">${dias}d</span></span><span class="a o">${$(f["Valor a Receber"])}</span></div>`;
+      // Comment area
+      const cmKey="cm_"+r.id;
+      const hist=LC[cmKey]||"";
+      h+=`<div style="padding:4px 16px 8px;border-bottom:1px solid #EDF2F7"><div class="cm-hist">${hist?hist.replace(/\n/g,"<br>"):""}</div><div style="display:flex;gap:6px;margin-top:4px"><input type="text" id="ci_${r.id}" placeholder="${t("addComment")}" style="flex:1;border:1px solid var(--bd);border-radius:4px;padding:4px 8px;font-size:11px;font-family:Barlow;outline:none"><button class="svbtn" style="padding:4px 10px;font-size:10px" onclick="addComment('${r.id}')">💬</button></div></div>`;
+    });
+    h+=`</div><div class="tt"><span>${t("tRec")}</span><span class="o">${$(tAR)}</span></div></div></div>`;
+  }
+  
+  // ═══ DEBTORS ═══
+  // All debtor cases: by fase OR by client identity (Veneza, Rei do Sushi)
+  const allDebtorCases=CA.filter(r=>isDebtor(r));
+  const allDebtorCaseIds=new Set(allDebtorCases.map(r=>r.id));
+  const dv=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||f["Recebido?"])return false;
+    // NF Retida
+    if(f["NF Retida (devedor)"])return true;
+    // Linked to a Debtor case (by fase or by client)
+    const cr=f["Caso relacionado"]||[];
+    if(cr.some(id=>allDebtorCaseIds.has(id)))return true;
+    // >90 days unpaid
+    const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;
+    return dc&&dc<h90;
+  });
+  const tDV=dv.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0),0);
+  // Debtor cases that have no cobranças listed (show case-level info)
+  const dvCaseIds=new Set();dv.forEach(r=>(r.fields["Caso relacionado"]||[]).forEach(id=>dvCaseIds.add(id)));
+  const debtorCasesExtra=allDebtorCases.filter(r=>!dvCaseIds.has(r.id));
+  
+  if(dv.length||debtorCasesExtra.length){
+    h+=`<div class="sec"><div class="st al">🚨 ${t("ovd")} <span class="cn">${dv.length+debtorCasesExtra.length}</span></div>`;
+    h+=`<div class="abox abox-rd"><h3>${t("tOut")}: ${$(tDV)}</h3><div class="sub">${dv.length} ${L==="pt"?"cobranças em aberto":"open invoices"}${debtorCasesExtra.length?` · ${debtorCasesExtra.length} ${L==="pt"?"casos sem cobrança":"cases without invoices"}`:""}</div>`;
+    h+=`<div class="tb al"><div class="th" style="grid-template-columns:1fr 45px 65px 55px 80px"><span>${t("case_")}</span><span>${t("nf")}</span><span>${t("inv")}</span><span>${t("dys")}</span><span style="text-align:right">${t("amt")}</span></div><div class="sc">`;
+    dv.slice(0,30).forEach(r=>{
+      const f=r.fields;const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;const dias=dc?daysBetween(dc,hj):0;
+      const nfRetida=f["NF Retida (devedor)"];
+      h+=`<div class="tr" style="grid-template-columns:1fr 45px 65px 55px 80px"><span class="n">${(f.Name||"—")}${nfRetida?' <span class="bd bd-r">NF RETIDA</span>':''}</span><span class="d">${f["Número NF"]||"—"}</span><span class="d">${fD(f["Data da cobrança"])}</span><span><span class="bd bd-o">${dias}d</span></span><span class="a r">${$(f["Valor a Receber"])}</span></div>`;
+    });
+    // Show debtor cases without cobranças
+    debtorCasesExtra.forEach(r=>{
+      const f=r.fields;const cn=clientName(r);
+      h+=`<div class="tr" style="grid-template-columns:1fr 45px 65px 55px 80px"><span class="n">${f["Palavra Chave"]||"—"} <span class="bd bd-r">DEVEDOR</span></span><span class="d">—</span><span class="d">${cn}</span><span>—</span><span class="a r">${$(f["Valor Acordado"])}</span></div>`;
+    });
+    h+=`</div></div></div></div>`;
+  }
+  
+  h+=`<div class="fo">${t("lUpd")} ${new Date().toLocaleString(lc())} · Holanda Perícias FP&A</div>`;
+  document.getElementById("main").innerHTML=h;
+}
+
+function billForm(casoId,tipo,preVal,idx){
+  const todayStr=new Date().toISOString().split("T")[0];
+  return`<div class="ef" id="bf_${idx}">
+    <div><label>${t("nfNum")}</label><input type="text" id="nfn_${idx}" placeholder="0000"></div>
+    <div><label>${t("nfVal")}</label><input type="number" id="nfv_${idx}" value="${preVal.toFixed(2)}" step="0.01"></div>
+    <div><label>${t("dtCob")}</label><input type="date" id="nfd_${idx}" value="${todayStr}"></div>
+    <div style="display:flex;align-items:end"><button class="svbtn" onclick="saveBill('${casoId}','${tipo}',${idx})">💾 ${t("saveCob")}</button></div>
+  </div>`;
+}
+
+// ─── ACTIONS ───
+async function markPaid(recId,btn){
+  btn.disabled=true;btn.textContent="...";
+  try{
+    const today=new Date().toISOString().split("T")[0];
+    await patchAT("Cobranças",recId,{"Pago?":true,"Data do Pagamento":today});
+    toast(t("saved"));
+    setTimeout(reload,1000);
+  }catch(e){toast(t("error")+" "+e.message,false);btn.disabled=false;btn.textContent="💰 "+t("markPaid")}
+}
+
+async function saveBill(casoId,tipo,idx){
+  const nfn=document.getElementById("nfn_"+idx).value;
+  const nfv=parseFloat(document.getElementById("nfv_"+idx).value)||0;
+  const nfd=document.getElementById("nfd_"+idx).value;
+  const btn=document.querySelector(`#bf_${idx} .svbtn`);
+  btn.classList.add("saving");btn.textContent="...";
+  
+  try{
+    const caso=CA.find(c=>c.id===casoId);
+    if(!caso)throw new Error("Case not found");
+    const cobIds=caso.fields["Cobranças"]||[];
+    
+    // Determine Tipo de Pagamento tag
+    let tpPag=[];
+    if(tipo==="50i")tpPag=["50% Iniciais"];
+    else if(tipo==="50f")tpPag=["50% Finais"];
+    else tpPag=["100%"];
+    
+    // Check if there's an existing linked cobrança to update
+    let existingCob=null;
+    if(cobIds.length){
+      existingCob=CO.find(c=>cobIds.includes(c.id)&&c.fields.Tipo==="Entrada"&&!c.fields["Foi emitida NF?"]&&(c.fields["Tipo de Pagamento"]||[]).some(t=>tpPag.some(tp=>t.includes(tp))));
+    }
+    
+    if(existingCob){
+      await patchAT("Cobranças",existingCob.id,{
+        "Foi emitida NF?":true,
+        "Número NF":nfn,
+        "Valor Bruto NF":nfv,
+        "Data da cobrança":nfd
+      });
+    }else{
+      await postAT("Cobranças",{
+        "Tipo":"Entrada",
+        "Caso relacionado":[casoId],
+        "Valor a Receber":nfv,
+        "Foi emitida NF?":true,
+        "Número NF":nfn,
+        "Valor Bruto NF":nfv,
+        "Data da cobrança":nfd,
+        "Tipo de Pagamento":tpPag
+      });
+    }
+    toast(t("saved"));
+    setTimeout(reload,1200);
+  }catch(e){toast(t("error")+" "+e.message,false);btn.classList.remove("saving");btn.textContent="💾 "+t("saveCob")}
+}
+
+function addComment(recId){
+  const inp=document.getElementById("ci_"+recId);
+  if(!inp||!inp.value.trim())return;
+  const cmKey="cm_"+recId;
+  const d=new Date().toLocaleDateString(lc());
+  const line=`[${d}] ${inp.value.trim()}`;
+  LC[cmKey]=(LC[cmKey]?LC[cmKey]+"\n":"")+line;
+  savLC();inp.value="";
+  RR();
+}
+
+// ═══ TAB 2: FINANCIAL ANALYSIS ═══
+function renderTab2(){
+  const mk=document.getElementById("sel").value,yr=+mk.split("-")[0],mn=+mk.split("-")[1];
+  const im=new Date(yr,mn-1,1),fm=new Date(yr,mn,0),hj=new Date(),h90=new Date(hj);h90.setDate(h90.getDate()-90);
+  let h="";
+  
+  // ── Month data ──
+  const rM=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||!f["Recebido?"])return false;const d=f["Data recebimento"]?new Date(f["Data recebimento"]):null;return d&&d>=im&&d<=fm});
+  const tR=rM.reduce((s,r)=>s+(r.fields["Valor Líquido Recebido"]||r.fields["Valor a Receber"]||0),0);
+  const gM=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Saída")return false;const d=f["Data do Pagamento"]?new Date(f["Data do Pagamento"]):null;return d&&d>=im&&d<=fm});
+  const tG=gM.reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+  const arR=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||f["Recebido?"])return false;const dc=f["Data da cobrança"]?new Date(f["Data da cobrança"]):null;return dc&&dc>=h90});
+  const tAR=arR.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0),0);
+  const tFC=CF.reduce((s,r)=>s+(r.fields["Valor Estimado"]||0),0);
+  const pc=PZ.filter(r=>(r.fields["Tipo de Prazos"]||"").includes("Perícia")).map(r=>{const e=ec(r);return{v:e.v,c:e.c}});
+  const tAE=pc.reduce((s,p)=>s+(p.v||0),0);
+  const lu=tR-tG;
+  
+  // ═══ 4.2.A — CASH FLOW ═══
+  const rP=tR+tAR,gP=tG+tFC+tAE,sl=rP-gP;
+  
+  h+=`<div class="hero ${sl>=0?'ps':'ng'}"><div class="hl">${t("proj")}</div><div class="hv ${sl>=0?'g':'r'}">${$(sl)}</div><div class="hs">${t("pRev")} ${$(rP)} − ${t("pExp")} ${$(gP)}</div></div>`;
+  h+=`<div class="cds"><div class="crd"><div class="cl">${t("rMonth")}</div><div class="cv g">${$(tR)}</div><div class="csb">${rM.length} ${t("pRec")}</div></div><div class="crd"><div class="cl">${t("eMonth")}</div><div class="cv r">${$(tG)}</div><div class="csb">${gM.length} ${t("pMade")}</div></div><div class="crd"><div class="cl">${t("sPL")}</div><div class="cv ${lu>=0?'g':'r'}">${$(lu)}</div><div class="csb">${t("rMinE")}</div></div><div class="crd"><div class="cl">${t("acRec")}</div><div class="cv o">${$(tAR)}</div><div class="csb">${arR.length} ${t("pInv")}</div></div></div>`;
+  
+  // Cash Flow Projection grid
+  h+=`<div class="sec"><div class="st">${t("cfP")}</div><div class="fg"><div class="fb"><h3 class="g">▲ ${t("infl")}</h3><div class="fr"><span class="l">${t("aRec")}</span><span class="v g">${$(tR)}</span></div><div class="fr"><span class="l">${t("pI90")}</span><span class="v g">${$(tAR)}</span></div><div class="ft"><span>${t("tPR")}</span><span class="g">${$(rP)}</span></div></div><div class="fb"><h3 class="r">▼ ${t("outfl")}</h3><div class="fr"><span class="l">${t("aSp")}</span><span class="v r">${$(tG)}</span></div><div class="fr"><span class="l">${t("fxC")}</span><span class="v r">${$(tFC)}</span></div><div class="fr"><span class="l">${t("eAss")}</span><span class="v r">${$(tAE)}</span></div><div class="ft"><span>${t("tPE")}</span><span class="r">${$(gP)}</span></div></div></div></div>`;
+  
+  // ═══ 4.2.B — SMART 30-DAY FORECAST ═══
+  const d30=new Date(hj);d30.setDate(d30.getDate()+30);
+  
+  // Inflows
+  // 1. Pending with payment forecast in next 30d
+  const pendWithPrev=arR.filter(r=>{const p=r.fields["Previsão de Pagamento"];if(!p)return false;const dp=new Date(p);return dp>=hj&&dp<=d30});
+  const vPendPrev=pendWithPrev.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0),0);
+  
+  // 2. Pending without forecast — use client avg
+  const pendNoPrev=arR.filter(r=>{const p=r.fields["Previsão de Pagamento"];if(p)return false;const dc=r.fields["Data da cobrança"]?new Date(r.fields["Data da cobrança"]):null;if(!dc)return false;
+    // Estimate using client avg payment days
+    const caseIds=r.fields["Caso relacionado"]||[];const caso=CA.find(c=>caseIds.includes(c.id));
+    if(!caso)return true; // include anyway
+    const cd=clientData(caso);const avg=cd?cd.prazo:45;
+    const estDate=new Date(dc);estDate.setDate(estDate.getDate()+avg);
+    return estDate>=hj&&estDate<=d30;
+  });
+  const vPendNoPrev=pendNoPrev.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0),0);
+  
+  // 3. Cases ready to bill
+  const toBill=CA.filter(r=>r.fields.Fase==="Encerrado PARA COBRANÇA");
+  const vToBill=toBill.reduce((s,r)=>{const bc=billCalc(r);return s+(bc?bc.val:0)},0);
+  
+  // 4. New 50/50 without any cobrança
+  const new5050=CA.filter(r=>{const f=r.fields;return(f["Formato de Pagamento"]||"").includes("50/50")&&(!f.Cobranças||f.Cobranças.length===0)&&(f.Fase||"").includes("Ativo")});
+  const vNew50=new5050.reduce((s,r)=>s+((r.fields["Valor Acordado"]||0)/2),0);
+  
+  // Probability weighting
+  function agingProb(r){
+    const dc=r.fields["Data da cobrança"]?new Date(r.fields["Data da cobrança"]):null;
+    if(!dc)return 0.7;
+    const dias=daysBetween(dc,hj);
+    if(dias<30)return 0.9;if(dias<60)return 0.7;if(dias<90)return 0.4;return 0.1;
+  }
+  const vPendWeighted=pendWithPrev.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0)*agingProb(r),0);
+  const vNoPrevW=pendNoPrev.reduce((s,r)=>s+(r.fields["Valor a Receber"]||0)*agingProb(r),0);
+  const revProj=vPendWeighted+vNoPrevW+vToBill*0.7+vNew50*0.5;
+  
+  // Outflows
+  const assNext30=PZ.filter(r=>{const dt=r.fields["Data da Perícia"];if(!dt)return false;const d=new Date(dt);return d>=hj&&d<=d30&&(r.fields["Tipo de Prazos"]||"").includes("Perícia")});
+  const vAssNext30=assNext30.reduce((s,r)=>s+(ec(r).v||0),0);
+  const unpaidOut=CO.filter(r=>r.fields.Tipo==="Saída"&&!r.fields["Pago?"]).reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+  const expProj=tFC+vAssNext30+unpaidOut;
+  const profitProj=revProj-expProj;
+  const safeWithdraw=Math.max(0,profitProj-2*tFC);
+  
+  h+=`<div class="sec"><div class="st" style="color:var(--gn);border-color:var(--gc)">🔮 ${t("predict")}</div>`;
+  h+=`<p style="font-size:12px;color:var(--tl);margin-bottom:16px">${t("predSub")}</p>`;
+  
+  // Hero forecast
+  h+=`<div class="hero ${profitProj>=0?'ps':'ng'}" style="margin-bottom:16px"><div class="hl">${t("predProfit")}</div><div class="hv ${profitProj>=0?'g':'r'}">${$(profitProj)}</div><div class="hs">${t("predRevProj")} ${$(revProj)} − ${t("predExpProj")} ${$(expProj)}</div></div>`;
+  
+  // Safe withdrawal
+  h+=`<div style="background:${safeWithdraw>0?'var(--gb)':'var(--rb)'};border:1px solid ${safeWithdraw>0?'var(--gc)':'var(--rc)'};border-radius:8px;padding:16px;margin-bottom:16px;text-align:center"><div class="cl">${t("predSafe")}</div><div style="font-family:'Barlow Condensed';font-size:32px;font-weight:700;color:${safeWithdraw>0?'var(--gn)':'var(--rd)'}">${$(safeWithdraw)}</div><div style="font-size:11px;color:var(--tl)">${t("predReserve")} (${$(2*tFC)})</div></div>`;
+  
+  // Breakdown
+  h+=`<div class="fg"><div class="fb"><h3 class="g">▲ ${t("predIn")}</h3>`;
+  h+=`<div class="fr"><span class="l">${t("predPend")}</span><span class="v g">${$(vPendPrev)}</span></div>`;
+  h+=`<div class="fr"><span class="l">${t("predNoPrev")}</span><span class="v g">${$(vPendNoPrev)}</span></div>`;
+  h+=`<div class="fr"><span class="l">${t("predToBill")}</span><span class="v g">${$(vToBill)}</span></div>`;
+  h+=`<div class="fr"><span class="l">${t("predNew50")}</span><span class="v g">${$(vNew50)}</span></div>`;
+  h+=`<div class="ft"><span>${t("predProb")}</span><span class="g">${$(revProj)}</span></div></div>`;
+  h+=`<div class="fb"><h3 class="r">▼ ${t("predOut")}</h3>`;
+  h+=`<div class="fr"><span class="l">${t("predFx")}</span><span class="v r">${$(tFC)}</span></div>`;
+  h+=`<div class="fr"><span class="l">${t("predAss")} (${assNext30.length})</span><span class="v r">${$(vAssNext30)}</span></div>`;
+  h+=`<div class="fr"><span class="l">${t("predUnpaidOut")}</span><span class="v r">${$(unpaidOut)}</span></div>`;
+  h+=`<div class="ft"><span>${t("predExpProj")}</span><span class="r">${$(expProj)}</span></div></div></div></div>`;
+  
+  // ═══ 4.2.C — FP&A METRICS ═══
+  // Aging
+  const allPending=CO.filter(r=>{const f=r.fields;return f.Tipo==="Entrada"&&!f["Recebido?"]&&f["Data da cobrança"]});
+  const aging={a:0,b:0,c:0,d:0};
+  allPending.forEach(r=>{
+    const dc=new Date(r.fields["Data da cobrança"]);const dias=daysBetween(dc,hj);const v=r.fields["Valor a Receber"]||0;
+    if(dias<=30)aging.a+=v;else if(dias<=60)aging.b+=v;else if(dias<=90)aging.c+=v;else aging.d+=v;
+  });
+  const agTot=aging.a+aging.b+aging.c+aging.d||1;
+  
+  h+=`<div class="sec"><div class="st">📊 ${L==="pt"?"Métricas Analíticas (FP&A)":"Analytical Metrics (FP&A)"}</div>`;
+  h+=`<div class="mcard"><h3>${t("agingRec")}</h3>`;
+  h+=`<div class="aging-bar"><div class="aging-seg" style="width:${aging.a/agTot*100}%;background:var(--gn)">0-30d</div><div class="aging-seg" style="width:${aging.b/agTot*100}%;background:#FFA000">30-60d</div><div class="aging-seg" style="width:${aging.c/agTot*100}%;background:var(--or)">60-90d</div><div class="aging-seg" style="width:${aging.d/agTot*100}%;background:var(--rd)">90+d</div></div>`;
+  h+=`<div style="display:flex;gap:16px;font-size:12px;color:var(--tl);margin-top:8px"><span style="color:var(--gn)">0-30d: ${$(aging.a)}</span><span style="color:#FFA000">30-60d: ${$(aging.b)}</span><span style="color:var(--or)">60-90d: ${$(aging.c)}</span><span style="color:var(--rd)">90+d: ${$(aging.d)}</span></div></div>`;
+  
+  // Revenue Concentration
+  const last12=new Date(hj);last12.setFullYear(last12.getFullYear()-1);
+  const recLast12=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||!f["Recebido?"])return false;const d=f["Data recebimento"]?new Date(f["Data recebimento"]):null;return d&&d>=last12});
+  const clientRevMap={};
+  recLast12.forEach(r=>{
+    const caseIds=r.fields["Caso relacionado"]||[];const caso=CA.find(c=>caseIds.includes(c.id));
+    const cn=caso?clientName(caso):"Outro";
+    const v=r.fields["Valor Líquido Recebido"]||r.fields["Valor a Receber"]||0;
+    clientRevMap[cn]=(clientRevMap[cn]||0)+v;
+  });
+  const crEntries=Object.entries(clientRevMap).sort((a,b)=>b[1]-a[1]);
+  const crTotal=crEntries.reduce((s,e)=>s+e[1],0)||1;
+  
+  h+=`<div class="mcard"><h3>${t("concRev")}</h3>`;
+  if(crEntries.length){
+    crEntries.slice(0,8).forEach(([name,val])=>{
+      const pct=(val/crTotal*100).toFixed(1);
+      const isRisk=pct>30;
+      h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:120px;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div><div style="flex:1;height:18px;background:#EDF2F7;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${isRisk?'var(--rd)':'var(--ac)'};border-radius:3px"></div></div><div style="font-size:12px;font-weight:600;width:50px;text-align:right;color:${isRisk?'var(--rd)':'var(--tx)'}">${pct}%</div></div>`;
+    });
+    const riskClients=crEntries.filter(([_,v])=>v/crTotal>0.3);
+    if(riskClients.length) h+=`<div style="background:var(--rb);border-radius:4px;padding:8px;font-size:11px;color:var(--rd);margin-top:8px">⚠️ ${riskClients.map(c=>c[0]).join(", ")} > 30% ${L==="pt"?"da receita (risco de concentração)":"of revenue (concentration risk)"}</div>`;
+  }
+  h+=`</div>`;
+  
+  // DSO
+  const paidRecent=CO.filter(r=>{const f=r.fields;return f.Tipo==="Entrada"&&f["Recebido?"]&&f["Data da cobrança"]&&f["Data recebimento"]});
+  let dsoSum=0,dsoCnt=0;
+  paidRecent.forEach(r=>{
+    const dc=new Date(r.fields["Data da cobrança"]);const dr=new Date(r.fields["Data recebimento"]);
+    const d=daysBetween(dc,dr);if(d>=0&&d<365){dsoSum+=d;dsoCnt++}
+  });
+  const dsoReal=dsoCnt?Math.round(dsoSum/dsoCnt):0;
+  const clientPrazos=Object.values(CL).map(c=>c.prazo).filter(p=>p>0);
+  const dsoExp=clientPrazos.length?Math.round(clientPrazos.reduce((a,b)=>a+b,0)/clientPrazos.length):45;
+  
+  h+=`<div class="mgrid">`;
+  h+=`<div class="mcard"><h3>${t("dso")}</h3><div class="mv ${dsoReal>dsoExp?'r':'g'}">${dsoReal} ${t("dsoDays")}</div><div class="md">${t("dsoReal")}: ${dsoReal}d · ${t("dsoExp")}: ${dsoExp}d</div></div>`;
+  
+  // Burn Rate & Runway
+  const now=new Date();const m3=[],mNames=[];
+  for(let i=1;i<=3;i++){const mi=new Date(now.getFullYear(),now.getMonth()-i,1);const mf=new Date(now.getFullYear(),now.getMonth()-i+1,0);
+    const gm=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Saída")return false;const d=f["Data do Pagamento"]?new Date(f["Data do Pagamento"]):null;return d&&d>=mi&&d<=mf}).reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+    m3.push(gm);
+  }
+  const burnRate=m3.length?m3.reduce((a,b)=>a+b,0)/m3.length:tFC;
+  const allRec=CO.filter(r=>r.fields.Tipo==="Entrada"&&r.fields["Recebido?"]).reduce((s,r)=>s+(r.fields["Valor Líquido Recebido"]||r.fields["Valor a Receber"]||0),0);
+  const allGst=CO.filter(r=>r.fields.Tipo==="Saída").reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+  const saldo=allRec-allGst;
+  const runway=burnRate>0?(saldo/burnRate).toFixed(1):99;
+  
+  h+=`<div class="mcard"><h3>${t("burnRate")}</h3><div class="mv r">${$(burnRate)}<span style="font-size:14px;color:var(--tl)">/${t("mo")}</span></div><div class="md">${t("runwaySaldo")}: ${$(saldo)} → <strong>${runway} ${t("runwayMo")}</strong></div></div>`;
+  h+=`</div>`;
+  
+  // Working Capital
+  const wcFree=saldo;const wcOblig=CO.filter(r=>r.fields.Tipo==="Saída"&&!r.fields["Pago?"]).reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+  const wcNet=wcFree-wcOblig;
+  h+=`<div class="mcard"><h3>${t("workCap")}</h3><div style="display:flex;gap:20px;align-items:center"><div><div class="cl">${t("wcFree")}</div><div style="font-family:'Barlow Condensed';font-size:22px;font-weight:700;color:var(--gn)">${$(wcFree)}</div></div><div style="font-size:24px;color:var(--tl)">−</div><div><div class="cl">${t("wcOblig")}</div><div style="font-family:'Barlow Condensed';font-size:22px;font-weight:700;color:var(--rd)">${$(wcOblig)}</div></div><div style="font-size:24px;color:var(--tl)">=</div><div><div class="cl">${t("workCap")}</div><div style="font-family:'Barlow Condensed';font-size:22px;font-weight:700;color:${wcNet>=0?'var(--gn)':'var(--rd)'}">${$(wcNet)}</div></div></div></div>`;
+  
+  // ═══ 4.2.D — ANNUAL SUMMARY ═══
+  const ms=[];for(let m=1;m<=12;m++){
+    const i2=new Date(yr,m-1,1),f2=new Date(yr,m,0);
+    const r2=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Entrada"||!f["Recebido?"])return false;const d=f["Data recebimento"]?new Date(f["Data recebimento"]):null;return d&&d>=i2&&d<=f2}).reduce((s,r)=>s+(r.fields["Valor Líquido Recebido"]||r.fields["Valor a Receber"]||0),0);
+    const g2=CO.filter(r=>{const f=r.fields;if(f.Tipo!=="Saída")return false;const d=f["Data do Pagamento"]?new Date(f["Data do Pagamento"]):null;return d&&d>=i2&&d<=f2}).reduce((s,r)=>s+(r.fields["Valor de Pagamento"]||r.fields["Valor a Receber"]||0),0);
+    ms.push({m:`${yr}-${String(m).padStart(2,"0")}`,l:i2.toLocaleString(lc(),{month:"short"}),r:r2,g:g2,p:r2-g2});
+  }
+  const mx=Math.max(...ms.map(m=>Math.max(m.r,m.g)),1);
+  
+  h+=`<div class="sec"><div class="st">${yr} ${t("annOv")}</div><div class="cb"><div class="cg">${ms.map(m=>{const hR=mx?(m.r/mx)*90:0,hG=mx?(m.g/mx)*90:0;const c=m.m===mk;return`<div class="bp"><div class="b" style="height:${Math.max(2,hR)}px;background:${c?'var(--gn)':'#A5D6A7'}"></div><div class="b" style="height:${Math.max(2,hG)}px;background:${c?'var(--rd)':'#EF9A9A'}"></div></div>`}).join("")}</div><div class="ml">${ms.map(m=>`<div class="${m.m===mk?'cu':''}">${m.l}</div>`).join("")}</div><div class="lg"><span><span class="ldd" style="background:var(--gn)"></span>${t("rev")}</span><span><span class="ldd" style="background:var(--rd)"></span>${t("exp")}</span></div>`;
+  h+=`<div class="ar ahd"><span>${t("mth")}</span><span style="text-align:right">${t("rev")}</span><span style="text-align:right">${t("exp")}</span><span style="text-align:right">${t("pl")}</span></div>`;
+  ms.filter(m=>m.r>0||m.g>0).forEach(m=>{h+=`<div class="ar ${m.m===mk?'acu':''}"><span style="text-transform:capitalize">${m.l}</span><span class="g" style="text-align:right">${$(m.r)}</span><span class="r" style="text-align:right">${$(m.g)}</span><span class="${m.p>=0?'g':'r'}" style="text-align:right;font-weight:600">${$(m.p)}</span></div>`});
+  h+=`</div></div>`;
+  
+  // ═══ 4.2.E — FIXED COSTS ═══
+  h+=`<div class="sec"><div class="st">${t("fxCosts")} <span class="cn">${$(tFC)}/${t("mo")}</span></div><div class="tb"><div class="th" style="grid-template-columns:1fr 80px 80px 100px"><span>Name</span><span>${t("dueDay")}</span><span>${t("categ")}</span><span style="text-align:right">${t("val")}</span></div>`;
+  CF.forEach(r=>{const f=r.fields;
+    h+=`<div class="tr" style="grid-template-columns:1fr 80px 80px 100px"><span class="n">${f.Name}</span><span class="d">${t("day")} ${f["Dia Vencimento"]}</span><span><span class="bd bd-w">${f.Categoria||""}</span></span><span class="a r">${$(f["Valor Estimado"])}</span></div>`;
+  });
+  h+=`<div class="tt"><span>${t("tot")}</span><span class="r">${$(tFC)}</span></div></div></div>`;
+  
+  h+=`<div class="fo">${t("lUpd")} ${new Date().toLocaleString(lc())} · Holanda Perícias FP&A</div>`;
+  document.getElementById("main").innerHTML=h;
+}
+</script>
+
+<script>
+// ═══ AES-256-GCM TOKEN DECRYPTION ═══
+const _E="KlhPtR9gdXfAjHiWq05P1lhDa+R5HAzR4BdljIj7Ec2cfP279So8mwe9vHfngSNZ+mLMRWficGV6xhmcfi0p8WZkUYK0IOIVhj+gPhNYHPcOjiRMZ9TFIjMqb68Esm1OzP4uFMilgr9ygSO+p24=";
+const _S="HolandaPericias2026";
+
+async function _dk(pw){
+  var e=new TextEncoder();
+  var km=await crypto.subtle.importKey("raw",e.encode(pw),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",salt:e.encode(_S),iterations:100000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
+}
+async function _dt(pw){
+  var key=await _dk(pw);
+  var raw=Uint8Array.from(atob(_E),function(c){return c.charCodeAt(0)});
+  var iv=raw.slice(0,12),tag=raw.slice(12,28),ct=raw.slice(28);
+  var combined=new Uint8Array(ct.length+tag.length);
+  combined.set(ct);combined.set(tag,ct.length);
+  var dec=await crypto.subtle.decrypt({name:"AES-GCM",iv:iv,tagLength:128},key,combined);
+  return new TextDecoder().decode(dec);
+}
+
+async function pwTry(){
+  var pw=document.getElementById("pwIn").value;
+  if(!pw){document.getElementById("pwErr").style.display="block";document.getElementById("pwErr").textContent="Enter password / Digite a senha";return}
+  document.getElementById("pwErr").style.display="none";
+  document.getElementById("pwIn").disabled=true;
+  try{
+    var tk=await _dt(pw);
+    var r=await fetch("https://api.airtable.com/v0/appTEAYT5TYhnQwTn/tbluIGDmDWYdvIXGh?maxRecords=1",{headers:{Authorization:"Bearer "+tk}});
+    if(!r.ok)throw new Error("bad");
+    TK=tk;
+    sessionStorage.setItem("hp_tk",tk);
+    sessionStorage.setItem("hp_auth","1");
+    document.getElementById("pwGate").style.display="none";
+    document.getElementById("langSel").style.display="flex";
+  }catch(e){
+    document.getElementById("pwErr").style.display="block";
+    document.getElementById("pwErr").textContent="Incorrect password / Senha incorreta";
+    document.getElementById("pwIn").disabled=false;
+  }
+}
+// Auto-login from session
+if(sessionStorage.getItem("hp_auth")==="1"&&sessionStorage.getItem("hp_tk")){
+  TK=sessionStorage.getItem("hp_tk");
+  const savedLang=sessionStorage.getItem("hp_lang");
+  document.addEventListener("DOMContentLoaded",function(){
+    document.getElementById("pwGate").style.display="none";
+    if(savedLang){
+      L=savedLang;
+      document.getElementById("ld").style.display="flex";
+      document.getElementById("ldt").textContent=I[L].ldg;
+      load();
+    }else{
+      document.getElementById("langSel").style.display="flex";
+    }
+  });
+}
+</script>
+</body>
+</html>
