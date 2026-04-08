@@ -22,19 +22,17 @@ main{padding:24px 28px;max-width:1400px;margin:0 auto}
 .card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;border-left:5px solid #00AEEF;transition:all .15s;position:relative}
 .card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
 .card.active{box-shadow:0 0 0 3px #00AEEF,0 4px 12px rgba(0,174,239,.3)}
-.card.green{border-left-color:#22a06b}
-.card.red{border-left-color:#d64545}
-.card.orange{border-left-color:#f08c1f}
-.card.blue{border-left-color:#00AEEF}
+.card.green{border-left-color:#22a06b}.card.red{border-left-color:#d64545}.card.orange{border-left-color:#f08c1f}.card.blue{border-left-color:#00AEEF}
 .card .label{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;font-size:13px;color:#6b7c8c;font-weight:600;letter-spacing:.5px}
 .card .value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:#003c56;margin-top:6px}
 .card .sub{font-size:12px;color:#6b7c8c;margin-top:4px}
-.card .chev{position:absolute;right:14px;top:18px;color:#00AEEF;font-size:18px}
+.card .chev{position:absolute;right:14px;top:18px;color:#00AEEF;font-size:16px}
 .section{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:20px}
 .section h2{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:#005F88;margin-bottom:14px;text-transform:uppercase}
 .section h3{font-family:'Barlow Condensed',sans-serif;font-size:15px;color:#005F88;margin:16px 0 8px;text-transform:uppercase}
 .section.warn{background:#fffbec;border:1px solid #f3d98a}
 .section.warn h2{color:#a35a07}
+.section .note{font-size:12px;color:#6b7c8c;margin-top:8px;font-style:italic}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;padding:10px 8px;background:#F2F8FC;color:#005F88;font-weight:600;border-bottom:2px solid #d6e4ef;font-size:12px;text-transform:uppercase}
 td{padding:10px 8px;border-bottom:1px solid #eef3f7;vertical-align:top}
@@ -42,62 +40,74 @@ tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:#eef5fa}
 tr.expanded td{background:#f0f7fc}
 .proc{font-size:11px;color:#6b7c8c;font-family:'Barlow Condensed',sans-serif;margin-top:2px;letter-spacing:.3px}
-.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
 .tag.green{background:#dcf2e6;color:#1a7a4f}
 .tag.red{background:#fbe1e1;color:#a82929}
 .tag.orange{background:#fce7cf;color:#a35a07}
 .tag.blue{background:#d9efff;color:#005F88}
 .tag.yellow{background:#fff5d1;color:#8a6a00}
+.tag.gray{background:#e8edf2;color:#5a6c7d}
+.tag.purple{background:#eee2f7;color:#5a2b87}
 .alert{background:#fff7e6;border-left:4px solid #f08c1f;padding:12px 14px;border-radius:6px;margin-bottom:10px;font-size:14px}
 .alert.red{background:#fdecec;border-left-color:#d64545}
 .right{text-align:right}
 .empty{padding:20px;text-align:center;color:#6b7c8c;font-style:italic}
 .loader{text-align:center;padding:40px;color:#6b7c8c}
+.loader .sp{display:inline-block;width:36px;height:36px;border:4px solid #e0eaf1;border-top-color:#00AEEF;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader .step{font-size:13px;color:#6b7c8c;margin-top:4px}
+.loader .step.done{color:#22a06b}
 .detail{padding:18px 22px;background:#f8fbfd;border-top:1px solid #e0eaf1;border-bottom:1px solid #e0eaf1}
-.detail h4{font-family:'Barlow Condensed',sans-serif;color:#005F88;font-size:14px;text-transform:uppercase;margin:0 0 10px}
-.roadmap{position:relative;padding:14px 0 10px;margin:8px 0 14px}
-.roadmap .track{position:absolute;left:10%;right:10%;top:24px;height:4px;background:#e0eaf1;border-radius:2px}
-.roadmap .fill{position:absolute;left:10%;top:24px;height:4px;background:linear-gradient(90deg,#22a06b,#00AEEF);border-radius:2px;transition:width .4s}
-.roadmap .stages{position:relative;display:flex;justify-content:space-between;padding:0 10%}
+.detail h4{font-family:'Barlow Condensed',sans-serif;color:#005F88;font-size:14px;text-transform:uppercase;margin:14px 0 10px}
+.detail h4:first-child{margin-top:0}
+.roadmap{position:relative;padding:20px 0 14px;margin:8px 0}
+.roadmap .track{position:absolute;left:8%;right:8%;top:32px;height:4px;background:#e0eaf1;border-radius:2px}
+.roadmap .fill{position:absolute;left:8%;top:32px;height:4px;background:linear-gradient(90deg,#22a06b,#00AEEF);border-radius:2px;transition:width .5s}
+.roadmap .stages{position:relative;display:flex;justify-content:space-between;padding:0 6%}
 .stage{text-align:center;flex:1;position:relative;z-index:2}
-.stage .dot{width:22px;height:22px;border-radius:50%;background:#c8d2dc;margin:0 auto;border:3px solid #fff;box-shadow:0 0 0 2px #c8d2dc;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700}
+.stage .dot{width:26px;height:26px;border-radius:50%;background:#c8d2dc;margin:0 auto;border:3px solid #fff;box-shadow:0 0 0 2px #c8d2dc;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
 .stage.done .dot{background:#22a06b;box-shadow:0 0 0 2px #22a06b}
 .stage.current .dot{background:#00AEEF;box-shadow:0 0 0 2px #00AEEF;animation:pulse 1.6s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #00AEEF,0 0 0 4px rgba(0,174,239,.3)}50%{box-shadow:0 0 0 2px #00AEEF,0 0 0 10px rgba(0,174,239,0)}}
-.stage .name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;color:#003c56;margin-top:8px}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #00AEEF,0 0 0 4px rgba(0,174,239,.3)}50%{box-shadow:0 0 0 2px #00AEEF,0 0 0 12px rgba(0,174,239,0)}}
+.stage .name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;color:#003c56;margin-top:8px;line-height:1.2}
 .stage.future .name{color:#8a96a3}
 .stage .date{font-size:11px;color:#6b7c8c;margin-top:2px}
-.stage .extras{font-size:10px;color:#a35a07;margin-top:2px;font-weight:600}
-.progress-lbl{text-align:center;font-size:12px;color:#6b7c8c;margin-top:6px;font-weight:600}
-.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+.stage .extras{font-size:10px;color:#a35a07;margin-top:3px;font-weight:600}
+.pbar{height:10px;background:#e8edf2;border-radius:5px;overflow:hidden;margin:10px 0 6px}
+.pbar>div{height:100%;background:linear-gradient(90deg,#22a06b,#00AEEF);transition:width .5s}
+.progress-lbl{text-align:center;font-size:13px;color:#005F88;font-weight:600}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:6px 0 4px;background:#fff;padding:12px;border-radius:8px;border:1px solid #e0eaf1}
 .form label{font-size:11px;color:#005F88;font-weight:600;text-transform:uppercase;display:block;margin-bottom:4px}
 .form input,.form textarea{width:100%;padding:8px;border:1px solid #cdd9e3;border-radius:5px;font-family:'Barlow',sans-serif;font-size:13px}
 .form textarea{grid-column:1/-1;min-height:60px;resize:vertical}
 .form .actions{grid-column:1/-1;display:flex;gap:8px;align-items:center}
 .btn{background:#00AEEF;color:#fff;border:0;padding:8px 14px;border-radius:5px;font-family:'Barlow',sans-serif;font-weight:600;cursor:pointer;font-size:13px}
 .btn:hover{background:#0098d1}
-.btn.green{background:#22a06b}
-.btn.green:hover{background:#1a8358}
-.btn.gray{background:#7a8a99}
+.btn.green{background:#22a06b}.btn.green:hover{background:#1a8358}
 .msg{font-size:12px;font-weight:600}
-.msg.ok{color:#1a7a4f}
-.msg.err{color:#a82929}
+.msg.ok{color:#1a7a4f}.msg.err{color:#a82929}
 .bar-chart{display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px 0;border-bottom:1px solid #d6e4ef}
 .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
 .bar-col .bars{display:flex;gap:2px;align-items:flex-end;height:140px;width:100%;justify-content:center}
-.bar-col .bar{width:14px;border-radius:2px 2px 0 0}
-.bar-col .bar.green{background:#22a06b}
-.bar-col .bar.red{background:#d64545}
+.bar-col .bar{width:14px;border-radius:2px 2px 0 0;min-height:1px}
+.bar-col .bar.green{background:#22a06b}.bar-col .bar.red{background:#d64545}
 .bar-col .lbl{font-size:10px;color:#6b7c8c;font-family:'Barlow Condensed',sans-serif;font-weight:600}
-.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:14px}
 .kpi .box{background:#f8fbfd;padding:12px 14px;border-radius:8px;border-left:4px solid #00AEEF}
+.kpi .box.green{border-left-color:#22a06b}
+.kpi .box.red{border-left-color:#d64545}
+.kpi .box.orange{border-left-color:#f08c1f}
 .kpi .box .l{font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600}
 .kpi .box .v{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:#003c56}
+.phase-bar{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:13px}
+.phase-bar .name{flex:0 0 260px;color:#003c56}
+.phase-bar .fill{height:18px;background:#00AEEF;border-radius:3px;min-width:2px}
+.phase-bar .cnt{font-weight:700;color:#005F88;min-width:40px}
 #login{position:fixed;inset:0;background:#005F88;display:flex;align-items:center;justify-content:center;z-index:100}
 #login .box{background:#fff;padding:36px;border-radius:12px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);max-width:340px;width:90%}
 #login h2{font-family:'Barlow Condensed',sans-serif;color:#005F88;margin-bottom:18px;font-size:22px}
 #login input{width:100%;padding:12px;border:1px solid #cdd9e3;border-radius:6px;font-size:15px;margin-bottom:12px;font-family:'Barlow',sans-serif}
-#login button{width:100%;background:#005F88;color:#fff;border:0;padding:12px;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px;font-family:'Barlow',sans-serif}
+#login button{width:100%;background:#005F88;color:#fff;border:0;padding:12px;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px}
 #login button:hover{background:#003c56}
 #login .err{color:#d64545;font-size:13px;margin-top:8px;min-height:18px}
 </style>
@@ -134,68 +144,75 @@ tr.expanded td{background:#f0f7fc}
 </div>
 
 <script>
-// =============== I18N ===============
+// ========== I18N ==========
 const I18N={
 pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",previsao:"Previsão 30d",fpa:"FP&A",
-entradas:"Entradas",saidas:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",
+entradas:"Entradas",saidas:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
 case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",
-forgot50:"50% iniciais possivelmente esquecidos",paidActivity:"Caso pago com nova atividade",
-noData:"Sem dados",loading:"Carregando dados...",err:"Erro",allMonths:"Todos os meses",
-s50:"50% Iniciais Pendentes",sEnc:"Encerrados — Emitir NF",sConf:"Confirmar com Cliente",
-quesitos:"Quesitos",pericia:"Perícia",manifest:"Manifestação",progress:"Progresso",
-remarc:"remarcação(ões)",
+forgot50:"50% iniciais esquecidos",paidActivity:"Caso pago com nova atividade",
+noData:"Sem dados",loading:"Carregando",err:"Erro",allMonths:"Todos os meses",
+s50:"50% Iniciais",sEnc:"Encerrados — Emitir NF",sConf:"Confirmar com Cliente",
+quesitos:"Quesitos e Assistentes",pericia:"Perícia",manifest:"Manifestação ao Laudo",manifestC:"Manif. Complementar",
+progress:"Progresso",remarc:"remarcação(ões)",newCase:"NOVO CASO (2ª rodada)",nfRetida:"NF Retida",
+fmt50:"50/50",fmt100:"100%",
 recebidos:"Recebimentos Previstos",pagamentos:"Pagamentos Previstos",saldo:"Saldo Projetado",retirada:"Retirada Segura",
-aging:"Aging de Recebíveis",top5:"Top 5 Clientes (Receita)",monthly:"Resumo Anual",dso:"DSO (dias)",custosRev:"Custos Fixos vs Receita",
-nfNum:"Número NF",nfValor:"Valor Bruto NF",dataCob:"Data da Cobrança",valRec:"Valor Recebido",dataRec:"Data do Recebimento",
-dataPag:"Data do Pagamento",obs:"Observação / Comentário",
-btnSaveNF:"Salvar NF",btnSavePay:"Registrar Recebimento",btnPaid:"Marcar como Pago",btnAddNote:"Adicionar Comentário",
-saved:"Salvo!",saveErr:"Erro ao salvar"},
+aging:"Aging de Recebíveis",top5:"Top 5 Clientes (Receita Histórica)",monthly:"Resumo Anual",dso:"DSO",margem:"Margem Mensal (últimos 6 meses)",custosAtivos:"Custos Fixos Ativos",
+nfNum:"Número NF",nfValor:"Valor NF",dataCob:"Data Cobrança",dataRec:"Data Recebimento",dataPag:"Data Pagamento",obs:"Comentário",
+btnSaveNF:"Salvar NF",btnSavePay:"Marcar Recebido",btnPaid:"Marcar Pago",btnAddNote:"Adicionar",
+saved:"Salvo!",saveErr:"Erro",
+sStepCasos:"Carregando casos…",sStepCob:"Carregando cobranças…",sStepCli:"Carregando clientes…",sStepPrazo:"Carregando prazos…",sStepCF:"Carregando custos fixos…",
+prob:"Prob",esperado:"Esperado",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
+formulaR:"Fórmula: cada cobrança pendente × probabilidade por aging + casos a cobrar × 70%.",
+formulaP:"Fórmula: perícias agendadas × valor do assistente (R$800 default) + custos fixos ativos.",
+formulaS:"Saldo = Recebimentos − Pagamentos. Retirada: 50% se saldo>1.5×custos, 25% se positivo, 0 se negativo."},
 en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",previsao:"Next 30d",fpa:"FP&A",
-entradas:"Income",saidas:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",
+entradas:"Income",saidas:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
 case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",
-forgot50:"Possibly forgotten 50% upfront",paidActivity:"Paid case with new activity",
-noData:"No data",loading:"Loading...",err:"Error",allMonths:"All months",
+forgot50:"Forgotten 50% upfront",paidActivity:"Paid case with new activity",
+noData:"No data",loading:"Loading",err:"Error",allMonths:"All months",
 s50:"Pending 50% Upfront",sEnc:"Closed — Issue Invoice",sConf:"Confirm with Client",
-quesitos:"Questions",pericia:"Inspection",manifest:"Statement",progress:"Progress",
-remarc:"reschedule(s)",
+quesitos:"Questions & Experts",pericia:"Inspection",manifest:"Statement on Report",manifestC:"Add'l Statement",
+progress:"Progress",remarc:"reschedule(s)",newCase:"NEW CASE (2nd round)",nfRetida:"Held Invoice",
+fmt50:"50/50",fmt100:"100%",
 recebidos:"Expected Receipts",pagamentos:"Expected Payments",saldo:"Projected Balance",retirada:"Safe Withdrawal",
-aging:"Receivables Aging",top5:"Top 5 Clients (Revenue)",monthly:"Annual Summary",dso:"DSO (days)",custosRev:"Fixed Costs vs Revenue",
-nfNum:"Invoice #",nfValor:"Gross Amount",dataCob:"Billing Date",valRec:"Received Amount",dataRec:"Received Date",
-dataPag:"Payment Date",obs:"Comment / Note",
-btnSaveNF:"Save Invoice",btnSavePay:"Log Receipt",btnPaid:"Mark Paid",btnAddNote:"Add Comment",
-saved:"Saved!",saveErr:"Save error"}
+aging:"Receivables Aging",top5:"Top 5 Clients (Historical)",monthly:"Annual Summary",dso:"DSO",margem:"Monthly Margin (last 6 months)",custosAtivos:"Active Fixed Costs",
+nfNum:"Invoice #",nfValor:"Invoice Amount",dataCob:"Billing Date",dataRec:"Receipt Date",dataPag:"Payment Date",obs:"Comment",
+btnSaveNF:"Save Invoice",btnSavePay:"Mark Received",btnPaid:"Mark Paid",btnAddNote:"Add",
+saved:"Saved!",saveErr:"Error",
+sStepCasos:"Loading cases…",sStepCob:"Loading invoices…",sStepCli:"Loading clients…",sStepPrazo:"Loading deadlines…",sStepCF:"Loading fixed costs…",
+prob:"Prob",esperado:"Expected",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
+formulaR:"Formula: each pending invoice × aging probability + cases to bill × 70%.",
+formulaP:"Formula: scheduled inspections × assistant fee (R$800 default) + active fixed costs.",
+formulaS:"Balance = Receipts − Payments. Withdrawal: 50% if balance>1.5×costs, 25% if positive, 0 if negative."}
 };
 let LANG='pt';
 const t=k=>I18N[LANG][k]||k;
 
-// =============== FIELDS ===============
+// ========== FIELDS ==========
 const F={
 caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I',formato:'fldorcMm83hAOgwmp',cliente:'fld7ddtpPu5BrgIoL',processo:'fldzUYMqa3SNmcaiy',dataPericia:'fld1SIT1qCgOrzvwE',obs:'fld82hJx9whlWhMhs'},
-cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI',nfNum:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk'},
+cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',numeroNF:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI'},
 cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC'},
-prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',finalizado:'fldrhICAJtN3gqXkR',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
-cf:{valor:'fldbjyqnsf4Q3dkkR'}
+prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
+cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'}
 };
 const BASE='appTEAYT5TYhnQwTn';
 const TBL={casos:'Casos',cob:'Cobranças',cli:'Clientes',prazo:'Prazos',cf:'tblmcxyRVtn2LYqLU'};
 
-// =============== AUTH ===============
+// ========== AUTH ==========
 const ENC_TOKEN='U2FsdGVkX194UJtfpYg8cvCjBafdRCJf+su7nO9ExDKeqIXt/lKaoQI7C5kekd6UwjyXN1YGhS+H4adcmq3lJAWhcC87lYckPgJPOdrMjJzukyH3U463Oio5GPJQpmzrljMBrJcs+TrT42ix9Ji8WQ==';
 let TK=null;
-
 async function decryptToken(pw){
   const raw=Uint8Array.from(atob(ENC_TOKEN),c=>c.charCodeAt(0));
-  if(String.fromCharCode.apply(null,raw.slice(0,8))!=='Salted__')throw new Error('bad');
+  if(String.fromCharCode.apply(null,raw.slice(0,8))!=='Salted__')throw 0;
   const salt=raw.slice(8,16),ct=raw.slice(16);
-  const pwKey=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},pwKey,384);
+  const pk=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},pk,384);
   const key=await crypto.subtle.importKey('raw',bits.slice(0,32),{name:'AES-CBC'},false,['decrypt']);
   return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-CBC',iv:bits.slice(32,48)},key,ct));
 }
-
 document.getElementById('loginBtn').onclick=async()=>{
-  const pw=document.getElementById('pw').value;
-  const err=document.getElementById('loginErr');err.textContent='';
+  const pw=document.getElementById('pw').value;const err=document.getElementById('loginErr');err.textContent='';
   try{TK=await decryptToken(pw);if(!TK.startsWith('pat'))throw 0;
     document.getElementById('login').style.display='none';
     document.getElementById('app').style.display='block';
@@ -204,12 +221,12 @@ document.getElementById('loginBtn').onclick=async()=>{
 };
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
 
-// =============== DATA ===============
+// ========== DATA ==========
 const DATA={casos:[],cob:[],cli:[],prazo:[],cf:[]};
 const PRAZOS_BY_CASO={};
 const COBS_BY_CASO={};
 
-async function fetchAll(table){
+async function fetchAll(table,onProgress){
   const recs=[];let offset='';
   do{
     const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(table)+'?returnFieldsByFieldId=true&pageSize=100'+(offset?'&offset='+offset:'');
@@ -218,23 +235,36 @@ async function fetchAll(table){
     const j=await r.json();
     recs.push.apply(recs,j.records);
     offset=j.offset||'';
+    if(onProgress)onProgress(recs.length);
   }while(offset);
   return recs;
 }
-
 async function patchRecord(table,recordId,fields){
   const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(table)+'/'+recordId+'?returnFieldsByFieldId=true';
-  const r=await fetch(url,{method:'PATCH',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields:fields})});
-  if(!r.ok){const txt=await r.text();throw new Error('HTTP '+r.status+': '+txt);}
+  const r=await fetch(url,{method:'PATCH',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields})});
+  if(!r.ok)throw new Error('HTTP '+r.status+': '+(await r.text()));
   return r.json();
 }
 
+function setLoader(){
+  document.getElementById('content').innerHTML='<div class="loader"><div class="sp"></div>'+
+    '<div id="ldCasos" class="step">⏳ '+t('sStepCasos')+'</div>'+
+    '<div id="ldCob" class="step">⏳ '+t('sStepCob')+'</div>'+
+    '<div id="ldCli" class="step">⏳ '+t('sStepCli')+'</div>'+
+    '<div id="ldPrazo" class="step">⏳ '+t('sStepPrazo')+'</div>'+
+    '<div id="ldCF" class="step">⏳ '+t('sStepCF')+'</div></div>';
+}
+const mark=(id,txt)=>{const el=document.getElementById(id);if(el){el.className='step done';el.textContent='✓ '+txt;}};
+
 async function loadData(){
-  document.getElementById('content').innerHTML='<div class="loader">'+t('loading')+'</div>';
+  setLoader();
   try{
-    const r=await Promise.all([fetchAll(TBL.casos),fetchAll(TBL.cob),fetchAll(TBL.cli),fetchAll(TBL.prazo)]);
-    DATA.casos=r[0];DATA.cob=r[1];DATA.cli=r[2];DATA.prazo=r[3];
-    try{DATA.cf=await fetchAll(TBL.cf);}catch(e){DATA.cf=[];}
+    const pCasos=fetchAll(TBL.casos).then(r=>{DATA.casos=r;mark('ldCasos',t('sStepCasos')+' ('+r.length+')');});
+    const pCob=fetchAll(TBL.cob).then(r=>{DATA.cob=r;mark('ldCob',t('sStepCob')+' ('+r.length+')');});
+    const pCli=fetchAll(TBL.cli).then(r=>{DATA.cli=r;mark('ldCli',t('sStepCli')+' ('+r.length+')');});
+    const pPrazo=fetchAll(TBL.prazo).then(r=>{DATA.prazo=r;mark('ldPrazo',t('sStepPrazo')+' ('+r.length+')');});
+    const pCF=fetchAll(TBL.cf).then(r=>{DATA.cf=r;mark('ldCF',t('sStepCF')+' ('+r.length+')');}).catch(()=>{DATA.cf=[];mark('ldCF','—');});
+    await Promise.all([pCasos,pCob,pCli,pPrazo,pCF]);
     for(const k in PRAZOS_BY_CASO)delete PRAZOS_BY_CASO[k];
     for(const k in COBS_BY_CASO)delete COBS_BY_CASO[k];
     for(const p of DATA.prazo){const cid=fv(p,F.prazo.caso);if(cid&&cid[0])(PRAZOS_BY_CASO[cid[0]]=PRAZOS_BY_CASO[cid[0]]||[]).push(p);}
@@ -244,7 +274,7 @@ async function loadData(){
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
 
-// =============== HELPERS ===============
+// ========== HELPERS ==========
 const fv=(r,fid)=>r.fields[fid];
 const num=v=>typeof v==='number'?v:0;
 const fmtBRL=v=>'R$ '+(num(v)).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -255,7 +285,7 @@ const daysBetween=(a,b)=>Math.floor((b-a)/86400000);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const monthKey=d=>{const dt=d instanceof Date?d:new Date(d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');};
 const monthLabel=k=>{if(!k)return t('allMonths');const[y,m]=k.split('-');return new Date(+y,+m-1,1).toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'long',year:'numeric'});};
-const todayISO=()=>{const d=new Date();return d.toISOString().slice(0,10);};
+const todayISO=()=>new Date().toISOString().slice(0,10);
 const nowStamp=()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());};
 
 const casoById=id=>DATA.casos.find(c=>c.id===id);
@@ -266,11 +296,11 @@ const cliOfCaso=c=>{const cid=fv(c,F.caso.cliente);if(!cid||!cid[0])return null;
 const cliNomeOfCaso=c=>{const cl=cliOfCaso(c);return cl?(fv(cl,F.cli.nome)||'—'):'—';};
 const cliConfirmarOfCaso=c=>{const cl=cliOfCaso(c);return cl?fv(cl,F.cli.confirmar)===true:false;};
 
-const tipoCob=co=>String(fv(co,F.cob.tipo)||'').toLowerCase();
-const isEntrada=co=>tipoCob(co).indexOf('entrada')>=0||tipoCob(co).indexOf('inicial')>=0||tipoCob(co).indexOf('final')>=0||tipoCob(co).indexOf('integral')>=0;
-const isSaida=co=>tipoCob(co).indexOf('saída')>=0||tipoCob(co).indexOf('saida')>=0||tipoCob(co).indexOf('despesa')>=0||!!fv(co,F.cob.dataPag)||(num(fv(co,F.cob.valorPag))>0&&!isEntrada(co));
+const tipoCob=co=>{const v=fv(co,F.cob.tipo);return v?String(v).toLowerCase():'';};
+const isSaida=co=>{const tp=tipoCob(co);return tp.indexOf('saída')>=0||tp.indexOf('saida')>=0||tp.indexOf('despesa')>=0||!!fv(co,F.cob.dataPag);};
+const isEntradaType=co=>!isSaida(co);
 
-// =============== MONTH ===============
+// ========== MONTH ==========
 let SELECTED_MONTH=null;
 function buildMonthSelector(){
   const set=new Set();
@@ -287,41 +317,38 @@ function buildMonthSelector(){
 }
 const inMonth=d=>{if(!SELECTED_MONTH)return true;if(!d)return false;return monthKey(d)===SELECTED_MONTH;};
 
-// =============== COMPUTATIONS ===============
+// ========== COMPUTATIONS ==========
 function computeOverview(){
   let entradas=0,saidas=0,aberto=0;
   const lEnt=[],lSai=[],lAb=[];
-  const t0=today();
   for(const co of DATA.cob){
-    const saida=isSaida(co);
-    if(saida){
-      const dp=fv(co,F.cob.dataPag);const dc=fv(co,F.cob.dataCobranca);
+    if(isSaida(co)){
+      const dp=fv(co,F.cob.dataPag),dc=fv(co,F.cob.dataCobranca);
       if(inMonth(dp)||inMonth(dc)){
         const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
         saidas+=v;
         lSai.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:dp||dc,cob:co,pago:fv(co,F.cob.pago)===true});
       }
-    }else{
-      const recebido=fv(co,F.cob.recebido)===true;
-      const dc=fv(co,F.cob.dataCobranca);
-      if(recebido&&inMonth(dc)){
+    }else if(fv(co,F.cob.recebido)===true){
+      const dc=fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca);
+      if(inMonth(dc)){
         const v=num(fv(co,F.cob.valorReceber));
         entradas+=v;
         lEnt.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:dc,cob:co});
       }
     }
   }
-  // Em Aberto: NF emitida, não recebida, não paga — filtrado por mês da cobrança
+  // Em Aberto: últimos 30 dias (não filtrado por mês selecionado)
+  const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()-30);
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.nfEmitida)!==true)continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
-    const dc=fv(co,F.cob.dataCobranca);
-    if(!inMonth(dc))continue;
-    const v=num(fv(co,F.cob.valorReceber));
-    if(v<=0)continue;
+    const d=parseDate(fv(co,F.cob.dataCobranca));
+    if(!d||d<t30||d>t0)continue;
+    const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
     aberto+=v;
-    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:dc,cob:co});
+    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:d,cob:co,dias:daysBetween(d,t0)});
   }
   return {entradas,saidas,aberto,lucro:entradas-saidas,lEnt,lSai,lAb};
 }
@@ -330,19 +357,19 @@ function computeCobrar(){
   const enc=[],ini=[],conf=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
-    if(fase==='Devedor')continue; // devedor não entra em confirmar nem a cobrar
-    const isEnc=fase==='Encerrado PARA COBRANÇA'||fase==='Encerrado - Falta Pagamento';
+    if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)')continue;
+    const isEnc=fase==='Encerrado PARA COBRANÇA';
     const fmt=fv(c,F.caso.formato);
     const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
     const needsConfirm=cliConfirmarOfCaso(c);
     if(isEnc){
-      const item={caso:c,valor:num(fv(c,F.caso.valor))};
+      const item={caso:c,valor:num(fv(c,F.caso.valor)),tipo:is5050?t('fmt50'):t('fmt100')};
       if(needsConfirm)conf.push(item);else enc.push(item);
     }else if(is5050&&fase&&fase.indexOf('Ativo')>=0){
       const cobs=COBS_BY_CASO[c.id]||[];
-      const hasInicial=cobs.some(co=>{const tp=tipoCob(co);return tp.indexOf('inicial')>=0&&fv(co,F.cob.recebido)===true;});
-      if(!hasInicial){
-        const item={caso:c,valor:num(fv(c,F.caso.valor))/2};
+      const hasEntrada=cobs.some(co=>!isSaida(co)&&num(fv(co,F.cob.valorReceber))>0);
+      if(!hasEntrada){
+        const item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50%'};
         if(needsConfirm)conf.push(item);else ini.push(item);
       }
     }
@@ -351,7 +378,6 @@ function computeCobrar(){
 }
 
 function computePendentes(){
-  // NFEmitida=true, Recebido!=true, Pago!=true, tipo entrada, idade<=90
   const t0=today();
   const out=[];
   for(const co of DATA.cob){
@@ -360,17 +386,17 @@ function computePendentes(){
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));
-    if(d&&daysBetween(d,t0)>90)continue;
+    const dias=d?daysBetween(d,t0):0;
+    if(d&&dias>90)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    out.push({caso:c,cob:co});
+    out.push({caso:c,cob:co,dias});
   }
-  return out;
+  // também casos fase Encerrado - Falta Pagamento com cobranças
+  return out.sort((a,b)=>b.dias-a.dias);
 }
 
 function computeDevedores(){
-  const t0=today();
-  const seen=new Set();
-  const out=[];
+  const t0=today();const seen=new Set();const out=[];
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
@@ -378,17 +404,18 @@ function computeDevedores(){
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     const isDev=c&&fv(c,F.caso.fase)==='Devedor';
     const d=parseDate(fv(co,F.cob.dataCobranca));
-    const old=d&&daysBetween(d,t0)>90;
-    if(isDev||old){
-      if(!seen.has(co.id)){seen.add(co.id);out.push({caso:c,cob:co});}
+    const dias=d?daysBetween(d,t0):0;
+    if(isDev||dias>90){
+      if(!seen.has(co.id)){seen.add(co.id);out.push({caso:c,cob:co,dias});}
     }
   }
-  return out;
+  return out.sort((a,b)=>b.dias-a.dias);
 }
+
+function activeCF(){return DATA.cf.filter(c=>fv(c,F.cf.ativo)===true);}
 
 function computePrevisao(){
   const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()+30);
-  // Recebimentos: cobranças pendentes ponderadas por aging
   let recebidos=0;const lRec=[];
   for(const co of DATA.cob){
     if(isSaida(co))continue;
@@ -399,14 +426,14 @@ function computePrevisao(){
     const age=d?daysBetween(d,t0):0;
     let p;if(age<30)p=0.9;else if(age<60)p=0.7;else if(age<90)p=0.4;else p=0.1;
     recebidos+=v*p;
-    lRec.push({nome:fv(co,F.cob.nome)||'—',valor:v,prob:p,esperado:v*p,age:age,cob:co});
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    lRec.push({nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),valor:v,prob:p,esperado:v*p,age,cob:co});
   }
-  // + casos prontos pra cobrar × 70%
   const cb=computeCobrar();
   const prontos=cb.enc.concat(cb.conf);
-  let prontosSoma=0;
-  for(const x of prontos){recebidos+=x.valor*0.7;prontosSoma+=x.valor*0.7;}
-  // Pagamentos: perícias próximos 30d × valorAssistente (ou 800)
+  const lProntos=prontos.map(x=>({nome:casoNome(x.caso),valor:x.valor,prob:0.7,esperado:x.valor*0.7}));
+  let prontosSoma=0;for(const x of lProntos){recebidos+=x.esperado;prontosSoma+=x.esperado;}
+  // Pagamentos
   let pagamentos=0;const lPag=[];
   for(const p of DATA.prazo){
     const d=parseDate(fv(p,F.prazo.data));
@@ -416,115 +443,125 @@ function computePrevisao(){
     const v=num(fv(p,F.prazo.valorAss))||800;
     pagamentos+=v;
     const cid=fv(p,F.prazo.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    lPag.push({tipo:'Perícia',data:d,valor:v,nome:c?casoNome(c):'—'});
+    lPag.push({data:d,valor:v,nome:c?casoNome(c):'—'});
   }
-  // + custos fixos
-  let custosFixos=0;
-  for(const cf of DATA.cf){custosFixos+=num(fv(cf,F.cf.valor));}
+  const cfs=activeCF();
+  let custosFixos=0;const lCF=[];
+  for(const cf of cfs){const v=num(fv(cf,F.cf.valor));custosFixos+=v;lCF.push({nome:fv(cf,F.cf.nome)||'—',valor:v,dia:fv(cf,F.cf.dia)||null});}
   pagamentos+=custosFixos;
   const saldo=recebidos-pagamentos;
   let retirada=0;
   if(saldo>1.5*custosFixos)retirada=saldo*0.5;
   else if(saldo>0)retirada=saldo*0.25;
-  return {recebidos,pagamentos,saldo,retirada,custosFixos,lRec,lPag,prontosSoma};
+  return {recebidos,pagamentos,saldo,retirada,custosFixos,lRec,lProntos,lPag,lCF,prontosSoma};
 }
 
 function computeAlerts(){
   const a=[];
   for(const c of DATA.casos){
     const fmt=fv(c,F.caso.formato);const fase=fv(c,F.caso.fase);
-    if(fmt&&String(fmt).indexOf('50/50')>=0&&fase&&(fase.indexOf('Pós')>=0||fase.indexOf('Laudo')>=0)){
+    if(fmt&&String(fmt).indexOf('50/50')>=0&&fase&&(fase.indexOf('Pós')>=0||fase.indexOf('Laudo')>=0||fase.indexOf('Encerrado')>=0)){
       const cobs=COBS_BY_CASO[c.id]||[];
-      const hasInicial=cobs.some(co=>tipoCob(co).indexOf('inicial')>=0&&fv(co,F.cob.recebido)===true);
-      if(!hasInicial)a.push({type:'forgot50',caso:c});
+      const hasEnt=cobs.some(co=>!isSaida(co)&&fv(co,F.cob.recebido)===true);
+      if(!hasEnt)a.push({type:'forgot50',caso:c});
     }
   }
-  const t0=today();
+  const year=new Date().getFullYear();
   for(const c of DATA.casos){
     if(fv(c,F.caso.fase)==='Encerrado - Pago'){
       const ps=PRAZOS_BY_CASO[c.id]||[];
-      if(ps.some(p=>{const d=parseDate(fv(p,F.prazo.data));return d&&d>=t0;}))a.push({type:'paidActivity',caso:c});
+      if(ps.some(p=>{const d=parseDate(fv(p,F.prazo.data));return d&&d.getFullYear()===year;}))a.push({type:'paidActivity',caso:c});
     }
   }
   return a;
 }
 
-// =============== ROADMAP ===============
+function computePhaseDistribution(){
+  const m={};
+  for(const c of DATA.casos){
+    const f=fv(c,F.caso.fase)||'—';
+    m[f]=(m[f]||0)+1;
+  }
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+
+// ========== ROADMAP ==========
 function caseRoadmap(caso){
   const prazos=(PRAZOS_BY_CASO[caso.id]||[]).map(p=>({
     data:parseDate(fv(p,F.prazo.data)),
-    tipo:String(fv(p,F.prazo.tipo)||'').toLowerCase()
+    tipo:(function(){const v=fv(p,F.prazo.tipo);return Array.isArray(v)?v.join(' ').toLowerCase():String(v||'').toLowerCase();})()
   })).filter(p=>p.data).sort((a,b)=>a.data-b.data);
-  const bucket=keys=>prazos.filter(p=>keys.some(k=>p.tipo.indexOf(k)>=0)).map(p=>p.data);
-  const qDates=bucket(['quesito']);
-  const pDates=bucket(['perícia','pericia','vistoria','inspeç','inspec']);
-  const mDates=bucket(['manifest','laudo','alegaç','alegac']);
-  if(pDates.length===0){const dp=parseDate(fv(caso,F.caso.dataPericia));if(dp)pDates.push(dp);}
+  const pick=keys=>prazos.filter(p=>keys.some(k=>p.tipo.indexOf(k)>=0)).map(p=>p.data);
+  const qDates=pick(['quesito','assist']);
+  const pDates=pick(['perícia','pericia','vistoria','inspeç','inspec']);
+  const mDates=pick(['manifestação ao laudo','manifestacao ao laudo','manifest','laudo','alegaç','alegac']);
+  const mcDates=pick(['complement']);
+  if(pDates.length===0){const dp=fv(caso,F.caso.dataPericia);if(Array.isArray(dp))dp.forEach(x=>{const d=parseDate(x);if(d)pDates.push(d);});else if(dp){const d=parseDate(dp);if(d)pDates.push(d);}}
   const t0=today();
   const stages=[
     {key:'q',name:t('quesitos'),dates:qDates},
     {key:'p',name:t('pericia'),dates:pDates},
     {key:'m',name:t('manifest'),dates:mDates}
   ];
+  if(mcDates.length>0)stages.push({key:'mc',name:t('manifestC'),dates:mcDates});
   for(const s of stages){
     if(s.dates.length===0){s.status='future';s.display=null;continue;}
     const last=s.dates[s.dates.length-1];
-    s.display=last;
-    s.status=last<t0?'done':'future';
+    s.display=last;s.status=last<t0?'done':'future';
   }
-  let found=false;
-  for(const s of stages)if(s.status!=='done'&&!found){s.status='current';found=true;}
+  let found=false;for(const s of stages)if(s.status!=='done'&&!found){s.status='current';found=true;}
   const remarc=Math.max(0,pDates.length-1);
   const done=stages.filter(s=>s.status==='done').length;
   return {stages,remarc,progress:done/stages.length*100};
 }
-
 function renderRoadmap(caso){
   const r=caseRoadmap(caso);
+  const isNovo=String(casoNome(caso)).toUpperCase().indexOf('NOVO CASO')>=0;
   const stagesHtml=r.stages.map(s=>{
     const ico=s.status==='done'?'✓':(s.status==='current'?'●':'');
     const extras=s.key==='p'&&r.remarc>0?'<div class="extras">+'+r.remarc+' '+t('remarc')+' (+'+fmtBRL(r.remarc*500)+')</div>':'';
     return '<div class="stage '+s.status+'"><div class="dot">'+ico+'</div><div class="name">'+s.name+'</div><div class="date">'+(s.display?fmtDate(s.display):'—')+'</div>'+extras+'</div>';
   }).join('');
-  return '<h4>Roadmap</h4><div class="roadmap"><div class="track"></div><div class="fill" style="width:calc('+(r.progress*0.8)+'% + 0px)"></div><div class="stages">'+stagesHtml+'</div></div><div class="progress-lbl">'+t('progress')+': '+Math.round(r.progress)+'%</div>';
+  return (isNovo?'<div style="margin-bottom:8px"><span class="tag purple">'+t('newCase')+'</span></div>':'')+
+    '<h4>Roadmap</h4>'+
+    '<div class="roadmap"><div class="track"></div><div class="fill" style="width:calc('+(r.progress*0.84)+'% + 0px)"></div><div class="stages">'+stagesHtml+'</div></div>'+
+    '<div class="pbar"><div style="width:'+r.progress+'%"></div></div>'+
+    '<div class="progress-lbl">'+t('progress')+': '+Math.round(r.progress)+'%</div>';
 }
 
-// =============== WRITE FORMS ===============
+// ========== FORMS ==========
 function renderNFForm(cob,caso){
   const id=cob?cob.id:'';
-  const nfNum=cob?(fv(cob,F.cob.nfNum)||''):'';
+  const nfNum=cob?(fv(cob,F.cob.numeroNF)||''):'';
   const nfVal=cob?(fv(cob,F.cob.valorBrutoNF)||fv(cob,F.cob.valorReceber)||fv(caso,F.caso.valor)||''):(fv(caso,F.caso.valor)||'');
   const dCob=cob?(fv(cob,F.cob.dataCobranca)||todayISO()):todayISO();
   return '<h4>'+t('btnSaveNF')+'</h4><div class="form" data-form="nf" data-cobid="'+(id||'')+'" data-casoid="'+caso.id+'">'+
     '<div><label>'+t('nfNum')+'</label><input name="nfNum" value="'+esc(nfNum)+'"></div>'+
     '<div><label>'+t('nfValor')+'</label><input name="nfVal" type="number" step="0.01" value="'+nfVal+'"></div>'+
-    '<div><label>'+t('dataCob')+'</label><input name="dCob" type="date" value="'+(dCob?String(dCob).slice(0,10):'')+'"></div>'+
-    '<div class="actions"><button class="btn green" data-act="saveNF">'+t('btnSaveNF')+'</button><span class="msg"></span></div>'+
+    '<div><label>'+t('dataCob')+'</label><input name="dCob" type="date" value="'+String(dCob).slice(0,10)+'"></div>'+
+    '<div class="actions"><button class="btn green" data-act="save">'+t('btnSaveNF')+'</button><span class="msg"></span></div>'+
     '</div>';
 }
 function renderPayForm(cob){
-  const v=num(fv(cob,F.cob.valorReceber));
   return '<h4>'+t('btnSavePay')+'</h4><div class="form" data-form="pay" data-cobid="'+cob.id+'">'+
     '<div><label>'+t('dataRec')+'</label><input name="dRec" type="date" value="'+todayISO()+'"></div>'+
-    '<div><label>'+t('valRec')+'</label><input name="val" type="number" step="0.01" value="'+v+'"></div>'+
-    '<div class="actions"><button class="btn green" data-act="savePay">'+t('btnSavePay')+'</button><span class="msg"></span></div>'+
+    '<div class="actions"><button class="btn green" data-act="save">'+t('btnSavePay')+'</button><span class="msg"></span></div>'+
     '</div>';
 }
 function renderPaidForm(cob){
   return '<h4>'+t('btnPaid')+'</h4><div class="form" data-form="paid" data-cobid="'+cob.id+'">'+
     '<div><label>'+t('dataPag')+'</label><input name="dPag" type="date" value="'+todayISO()+'"></div>'+
-    '<div class="actions"><button class="btn green" data-act="savePaid">'+t('btnPaid')+'</button><span class="msg"></span></div>'+
+    '<div class="actions"><button class="btn green" data-act="save">'+t('btnPaid')+'</button><span class="msg"></span></div>'+
     '</div>';
 }
 function renderNoteForm(caso){
   const cur=fv(caso,F.caso.obs)||'';
   return '<h4>'+t('obs')+'</h4><div class="form" data-form="note" data-casoid="'+caso.id+'">'+
-    '<textarea name="note" placeholder="Novo comentário..."></textarea>'+
-    '<div class="actions"><button class="btn" data-act="saveNote">'+t('btnAddNote')+'</button><span class="msg"></span></div>'+
-    (cur?'<div style="grid-column:1/-1;font-size:12px;color:#6b7c8c;white-space:pre-wrap;background:#fff;padding:8px;border-radius:5px;border:1px solid #e0eaf1">'+esc(cur)+'</div>':'')+
+    '<textarea name="note" placeholder="..."></textarea>'+
+    '<div class="actions"><button class="btn" data-act="save">'+t('btnAddNote')+'</button><span class="msg"></span></div>'+
+    (cur?'<div style="grid-column:1/-1;font-size:12px;color:#6b7c8c;white-space:pre-wrap;background:#fafcfe;padding:8px;border-radius:5px;border:1px solid #e0eaf1;max-height:120px;overflow-y:auto">'+esc(cur)+'</div>':'')+
     '</div>';
 }
-
 async function handleSave(btn){
   const form=btn.closest('[data-form]');
   const msg=form.querySelector('.msg');
@@ -538,53 +575,39 @@ async function handleSave(btn){
       const dCob=form.querySelector('[name=dCob]').value;
       const fields={};
       fields[F.cob.nfEmitida]=true;
-      if(nfNum)fields[F.cob.nfNum]=nfNum;
+      if(nfNum)fields[F.cob.numeroNF]=nfNum;
       if(nfVal)fields[F.cob.valorBrutoNF]=nfVal;
       if(dCob)fields[F.cob.dataCobranca]=dCob;
-      if(cobId){await patchRecord(TBL.cob,cobId,fields);}
+      if(cobId)await patchRecord(TBL.cob,cobId,fields);
       else{
-        // Criar nova cobrança
-        fields[F.cob.caso]=[casoId];
-        fields[F.cob.valorReceber]=nfVal;
-        fields[F.cob.tipo]='Entrada';
-        const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(TBL.cob)+'?returnFieldsByFieldId=true';
-        const r=await fetch(url,{method:'POST',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields})});
+        fields[F.cob.caso]=[casoId];fields[F.cob.valorReceber]=nfVal;fields[F.cob.tipo]='Entrada';
+        const r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(TBL.cob)+'?returnFieldsByFieldId=true',{method:'POST',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields})});
         if(!r.ok)throw new Error('HTTP '+r.status);
       }
     }else if(type==='pay'){
-      const cobId=form.dataset.cobid;
-      const dRec=form.querySelector('[name=dRec]').value;
-      const fields={};
-      fields[F.cob.recebido]=true;
-      if(dRec)fields[F.cob.dataReceb]=dRec;
-      await patchRecord(TBL.cob,cobId,fields);
+      const fields={};fields[F.cob.recebido]=true;
+      const d=form.querySelector('[name=dRec]').value;if(d)fields[F.cob.dataReceb]=d;
+      await patchRecord(TBL.cob,form.dataset.cobid,fields);
     }else if(type==='paid'){
-      const cobId=form.dataset.cobid;
-      const dPag=form.querySelector('[name=dPag]').value;
-      const fields={};
-      fields[F.cob.pago]=true;
-      if(dPag)fields[F.cob.dataPag]=dPag;
-      await patchRecord(TBL.cob,cobId,fields);
+      const fields={};fields[F.cob.pago]=true;
+      const d=form.querySelector('[name=dPag]').value;if(d)fields[F.cob.dataPag]=d;
+      await patchRecord(TBL.cob,form.dataset.cobid,fields);
     }else if(type==='note'){
-      const casoId=form.dataset.casoid;
-      const txt=form.querySelector('[name=note]').value.trim();
-      if(!txt){msg.textContent='';return;}
-      const caso=casoById(casoId);
-      const cur=fv(caso,F.caso.obs)||'';
-      const newText='['+nowStamp()+'] '+txt+'\n'+cur;
-      const fields={};fields[F.caso.obs]=newText;
-      await patchRecord(TBL.casos,casoId,fields);
+      const txt=form.querySelector('[name=note]').value.trim();if(!txt){msg.textContent='';return;}
+      const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
+      const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
+      await patchRecord(TBL.casos,form.dataset.casoid,fields);
     }
     msg.textContent=t('saved');msg.className='msg ok';
     setTimeout(loadData,600);
   }catch(e){msg.textContent=t('saveErr')+': '+e.message;msg.className='msg err';}
 }
 
-// =============== RENDER ===============
+// ========== RENDER ==========
 let TAB='overview';
-let OV_CACHE=null;
 let EXPANDED_CARD=null;
 let EXPANDED_ROW=null;
+let OV=null;
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>{
@@ -592,8 +615,8 @@ function render(){
     b.classList.toggle('active',b.dataset.tab===TAB);
   });
   document.getElementById('langSel').value=LANG;
-  const c=document.getElementById('content');
   EXPANDED_ROW=null;
+  const c=document.getElementById('content');
   if(TAB==='overview')c.innerHTML=renderOverview();
   else if(TAB==='cobrar')c.innerHTML=renderCobrar();
   else if(TAB==='pendentes')c.innerHTML=renderPendentes();
@@ -608,57 +631,93 @@ function caseCell(caso){
   const proc=casoProcesso(caso);
   return '<div>'+esc(casoNome(caso))+'</div>'+(proc?'<div class="proc">'+esc(proc)+'</div>':'');
 }
+function daysBadge(d){
+  if(d==null)return '';
+  const cls=d<30?'blue':(d<=60?'orange':'red');
+  return '<span class="tag '+cls+'">'+d+'d</span>';
+}
 
 function renderOverview(){
-  const o=computeOverview();OV_CACHE=o;
+  OV=computeOverview();
   const a=computeAlerts();
-  const card=(k,cls,lbl,val,cnt)=>'<div class="card '+cls+(EXPANDED_CARD===k?' active':'')+'" data-card="'+k+'"><div class="chev">'+(EXPANDED_CARD===k?'▲':'▼')+'</div><div class="label">'+lbl+'</div><div class="value">'+fmtBRL(val)+'</div><div class="sub">'+cnt+' '+monthLabel(SELECTED_MONTH)+'</div></div>';
+  const phases=computePhaseDistribution();
+  const maxP=Math.max(1,...phases.map(p=>p[1]));
+  const card=(k,cls,lbl,val,sub)=>'<div class="card '+cls+(EXPANDED_CARD===k?' active':'')+'" data-card="'+k+'"><div class="chev">'+(EXPANDED_CARD===k?'▲':'▼')+'</div><div class="label">'+lbl+'</div><div class="value">'+fmtBRL(val)+'</div><div class="sub">'+sub+'</div></div>';
   let exp='';
   if(EXPANDED_CARD){
-    const arr={ent:o.lEnt,sai:o.lSai,ab:o.lAb,lu:o.lEnt.concat(o.lSai)}[EXPANDED_CARD];
+    const map={ent:OV.lEnt,sai:OV.lSai,ab:OV.lAb,lu:OV.lEnt.concat(OV.lSai)};
     const titles={ent:t('entradas'),sai:t('saidas'),ab:t('aberto'),lu:t('lucro')};
-    const sorted=arr.slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
-    exp='<div class="section"><h2>'+titles[EXPANDED_CARD]+' — '+monthLabel(SELECTED_MONTH)+'</h2>'+
-      (sorted.length?'<table><thead><tr><th>Caso</th><th>'+t('date')+'</th><th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
-      sorted.map(x=>'<tr><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+    const arr=map[EXPANDED_CARD].slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
+    exp='<div class="section"><h2>'+titles[EXPANDED_CARD]+'</h2>'+
+      (arr.length?'<table><thead><tr><th>Caso</th><th>'+t('date')+'</th>'+(EXPANDED_CARD==='ab'?'<th class="right">'+t('days')+'</th>':'')+(EXPANDED_CARD==='sai'?'<th>Status</th>':'')+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
+      arr.map((x,i)=>{
+        const rid='ov-'+EXPANDED_CARD+'-'+i;
+        const expRow=EXPANDED_ROW===rid;
+        let row='<tr class="clickable'+(expRow?' expanded':'')+'" data-row="'+rid+'"><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td>';
+        if(EXPANDED_CARD==='ab')row+='<td class="right">'+daysBadge(x.dias)+'</td>';
+        if(EXPANDED_CARD==='sai')row+='<td>'+(x.pago?'<span class="tag green">Pago</span>':'<span class="tag orange">Pendente</span>')+'</td>';
+        row+='<td class="right">'+fmtBRL(x.valor)+'</td></tr>';
+        if(expRow&&x.cob){
+          const cid=fv(x.cob,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+          const cols=2+(EXPANDED_CARD==='ab'?1:0)+(EXPANDED_CARD==='sai'?1:0)+1;
+          let det='';
+          if(c)det+=renderRoadmap(c);
+          if(EXPANDED_CARD==='sai'&&!x.pago)det+=renderPaidForm(x.cob);
+          if(c)det+=renderNoteForm(c);
+          row+='<tr><td colspan="'+cols+'" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
+        }
+        return row;
+      }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   }
   return '<div class="cards">'+
-    card('ent','green',t('entradas'),o.entradas,o.lEnt.length+' itens •')+
-    card('sai','red',t('saidas'),o.saidas,o.lSai.length+' itens •')+
-    card('ab','orange',t('aberto'),o.aberto,o.lAb.length+' itens •')+
-    card('lu','blue',t('lucro'),o.lucro,'')+
+    card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
+    card('sai','red',t('saidas'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
+    card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • últimos 30d')+
+    card('lu','blue',t('lucro'),OV.lucro,monthLabel(SELECTED_MONTH))+
     '</div>'+exp+
     '<div class="section"><h2>'+t('alerts')+'</h2>'+
     (a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>'<div class="alert '+(x.type==='forgot50'?'red':'')+'"><strong>'+(x.type==='forgot50'?t('forgot50'):t('paidActivity'))+':</strong> '+esc(casoNome(x.caso))+' — '+esc(cliNomeOfCaso(x.caso))+'</div>').join(''))+
+    '</div>'+
+    '<div class="section"><h2>'+t('distFase')+'</h2>'+
+    phases.map(p=>'<div class="phase-bar"><div class="name">'+esc(p[0])+'</div><div class="fill" style="width:'+(p[1]/maxP*60)+'%"></div><div class="cnt">'+p[1]+'</div></div>').join('')+
     '</div>';
 }
 
 function caseTable(rows,opts){
   if(!rows.length)return '<div class="empty">'+t('noData')+'</div>';
   const cols=opts.cols;
-  const head='<tr>'+cols.map(k=>'<th'+(k==='value'||k==='days'?' class="right"':'')+'>'+t(k)+'</th>').join('')+'</tr>';
+  const head='<tr>'+cols.map(k=>'<th'+(k==='value'||k==='days'?' class="right"':'')+'>'+(k==='tipo'?'Tipo':t(k))+'</th>').join('')+'</tr>';
   const body=rows.map((r,i)=>{
     const rid=opts.prefix+'-'+i;
+    const expanded=EXPANDED_ROW===rid;
     const tds=cols.map(k=>{
-      if(k==='case')return '<td>'+caseCell(r.caso)+'</td>';
+      if(k==='case'){
+        let extra='';
+        if(r.caso){
+          const dp=fv(r.caso,F.caso.dataPericia);
+          const n=Array.isArray(dp)?dp.length:(dp?1:0);
+          if(n>1)extra+=' <span class="tag orange">'+(n-1)+' remarc</span>';
+        }
+        if(r.cob&&fv(r.cob,F.cob.nfRetida)===true)extra+=' <span class="tag red">'+t('nfRetida')+'</span>';
+        return '<td>'+caseCell(r.caso)+extra+'</td>';
+      }
       if(k==='client')return '<td>'+esc(r.caso?cliNomeOfCaso(r.caso):'—')+'</td>';
       if(k==='phase')return '<td>'+esc(r.caso?(fv(r.caso,F.caso.fase)||'—'):'—')+'</td>';
+      if(k==='tipo')return '<td><span class="tag blue">'+(r.tipo||'—')+'</span></td>';
       if(k==='date')return '<td>'+fmtDate(r.cob?fv(r.cob,F.cob.dataCobranca):null)+'</td>';
-      if(k==='days'){const d=r.cob?parseDate(fv(r.cob,F.cob.dataCobranca)):null;return '<td class="right">'+(d?daysBetween(d,today()):'—')+'</td>';}
+      if(k==='days')return '<td class="right">'+daysBadge(r.dias)+'</td>';
       if(k==='value')return '<td class="right">'+fmtBRL(r.valor!=null?r.valor:(r.cob?num(fv(r.cob,F.cob.valorReceber)):0))+'</td>';
       return '<td></td>';
     }).join('');
-    const expanded=EXPANDED_ROW===rid;
-    let detail='';
+    let det='';
     if(expanded&&r.caso){
-      detail+=renderRoadmap(r.caso);
-      if(opts.form==='nf')detail+=renderNFForm(r.cob,r.caso);
-      if(opts.form==='pay'&&r.cob)detail+=renderPayForm(r.cob);
-      if(opts.form==='paid'&&r.cob)detail+=renderPaidForm(r.cob);
-      detail+=renderNoteForm(r.caso);
+      det+=renderRoadmap(r.caso);
+      if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso);
+      if(opts.form==='pay'&&r.cob)det+=renderPayForm(r.cob);
+      det+=renderNoteForm(r.caso);
     }
     const mainTr='<tr class="clickable'+(expanded?' expanded':'')+'" data-row="'+rid+'">'+tds+'</tr>';
-    const detTr=expanded?'<tr><td colspan="'+cols.length+'" style="padding:0"><div class="detail">'+detail+'</div></td></tr>':'';
+    const detTr=expanded?'<tr><td colspan="'+cols.length+'" style="padding:0"><div class="detail">'+det+'</div></td></tr>':'';
     return mainTr+detTr;
   }).join('');
   return '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
@@ -668,49 +727,58 @@ function renderCobrar(){
   const g=computeCobrar();
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
   let html='';
-  if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','value'],prefix:'cf',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','value'],prefix:'enc',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','value'],prefix:'ini',form:'nf'})+'</div>';
+  if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','tipo','value'],prefix:'cf',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','tipo','value'],prefix:'enc',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','tipo','value'],prefix:'ini',form:'nf'})+'</div>';
   return html;
 }
 
 function renderPendentes(){
   const list=computePendentes();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  return '<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','value'],prefix:'pe',form:'pay'})+'</div>';
+  return '<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
 function renderDevedores(){
   const list=computeDevedores();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  list.sort((a,b)=>(parseDate(fv(a.cob,F.cob.dataCobranca))||0)-(parseDate(fv(b.cob,F.cob.dataCobranca))||0));
   return '<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','days','value'],prefix:'dv',form:'pay'})+'</div>';
 }
 
 function renderPrevisao(){
   const p=computePrevisao();
   let html='<div class="cards">'+
-    '<div class="card green"><div class="label">'+t('recebidos')+'</div><div class="value">'+fmtBRL(p.recebidos)+'</div><div class="sub">ponderado</div></div>'+
-    '<div class="card red"><div class="label">'+t('pagamentos')+'</div><div class="value">'+fmtBRL(p.pagamentos)+'</div><div class="sub">fixos + perícias</div></div>'+
+    '<div class="card green"><div class="label">'+t('recebidos')+'</div><div class="value">'+fmtBRL(p.recebidos)+'</div></div>'+
+    '<div class="card red"><div class="label">'+t('pagamentos')+'</div><div class="value">'+fmtBRL(p.pagamentos)+'</div></div>'+
     '<div class="card blue"><div class="label">'+t('saldo')+'</div><div class="value">'+fmtBRL(p.saldo)+'</div></div>'+
     '<div class="card orange"><div class="label">'+t('retirada')+'</div><div class="value">'+fmtBRL(p.retirada)+'</div></div>'+
     '</div>';
-  html+='<div class="section"><h2>'+t('recebidos')+'</h2>'+
-    (p.lRec.length?'<table><thead><tr><th>Caso</th><th class="right">Idade (d)</th><th class="right">Prob</th><th class="right">Valor</th><th class="right">Esperado</th></tr></thead><tbody>'+
-    p.lRec.sort((a,b)=>b.esperado-a.esperado).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+x.age+'</td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
-    '<div style="margin-top:8px;font-size:13px;color:#6b7c8c">+ Casos prontos pra cobrar × 70% = '+fmtBRL(p.prontosSoma)+'</div></div>';
-  html+='<div class="section"><h2>'+t('pagamentos')+'</h2>'+
-    '<div style="margin-bottom:8px;font-size:13px">Custos fixos mensais: <strong>'+fmtBRL(p.custosFixos)+'</strong></div>'+
-    (p.lPag.length?'<table><thead><tr><th>Tipo</th><th>Caso</th><th>Data</th><th class="right">Valor</th></tr></thead><tbody>'+
-    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+x.tipo+'</td><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Sem perícias nos próximos 30 dias</div>')+
+  html+='<div class="section"><h2>'+t('recebidos')+'</h2><div class="note">'+t('formulaR')+'</div>'+
+    (p.lRec.length?'<h3>Cobranças pendentes</h3><table><thead><tr><th>Caso</th><th class="right">'+t('days')+'</th><th class="right">'+t('prob')+'</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
+    p.lRec.sort((a,b)=>b.esperado-a.esperado).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+x.age+'</td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'')+
+    (p.lProntos.length?'<h3>Casos a cobrar × 70% = '+fmtBRL(p.prontosSoma)+'</h3><table><thead><tr><th>Caso</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
+    p.lProntos.sort((a,b)=>b.esperado-a.esperado).slice(0,10).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'')+
     '</div>';
+  html+='<div class="section"><h2>'+t('pagamentos')+'</h2><div class="note">'+t('formulaP')+'</div>'+
+    '<h3>Perícias agendadas (próximos 30d)</h3>'+
+    (p.lPag.length?'<table><thead><tr><th>Data</th><th>Caso</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+fmtDate(x.data)+'</td><td>'+esc(x.nome)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+    '<h3>'+t('custosAtivos')+' — '+fmtBRL(p.custosFixos)+'</h3>'+
+    (p.lCF.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    p.lCF.map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+(x.dia||'—')+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+    '</div>';
+  html+='<div class="section"><h2>'+t('saldo')+' / '+t('retirada')+'</h2><div class="note">'+t('formulaS')+'</div>'+
+    '<div class="kpi"><div class="box green"><div class="l">'+t('recebidos')+'</div><div class="v">'+fmtBRL(p.recebidos)+'</div></div>'+
+    '<div class="box red"><div class="l">'+t('pagamentos')+'</div><div class="v">'+fmtBRL(p.pagamentos)+'</div></div>'+
+    '<div class="box"><div class="l">'+t('saldo')+'</div><div class="v">'+fmtBRL(p.saldo)+'</div></div>'+
+    '<div class="box orange"><div class="l">'+t('retirada')+'</div><div class="v">'+fmtBRL(p.retirada)+'</div></div></div></div>';
   return html;
 }
 
 function renderFPA(){
   const t0=today();
   // Aging
-  const buckets={'0-30':{c:0,v:0},'30-60':{c:0,v:0},'60-90':{c:0,v:0},'90+':{c:0,v:0}};
+  const buckets={a0:{c:0,v:0,l:t('aging0')},a30:{c:0,v:0,l:t('aging30')},a60:{c:0,v:0,l:t('aging60')},a90:{c:0,v:0,l:t('aging90')}};
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
@@ -718,7 +786,7 @@ function renderFPA(){
     const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));if(!d)continue;
     const age=daysBetween(d,t0);
-    const k=age<30?'0-30':age<60?'30-60':age<90?'60-90':'90+';
+    const k=age<30?'a0':age<60?'a30':age<90?'a60':'a90';
     buckets[k].c++;buckets[k].v+=v;
   }
   // Top 5
@@ -732,16 +800,15 @@ function renderFPA(){
     byCli[cl]=(byCli[cl]||0)+num(fv(co,F.cob.valorReceber));
   }
   const top=Object.entries(byCli).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  // Monthly
+  // Monthly (year)
   const year=new Date().getFullYear();
   const byMonth={};for(let m=1;m<=12;m++)byMonth[m]={e:0,s:0};
   for(const co of DATA.cob){
-    const saida=isSaida(co);
-    if(saida){
+    if(isSaida(co)){
       const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));if(!d||d.getFullYear()!==year)continue;
       byMonth[d.getMonth()+1].s+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     }else if(fv(co,F.cob.recebido)===true){
-      const d=parseDate(fv(co,F.cob.dataCobranca));if(!d||d.getFullYear()!==year)continue;
+      const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));if(!d||d.getFullYear()!==year)continue;
       byMonth[d.getMonth()+1].e+=num(fv(co,F.cob.valorReceber));
     }
   }
@@ -751,39 +818,54 @@ function renderFPA(){
   for(const co of DATA.cob){
     if(isSaida(co)||fv(co,F.cob.recebido)!==true)continue;
     const dc=parseDate(fv(co,F.cob.dataCobranca));const dr=parseDate(fv(co,F.cob.dataReceb));
-    if(!dc||!dr)continue;
-    dsoSum+=daysBetween(dc,dr);dsoCnt++;
+    if(!dc||!dr)continue;dsoSum+=daysBetween(dc,dr);dsoCnt++;
   }
   const dso=dsoCnt?Math.round(dsoSum/dsoCnt):0;
-  // Custos vs receita
-  let cf=0;for(const c of DATA.cf)cf+=num(fv(c,F.cf.valor));
-  const totalReceita=Object.values(byCli).reduce((a,b)=>a+b,0);
-  const avgMensal=totalReceita/12;
-  const ratio=avgMensal?(cf/avgMensal*100).toFixed(1):'—';
+  // Margem últimos 6 meses
+  const now=new Date();
+  const last6=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);last6.push({k:monthKey(d),lbl:d.toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'short'}),e:0,s:0});}
+  const last6Map={};last6.forEach(x=>last6Map[x.k]=x);
+  for(const co of DATA.cob){
+    if(isSaida(co)){
+      const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));if(!d)continue;
+      const k=monthKey(d);if(last6Map[k])last6Map[k].s+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+    }else if(fv(co,F.cob.recebido)===true){
+      const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));if(!d)continue;
+      const k=monthKey(d);if(last6Map[k])last6Map[k].e+=num(fv(co,F.cob.valorReceber));
+    }
+  }
+  // Custos ativos
+  const cfs=activeCF();let cfTotal=0;for(const c of cfs)cfTotal+=num(fv(c,F.cf.valor));
 
   let html='<div class="section"><h2>'+t('aging')+'</h2>'+
-    '<div class="kpi">'+Object.entries(buckets).map(([k,v])=>'<div class="box"><div class="l">'+k+' d</div><div class="v">'+fmtBRL(v.v)+'</div><div class="l">'+v.c+' cob</div></div>').join('')+'</div></div>';
+    '<div class="kpi">'+Object.values(buckets).map(v=>'<div class="box"><div class="l">'+v.l+'</div><div class="v">'+fmtBRL(v.v)+'</div><div class="l">'+v.c+' cob</div></div>').join('')+'</div></div>';
   html+='<div class="section"><h2>'+t('top5')+'</h2>'+
-    (top.length?'<table><thead><tr><th>Cliente</th><th class="right">Receita histórica</th></tr></thead><tbody>'+
+    (top.length?'<table><thead><tr><th>'+t('client')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     top.map(x=>'<tr><td>'+esc(x[0])+'</td><td class="right">'+fmtBRL(x[1])+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   html+='<div class="section"><h2>'+t('monthly')+' '+year+'</h2>'+
     '<div class="bar-chart">'+Object.entries(byMonth).map(([m,v])=>{
       const he=Math.round(v.e/maxV*130),hs=Math.round(v.s/maxV*130);
       return '<div class="bar-col"><div class="bars"><div class="bar green" style="height:'+he+'px" title="'+fmtBRL(v.e)+'"></div><div class="bar red" style="height:'+hs+'px" title="'+fmtBRL(v.s)+'"></div></div><div class="lbl">'+m+'</div></div>';
     }).join('')+'</div>'+
-    '<div style="margin-top:8px;font-size:12px;color:#6b7c8c"><span style="color:#22a06b">■</span> Entradas  <span style="color:#d64545">■</span> Saídas</div></div>';
-  html+='<div class="section"><h2>'+t('dso')+' / '+t('custosRev')+'</h2>'+
-    '<div class="kpi"><div class="box"><div class="l">DSO médio</div><div class="v">'+dso+' d</div></div>'+
-    '<div class="box"><div class="l">Custos fixos/mês</div><div class="v">'+fmtBRL(cf)+'</div></div>'+
-    '<div class="box"><div class="l">Receita média/mês</div><div class="v">'+fmtBRL(avgMensal)+'</div></div>'+
-    '<div class="box"><div class="l">Custo / Receita</div><div class="v">'+ratio+'%</div></div></div></div>';
+    '<div style="margin-top:8px;font-size:12px;color:#6b7c8c"><span style="color:#22a06b">■</span> '+t('entradas')+'  <span style="color:#d64545">■</span> '+t('saidas')+'</div></div>';
+  const max6=Math.max(1,...last6.flatMap(x=>[x.e,x.s]));
+  html+='<div class="section"><h2>'+t('margem')+'</h2>'+
+    '<table><thead><tr><th>Mês</th><th class="right">'+t('entradas')+'</th><th class="right">'+t('saidas')+'</th><th class="right">Margem</th></tr></thead><tbody>'+
+    last6.map(x=>'<tr><td>'+x.lbl+'</td><td class="right">'+fmtBRL(x.e)+'</td><td class="right">'+fmtBRL(x.s)+'</td><td class="right">'+fmtBRL(x.e-x.s)+'</td></tr>').join('')+'</tbody></table></div>';
+  html+='<div class="section"><h2>'+t('dso')+'</h2>'+
+    '<div class="kpi"><div class="box"><div class="l">DSO médio</div><div class="v">'+dso+' d</div></div></div></div>';
+  html+='<div class="section"><h2>'+t('custosAtivos')+' — '+fmtBRL(cfTotal)+'</h2>'+
+    (cfs.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    cfs.sort((a,b)=>num(fv(b,F.cf.valor))-num(fv(a,F.cf.valor))).map(c=>'<tr><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
+    '</div>';
   return html;
 }
 
 function attachHandlers(){
   document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;EXPANDED_CARD=null;EXPANDED_ROW=null;render();});
   document.querySelectorAll('.card[data-card]').forEach(card=>{
-    card.onclick=()=>{const k=card.dataset.card;EXPANDED_CARD=EXPANDED_CARD===k?null:k;render();};
+    card.onclick=()=>{const k=card.dataset.card;EXPANDED_CARD=EXPANDED_CARD===k?null:k;EXPANDED_ROW=null;render();};
   });
   document.querySelectorAll('tr.clickable').forEach(tr=>{
     tr.onclick=e=>{
@@ -792,9 +874,7 @@ function attachHandlers(){
     };
   });
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
-  document.querySelectorAll('[data-act]').forEach(b=>{
-    b.onclick=ev=>{ev.stopPropagation();handleSave(b);};
-  });
+  document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
 }
 
 document.getElementById('langSel').onchange=e=>{LANG=e.target.value;buildMonthSelector();render();};
