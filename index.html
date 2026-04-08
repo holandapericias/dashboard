@@ -8,55 +8,68 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Barlow',sans-serif;background:#F2F8FC;color:#222;min-height:100vh}
-header{background:#005F88;color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-header h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;letter-spacing:.5px}
-header .actions{display:flex;gap:10px;align-items:center}
-header button{background:#00AEEF;color:#fff;border:0;padding:8px 14px;border-radius:6px;font-family:'Barlow',sans-serif;font-weight:600;cursor:pointer;font-size:14px}
+header{background:#005F88;color:#fff;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.1);flex-wrap:wrap;gap:12px}
+header h1{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:24px;letter-spacing:.5px}
+header .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+header select,header button{background:#00AEEF;color:#fff;border:0;padding:8px 14px;border-radius:6px;font-family:'Barlow',sans-serif;font-weight:600;cursor:pointer;font-size:14px}
+header select{background:#fff;color:#003c56;font-weight:600}
 header button:hover{background:#0098d1}
 nav{background:#fff;border-bottom:1px solid #d6e4ef;padding:0 28px;display:flex;gap:4px;overflow-x:auto}
 nav button{background:none;border:0;padding:14px 18px;font-family:'Barlow',sans-serif;font-weight:600;color:#005F88;cursor:pointer;border-bottom:3px solid transparent;font-size:14px;white-space:nowrap}
 nav button.active{border-bottom-color:#00AEEF;color:#003c56}
 main{padding:24px 28px;max-width:1400px;margin:0 auto}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
-.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;border-left:5px solid #00AEEF;transition:transform .1s}
-.card:hover{transform:translateY(-2px)}
+.card{background:#fff;border-radius:10px;padding:18px;box-shadow:0 2px 6px rgba(0,0,0,.06);cursor:pointer;border-left:5px solid #00AEEF;transition:transform .1s,box-shadow .1s;position:relative}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.card.active{box-shadow:0 0 0 3px #00AEEF,0 4px 12px rgba(0,174,239,.3)}
 .card.green{border-left-color:#22a06b}
 .card.red{border-left-color:#d64545}
 .card.orange{border-left-color:#f08c1f}
 .card.blue{border-left-color:#00AEEF}
 .card .label{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;font-size:13px;color:#6b7c8c;font-weight:600;letter-spacing:.5px}
-.card .value{font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;color:#003c56;margin-top:6px}
+.card .value{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:#003c56;margin-top:6px}
 .card .sub{font-size:12px;color:#6b7c8c;margin-top:4px}
+.card .chev{position:absolute;right:14px;top:18px;color:#00AEEF;font-size:18px}
 .section{background:#fff;border-radius:10px;padding:20px;box-shadow:0 2px 6px rgba(0,0,0,.06);margin-bottom:20px}
 .section h2{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:#005F88;margin-bottom:14px;text-transform:uppercase}
+.section h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:#005F88;margin:18px 0 10px;text-transform:uppercase;border-bottom:2px solid #d6e4ef;padding-bottom:6px}
+.section.warn{background:#fffbec;border:1px solid #f3d98a}
+.section.warn h2{color:#a35a07}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;padding:10px 8px;background:#F2F8FC;color:#005F88;font-weight:600;border-bottom:2px solid #d6e4ef;font-size:12px;text-transform:uppercase}
-td{padding:10px 8px;border-bottom:1px solid #eef3f7}
-tr:hover td{background:#f8fbfd}
+td{padding:10px 8px;border-bottom:1px solid #eef3f7;vertical-align:top}
+tr.clickable{cursor:pointer}
+tr.clickable:hover td{background:#eef5fa}
+tr.expanded td{background:#f0f7fc}
+.proc{font-size:11px;color:#6b7c8c;font-family:'Barlow Condensed',sans-serif;margin-top:2px;letter-spacing:.3px}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 .tag.green{background:#dcf2e6;color:#1a7a4f}
 .tag.red{background:#fbe1e1;color:#a82929}
 .tag.orange{background:#fce7cf;color:#a35a07}
 .tag.blue{background:#d9efff;color:#005F88}
 .tag.gray{background:#e8edf2;color:#5a6c7d}
+.tag.yellow{background:#fff5d1;color:#8a6a00}
 .alert{background:#fff7e6;border-left:4px solid #f08c1f;padding:12px 14px;border-radius:6px;margin-bottom:10px;font-size:14px}
 .alert.red{background:#fdecec;border-left-color:#d64545}
-.case{border:1px solid #e0eaf1;border-radius:8px;margin-bottom:10px;overflow:hidden}
-.case-h{padding:12px 14px;background:#f8fbfd;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:14px}
-.case-h:hover{background:#eef5fa}
-.case-h .name{font-weight:600;color:#003c56}
-.case-h .meta{font-size:12px;color:#6b7c8c}
-.case-body{display:none;padding:14px;background:#fff;border-top:1px solid #e0eaf1}
-.case.open .case-body{display:block}
-.timeline{display:flex;flex-direction:column;gap:8px}
-.tl-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:6px;border-left:4px solid #ccc;background:#f8fbfd}
-.tl-item.past{border-left-color:#22a06b;background:#eaf7f0}
-.tl-item.current{border-left-color:#00AEEF;background:#e0f2ff}
-.tl-item.future{border-left-color:#c8d2dc;background:#f2f5f8;color:#6b7c8c}
-.tl-item .date{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;min-width:90px}
-.tl-item .type{flex:1;font-size:13px}
-.progress{height:8px;background:#e8edf2;border-radius:4px;overflow:hidden;margin:8px 0}
-.progress-bar{height:100%;background:#00AEEF;transition:width .3s}
+.right{text-align:right}
+.empty{padding:20px;text-align:center;color:#6b7c8c;font-style:italic}
+.loader{text-align:center;padding:40px;color:#6b7c8c}
+.detail{padding:16px 20px;background:#f8fbfd;border-top:1px solid #e0eaf1;border-bottom:1px solid #e0eaf1}
+.detail h4{font-family:'Barlow Condensed',sans-serif;color:#005F88;font-size:14px;text-transform:uppercase;margin-bottom:10px}
+/* Roadmap horizontal */
+.roadmap{position:relative;padding:10px 0 24px;margin:8px 0}
+.roadmap .track{position:absolute;left:20px;right:20px;top:28px;height:4px;background:#e0eaf1;border-radius:2px;z-index:0}
+.roadmap .fill{position:absolute;left:20px;top:28px;height:4px;background:linear-gradient(90deg,#22a06b,#00AEEF);border-radius:2px;z-index:1;transition:width .4s}
+.roadmap .stages{position:relative;display:flex;justify-content:space-between;z-index:2}
+.stage{flex:1;text-align:center;position:relative}
+.stage .dot{width:18px;height:18px;border-radius:50%;background:#c8d2dc;margin:0 auto;border:3px solid #fff;box-shadow:0 0 0 2px #c8d2dc;position:relative;z-index:2}
+.stage.done .dot{background:#22a06b;box-shadow:0 0 0 2px #22a06b}
+.stage.current .dot{background:#00AEEF;box-shadow:0 0 0 2px #00AEEF;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 2px #00AEEF,0 0 0 4px rgba(0,174,239,.3)}50%{box-shadow:0 0 0 2px #00AEEF,0 0 0 10px rgba(0,174,239,0)}}
+.stage .name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;color:#003c56;margin-top:8px}
+.stage.future .name{color:#8a96a3}
+.stage .date{font-size:11px;color:#6b7c8c;margin-top:2px}
+.stage .extras{font-size:10px;color:#a35a07;margin-top:2px}
 #login{position:fixed;inset:0;background:#005F88;display:flex;align-items:center;justify-content:center;z-index:100}
 #login .box{background:#fff;padding:36px;border-radius:12px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);max-width:340px;width:90%}
 #login h2{font-family:'Barlow Condensed',sans-serif;color:#005F88;margin-bottom:18px;font-size:22px}
@@ -64,10 +77,6 @@ tr:hover td{background:#f8fbfd}
 #login button{width:100%;background:#005F88;color:#fff;border:0;padding:12px;border-radius:6px;font-weight:600;cursor:pointer;font-size:15px;font-family:'Barlow',sans-serif}
 #login button:hover{background:#003c56}
 #login .err{color:#d64545;font-size:13px;margin-top:8px;min-height:18px}
-.loader{text-align:center;padding:40px;color:#6b7c8c}
-.muted{color:#6b7c8c;font-size:13px}
-.right{text-align:right}
-.empty{padding:20px;text-align:center;color:#6b7c8c;font-style:italic}
 </style>
 </head>
 <body>
@@ -83,9 +92,10 @@ tr:hover td{background:#f8fbfd}
 
 <div id="app" style="display:none">
 <header>
-  <h1>HOLANDA PERÍCIAS — DASHBOARD</h1>
+  <h1>HOLANDA PERÍCIAS</h1>
   <div class="actions">
-    <button id="langBtn">EN</button>
+    <select id="monthSel" title="Mês"></select>
+    <select id="langSel"><option value="pt">Português</option><option value="en">English</option></select>
     <button id="reloadBtn" title="Reload">↻</button>
   </div>
 </header>
@@ -95,23 +105,30 @@ tr:hover td{background:#f8fbfd}
   <button data-tab="pendentes"></button>
   <button data-tab="devedores"></button>
   <button data-tab="previsao"></button>
-  <button data-tab="roadmap"></button>
 </nav>
 <main id="content"><div class="loader">Carregando...</div></main>
 </div>
 
 <script>
 const I18N={
-  pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",previsao:"Previsão 30d",roadmap:"Roadmap",
+  pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",previsao:"Previsão 30d",
     entradas:"Entradas",saidas:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",
     case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",
     forgot50:"50% iniciais possivelmente esquecidos",paidActivity:"Caso pago com nova atividade",
-    noData:"Sem dados",loading:"Carregando dados...",err:"Erro ao carregar"},
-  en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",previsao:"Next 30d",roadmap:"Roadmap",
+    noData:"Sem dados",loading:"Carregando dados...",err:"Erro ao carregar",
+    allMonths:"Todos os meses",
+    s50:"50% Iniciais Pendentes",sEnc:"Encerrados 100% para cobrança",sConf:"Confirmar com cliente antes",
+    quesitos:"Quesitos",pericia:"Perícia",manifest:"Manifestação",
+    remarc:"remarcação(ões)"},
+  en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",previsao:"Next 30d",
     entradas:"Income",saidas:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",
     case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",
     forgot50:"Possibly forgotten 50% upfront",paidActivity:"Paid case with new activity",
-    noData:"No data",loading:"Loading...",err:"Load error"}
+    noData:"No data",loading:"Loading...",err:"Load error",
+    allMonths:"All months",
+    s50:"Pending 50% Upfront",sEnc:"Closed 100% to bill",sConf:"Confirm with client first",
+    quesitos:"Questions",pericia:"Inspection",manifest:"Statement",
+    remarc:"reschedule(s)"}
 };
 let LANG='pt';
 const t=k=>I18N[LANG][k]||k;
@@ -155,6 +172,7 @@ document.getElementById('loginBtn').onclick=async()=>{
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
 
 const DATA={casos:[],cob:[],cli:[],prazo:[]};
+const PRAZOS_BY_CASO={}; // cache
 
 async function fetchAll(table){
   const recs=[];let offset='';
@@ -174,6 +192,13 @@ async function loadData(){
   try{
     const r=await Promise.all([fetchAll(TBL.casos),fetchAll(TBL.cob),fetchAll(TBL.cli),fetchAll(TBL.prazo)]);
     DATA.casos=r[0];DATA.cob=r[1];DATA.cli=r[2];DATA.prazo=r[3];
+    // index prazos by case id
+    for(const k in PRAZOS_BY_CASO)delete PRAZOS_BY_CASO[k];
+    for(const p of DATA.prazo){
+      const cid=fv(p,F.prazo.caso);
+      if(cid&&cid[0]){(PRAZOS_BY_CASO[cid[0]]=PRAZOS_BY_CASO[cid[0]]||[]).push(p);}
+    }
+    buildMonthSelector();
     render();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
@@ -181,44 +206,77 @@ async function loadData(){
 const fv=(rec,fid)=>rec.fields[fid];
 const num=v=>typeof v==='number'?v:0;
 const fmtBRL=v=>'R$ '+(num(v)).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtDate=d=>{if(!d)return '—';const dt=new Date(d);return dt.toLocaleDateString(LANG==='pt'?'pt-BR':'en-US');};
+const fmtDate=d=>{if(!d)return '—';const dt=d instanceof Date?d:new Date(d);return dt.toLocaleDateString(LANG==='pt'?'pt-BR':'en-US');};
 const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d;};
 const parseDate=s=>s?new Date(s):null;
 const daysBetween=(a,b)=>Math.floor((b-a)/86400000);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const monthKey=d=>{const dt=d instanceof Date?d:new Date(d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');};
+const monthLabel=k=>{if(!k)return t('allMonths');const[y,m]=k.split('-');const d=new Date(+y,+m-1,1);return d.toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'long',year:'numeric'});};
 
 const casoById=id=>DATA.casos.find(c=>c.id===id);
 const cliById=id=>DATA.cli.find(c=>c.id===id);
 const casoNome=rec=>fv(rec,F.caso.nome)||'(sem nome)';
-const cliNomeOfCaso=caso=>{const cid=fv(caso,F.caso.cliente);if(!cid||!cid[0])return '—';const c=cliById(cid[0]);return c?(fv(c,F.cli.nome)||'—'):'—';};
+const casoProcesso=rec=>fv(rec,F.caso.processo)||'';
+const cliOfCaso=caso=>{const cid=fv(caso,F.caso.cliente);if(!cid||!cid[0])return null;return cliById(cid[0]);};
+const cliNomeOfCaso=caso=>{const c=cliOfCaso(caso);return c?(fv(c,F.cli.nome)||'—'):'—';};
+const cliConfirmarOfCaso=caso=>{const c=cliOfCaso(caso);return c?fv(c,F.cli.confirmar)===true:false;};
 
-// BUG FIX 1+2: Saída uses DataPagamento + ValorPagamento
+// Saída: tem DataPagamento OR ValorPagamento
 const isSaida=cob=>{
   const dp=fv(cob,F.cob.dataPag),vp=fv(cob,F.cob.valorPag);
   return !!(dp||(typeof vp==='number'&&vp>0));
 };
-const isEntrada=cob=>{
-  if(isSaida(cob))return false;
-  return fv(cob,F.cob.pago)===true||fv(cob,F.cob.recebido)===true||!!fv(cob,F.cob.dataReceb);
-};
 
+// =============== MONTH ===============
+let SELECTED_MONTH=null; // null = all
+
+function buildMonthSelector(){
+  const set=new Set();
+  for(const c of DATA.cob){
+    const d=fv(c,F.cob.dataReceb)||fv(c,F.cob.dataPag)||fv(c,F.cob.dataCobranca);
+    if(d)set.add(monthKey(d));
+  }
+  const months=Array.from(set).sort().reverse();
+  const nowKey=monthKey(new Date());
+  if(!SELECTED_MONTH)SELECTED_MONTH=months.indexOf(nowKey)>=0?nowKey:months[0]||null;
+  const sel=document.getElementById('monthSel');
+  sel.innerHTML='<option value="">'+t('allMonths')+'</option>'+months.map(m=>'<option value="'+m+'"'+(m===SELECTED_MONTH?' selected':'')+'>'+monthLabel(m)+'</option>').join('');
+  sel.onchange=()=>{SELECTED_MONTH=sel.value||null;render();};
+}
+
+function inSelectedMonth(dateStr){
+  if(!SELECTED_MONTH)return true;
+  if(!dateStr)return false;
+  return monthKey(dateStr)===SELECTED_MONTH;
+}
+
+// =============== COMPUTATIONS ===============
 function computeOverview(){
   let entradas=0,saidas=0,aberto=0;
   const lEnt=[],lSai=[],lAb=[];
   for(const cob of DATA.cob){
     if(isSaida(cob)){
-      const v=num(fv(cob,F.cob.valorPag));
-      saidas+=v;
-      lSai.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:fv(cob,F.cob.dataPag)});
-    }else if(isEntrada(cob)){
-      const v=num(fv(cob,F.cob.valorReceber));
-      entradas+=v;
-      lEnt.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:fv(cob,F.cob.dataReceb)||fv(cob,F.cob.dataCobranca)});
+      const dp=fv(cob,F.cob.dataPag);
+      if(inSelectedMonth(dp)){
+        const v=num(fv(cob,F.cob.valorPag));
+        saidas+=v;
+        lSai.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:dp,cob:cob});
+      }
     }else{
-      const v=num(fv(cob,F.cob.valorReceber));
-      if(v>0){
-        aberto+=v;
-        lAb.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:fv(cob,F.cob.dataCobranca)});
+      const recebido=fv(cob,F.cob.recebido)===true||fv(cob,F.cob.pago)===true;
+      const dr=fv(cob,F.cob.dataReceb);
+      if(recebido&&inSelectedMonth(dr||fv(cob,F.cob.dataCobranca))){
+        const v=num(fv(cob,F.cob.valorReceber));
+        entradas+=v;
+        lEnt.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:dr||fv(cob,F.cob.dataCobranca),cob:cob});
+      }else if(!recebido){
+        const dc=fv(cob,F.cob.dataCobranca);
+        const v=num(fv(cob,F.cob.valorReceber));
+        if(v>0&&inSelectedMonth(dc)){
+          aberto+=v;
+          lAb.push({nome:fv(cob,F.cob.nome)||'—',valor:v,data:dc,cob:cob});
+        }
       }
     }
   }
@@ -226,74 +284,84 @@ function computeOverview(){
 }
 
 function computeCobrar(){
+  const enc=[],ini=[],conf=[];
   const fasesEnc=['Encerrado PARA COBRANÇA','Encerrado - Falta Pagamento'];
-  const out=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
-    if(fasesEnc.indexOf(fase)>=0){
-      out.push({caso:c,reason:'Encerrado',valor:num(fv(c,F.caso.valor))});
+    const isEnc=fasesEnc.indexOf(fase)>=0;
+    const fmt=fv(c,F.caso.formato);
+    const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
+    const needsConfirm=cliConfirmarOfCaso(c);
+    if(isEnc){
+      const item={caso:c,valor:num(fv(c,F.caso.valor))};
+      if(needsConfirm)conf.push(item);else enc.push(item);
+    }else if(is5050){
+      // Ativo 50/50 sem cobrança inicial paga
+      const cobs=DATA.cob.filter(co=>{const r=fv(co,F.cob.caso);return r&&r.indexOf(c.id)>=0&&!isSaida(co);});
+      const hasInicial=cobs.some(co=>{const tp=fv(co,F.cob.tipo);return tp&&String(tp).toLowerCase().indexOf('inicial')>=0&&(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true);});
+      if(!hasInicial){
+        const item={caso:c,valor:num(fv(c,F.caso.valor))/2};
+        if(needsConfirm)conf.push(item);else ini.push(item);
+      }
     }
   }
+  return {enc:enc,ini:ini,conf:conf};
+}
+
+function computePendentes(){
+  // Fase "Encerrado - Falta Pagamento" com cobrança < 90 dias
+  const t0=today();
+  const out=[];
   for(const c of DATA.casos){
-    const fmt=fv(c,F.caso.formato);
-    if(fmt&&String(fmt).indexOf('50/50')>=0){
-      const cobs=DATA.cob.filter(co=>{const r=fv(co,F.cob.caso);return r&&r.indexOf(c.id)>=0&&!isSaida(co);});
-      const hasInicial=cobs.some(co=>{const tp=fv(co,F.cob.tipo);return tp&&String(tp).toLowerCase().indexOf('inicial')>=0&&isEntrada(co);});
-      if(!hasInicial)out.push({caso:c,reason:'50% inicial pendente',valor:num(fv(c,F.caso.valor))/2});
-    }
+    if(fv(c,F.caso.fase)!=='Encerrado - Falta Pagamento')continue;
+    const cobs=DATA.cob.filter(co=>{
+      const r=fv(co,F.cob.caso);if(!r||r.indexOf(c.id)<0)return false;
+      if(isSaida(co))return false;
+      if(fv(co,F.cob.pago)===true||fv(co,F.cob.recebido)===true)return false;
+      if(num(fv(co,F.cob.valorReceber))<=0)return false;
+      const d=parseDate(fv(co,F.cob.dataCobranca));
+      if(!d)return true;
+      return daysBetween(d,t0)<=90;
+    });
+    for(const co of cobs)out.push({caso:c,cob:co});
   }
   return out;
 }
 
-function computePendentes(){
-  return DATA.cob.filter(c=>fv(c,F.cob.nfEmitida)===true&&fv(c,F.cob.pago)!==true&&!isSaida(c));
-}
-
 function computeDevedores(){
+  // Fase "Devedor" OU cobrança > 90 dias não paga
   const t0=today();
-  return DATA.cob.filter(c=>{
-    if(isSaida(c)||fv(c,F.cob.pago)===true)return false;
-    const d=parseDate(fv(c,F.cob.dataCobranca));
-    if(!d)return false;
-    return daysBetween(d,t0)>90&&num(fv(c,F.cob.valorReceber))>0;
-  });
+  const seen=new Set();
+  const out=[];
+  for(const c of DATA.casos){
+    const isDev=fv(c,F.caso.fase)==='Devedor';
+    const cobs=DATA.cob.filter(co=>{
+      const r=fv(co,F.cob.caso);if(!r||r.indexOf(c.id)<0)return false;
+      if(isSaida(co))return false;
+      if(fv(co,F.cob.pago)===true||fv(co,F.cob.recebido)===true)return false;
+      if(num(fv(co,F.cob.valorReceber))<=0)return false;
+      const d=parseDate(fv(co,F.cob.dataCobranca));
+      if(isDev)return true;
+      return d&&daysBetween(d,t0)>90;
+    });
+    for(const co of cobs){if(!seen.has(co.id)){seen.add(co.id);out.push({caso:c,cob:co});}}
+  }
+  return out;
 }
 
 function computePrevisao(){
   const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()+30);
-  return DATA.cob.filter(c=>{
-    if(isSaida(c)||fv(c,F.cob.pago)===true)return false;
-    const d=parseDate(fv(c,F.cob.dataCobranca));
-    return d&&d>=t0&&d<=t30;
-  });
-}
-
-// BUG FIX 3: Use date comparison since "Finalizado?" is empty
-function computeRoadmap(){
-  const byC={};
-  for(const p of DATA.prazo){
-    const cid=fv(p,F.prazo.caso);if(!cid||!cid[0])continue;
-    (byC[cid[0]]=byC[cid[0]]||[]).push(p);
-  }
-  const t0=today();
   const out=[];
-  for(const cid in byC){
-    const c=casoById(cid);if(!c)continue;
-    const prazos=byC[cid].map(p=>{
-      const d=parseDate(fv(p,F.prazo.data));
-      return {data:d,tipo:fv(p,F.prazo.tipo)||'—',concluido:!!(d&&d<t0)};
-    }).sort((a,b)=>(a.data?a.data.getTime():0)-(b.data?b.data.getTime():0));
-    const total=prazos.length;const done=prazos.filter(p=>p.concluido).length;
-    // Mark current = first non-concluido
-    let markedCurrent=false;
-    for(const p of prazos){if(!p.concluido&&!markedCurrent){p.current=true;markedCurrent=true;}}
-    out.push({caso:c,prazos:prazos,total:total,done:done,progress:total?done/total*100:0});
+  for(const co of DATA.cob){
+    if(isSaida(co)||fv(co,F.cob.pago)===true||fv(co,F.cob.recebido)===true)continue;
+    const d=parseDate(fv(co,F.cob.dataCobranca));
+    if(!d||d<t0||d>t30)continue;
+    const cid=fv(co,F.cob.caso);
+    const c=cid&&cid[0]?casoById(cid[0]):null;
+    out.push({caso:c,cob:co});
   }
-  return out.sort((a,b)=>{
-    if(a.progress===100&&b.progress!==100)return 1;
-    if(b.progress===100&&a.progress!==100)return -1;
-    return b.progress-a.progress;
-  });
+  out.sort((a,b)=>(parseDate(fv(a.cob,F.cob.dataCobranca))||0)-(parseDate(fv(b.cob,F.cob.dataCobranca))||0));
+  return out;
 }
 
 function computeAlerts(){
@@ -302,138 +370,197 @@ function computeAlerts(){
     const fmt=fv(c,F.caso.formato);const fase=fv(c,F.caso.fase);
     if(fmt&&String(fmt).indexOf('50/50')>=0&&fase&&(String(fase).indexOf('Pós')>=0||String(fase).indexOf('Aguardando Laudo')>=0)){
       const cobs=DATA.cob.filter(co=>{const r=fv(co,F.cob.caso);return r&&r.indexOf(c.id)>=0;});
-      const hasInicial=cobs.some(co=>{const tp=fv(co,F.cob.tipo);return tp&&String(tp).toLowerCase().indexOf('inicial')>=0&&isEntrada(co);});
+      const hasInicial=cobs.some(co=>{const tp=fv(co,F.cob.tipo);return tp&&String(tp).toLowerCase().indexOf('inicial')>=0&&(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true);});
       if(!hasInicial)a.push({type:'forgot50',caso:c});
     }
   }
   const t0=today();
   for(const c of DATA.casos){
     if(fv(c,F.caso.fase)==='Encerrado - Pago'){
-      const hasFuture=DATA.prazo.some(p=>{
-        const cid=fv(p,F.prazo.caso);if(!cid||cid.indexOf(c.id)<0)return false;
-        const d=parseDate(fv(p,F.prazo.data));return d&&d>=t0;
-      });
+      const ps=PRAZOS_BY_CASO[c.id]||[];
+      const hasFuture=ps.some(p=>{const d=parseDate(fv(p,F.prazo.data));return d&&d>=t0;});
       if(hasFuture)a.push({type:'paidActivity',caso:c});
     }
   }
   return a;
 }
 
+// =============== ROADMAP ===============
+function caseRoadmap(caso){
+  // Returns stages Quesitos, Perícia, Manifestação with dates
+  const prazos=(PRAZOS_BY_CASO[caso.id]||[]).slice().map(p=>({
+    data:parseDate(fv(p,F.prazo.data)),
+    tipo:String(fv(p,F.prazo.tipo)||'').toLowerCase()
+  })).filter(p=>p.data).sort((a,b)=>a.data-b.data);
+
+  const bucket=(match)=>prazos.filter(p=>match.some(m=>p.tipo.indexOf(m)>=0));
+  const qDates=bucket(['quesito']).map(p=>p.data);
+  const pDates=bucket(['perícia','pericia','vistoria','inspeção','inspecao']).map(p=>p.data);
+  const mDates=bucket(['manifest','laudo','alegaç','alegac']).map(p=>p.data);
+
+  // Fallback: if no matches, use DataPericia from caso
+  if(pDates.length===0){
+    const dp=parseDate(fv(caso,F.caso.dataPericia));
+    if(dp)pDates.push(dp);
+  }
+  const t0=today();
+  const stages=[
+    {key:'quesitos',name:t('quesitos'),dates:qDates},
+    {key:'pericia',name:t('pericia'),dates:pDates},
+    {key:'manifest',name:t('manifest'),dates:mDates}
+  ];
+  // Status per stage
+  for(const s of stages){
+    if(s.dates.length===0){s.status='future';s.display=null;continue;}
+    const last=s.dates[s.dates.length-1];
+    s.display=last;
+    s.status=last<t0?'done':'future';
+  }
+  // Current = first non-done with a date, or first non-done stage at all
+  let currentFound=false;
+  for(const s of stages){
+    if(s.status!=='done'&&!currentFound){s.status='current';currentFound=true;}
+  }
+  // Remarcações = extra inspection dates beyond first
+  const remarc=Math.max(0,pDates.length-1);
+  return {stages:stages,remarc:remarc,progress:stages.filter(s=>s.status==='done').length/stages.length*100};
+}
+
+function renderRoadmap(caso){
+  const r=caseRoadmap(caso);
+  const stagesHtml=r.stages.map(s=>{
+    const extras=s.key==='pericia'&&r.remarc>0?'<div class="extras">+'+r.remarc+' '+t('remarc')+' (+'+fmtBRL(r.remarc*500)+')</div>':'';
+    return '<div class="stage '+s.status+'"><div class="dot"></div><div class="name">'+s.name+'</div><div class="date">'+(s.display?fmtDate(s.display):'—')+'</div>'+extras+'</div>';
+  }).join('');
+  return '<div class="detail"><h4>Roadmap</h4><div class="roadmap"><div class="track"></div><div class="fill" style="width:calc(('+r.progress+'% * (100% - 40px) / 100%))"></div><div class="stages">'+stagesHtml+'</div></div></div>';
+}
+
+// =============== RENDER ===============
 let TAB='overview';
 let OVERVIEW_CACHE=null;
+let EXPANDED_CARD=null;
+let EXPANDED_ROW=null; // unique id
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>{
     b.textContent=t(b.dataset.tab);
     b.classList.toggle('active',b.dataset.tab===TAB);
   });
-  document.getElementById('langBtn').textContent=LANG==='pt'?'EN':'PT';
+  document.getElementById('langSel').value=LANG;
   const c=document.getElementById('content');
+  EXPANDED_ROW=null;
   if(TAB==='overview')c.innerHTML=renderOverview();
   else if(TAB==='cobrar')c.innerHTML=renderCobrar();
   else if(TAB==='pendentes')c.innerHTML=renderPendentes();
   else if(TAB==='devedores')c.innerHTML=renderDevedores();
   else if(TAB==='previsao')c.innerHTML=renderPrevisao();
-  else if(TAB==='roadmap')c.innerHTML=renderRoadmap();
   attachHandlers();
+}
+
+function caseCell(caso){
+  if(!caso)return '—';
+  const proc=casoProcesso(caso);
+  return '<div>'+esc(casoNome(caso))+'</div>'+(proc?'<div class="proc">'+esc(proc)+'</div>':'');
 }
 
 function renderOverview(){
   const o=computeOverview();
   OVERVIEW_CACHE=o;
   const a=computeAlerts();
-  return ''+
-    '<div class="cards">'+
-      '<div class="card green" data-card="ent"><div class="label">'+t('entradas')+'</div><div class="value">'+fmtBRL(o.entradas)+'</div><div class="sub">'+o.lEnt.length+' itens</div></div>'+
-      '<div class="card red" data-card="sai"><div class="label">'+t('saidas')+'</div><div class="value">'+fmtBRL(o.saidas)+'</div><div class="sub">'+o.lSai.length+' itens</div></div>'+
-      '<div class="card orange" data-card="ab"><div class="label">'+t('aberto')+'</div><div class="value">'+fmtBRL(o.aberto)+'</div><div class="sub">'+o.lAb.length+' itens</div></div>'+
-      '<div class="card blue" data-card="lu"><div class="label">'+t('lucro')+'</div><div class="value">'+fmtBRL(o.lucro)+'</div><div class="sub">'+t('entradas')+' − '+t('saidas')+'</div></div>'+
-    '</div>'+
-    '<div class="section" id="cardListSec" style="display:none"><h2 id="cardListTitle"></h2><div id="cardList"></div></div>'+
+  const cardHtml=(key,cls,label,val,cnt)=>'<div class="card '+cls+(EXPANDED_CARD===key?' active':'')+'" data-card="'+key+'"><div class="chev">'+(EXPANDED_CARD===key?'▲':'▼')+'</div><div class="label">'+label+'</div><div class="value">'+fmtBRL(val)+'</div><div class="sub">'+cnt+' itens</div></div>';
+  let expansion='';
+  if(EXPANDED_CARD&&EXPANDED_CARD!=='lu'){
+    const arr={ent:o.lEnt,sai:o.lSai,ab:o.lAb}[EXPANDED_CARD];
+    const titles={ent:t('entradas'),sai:t('saidas'),ab:t('aberto')};
+    const sorted=arr.slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
+    expansion='<div class="section"><h2>'+titles[EXPANDED_CARD]+' — '+monthLabel(SELECTED_MONTH)+'</h2>'+
+      (sorted.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
+      sorted.map(x=>'<tr><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+  }
+  return '<div class="cards">'+
+    cardHtml('ent','green',t('entradas'),o.entradas,o.lEnt.length)+
+    cardHtml('sai','red',t('saidas'),o.saidas,o.lSai.length)+
+    cardHtml('ab','orange',t('aberto'),o.aberto,o.lAb.length)+
+    cardHtml('lu','blue',t('lucro'),o.lucro,'—')+
+    '</div>'+expansion+
     '<div class="section"><h2>'+t('alerts')+'</h2>'+
     (a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>'<div class="alert '+(x.type==='forgot50'?'red':'')+'"><strong>'+(x.type==='forgot50'?t('forgot50'):t('paidActivity'))+':</strong> '+esc(casoNome(x.caso))+' — '+esc(cliNomeOfCaso(x.caso))+'</div>').join(''))+
     '</div>';
 }
 
+function caseTable(rows,opts){
+  // rows: [{caso, valor, cob?}]
+  if(!rows.length)return '<div class="empty">'+t('noData')+'</div>';
+  const cols=opts&&opts.cols||['case','client','phase','value'];
+  const head='<tr>'+cols.map(k=>'<th'+(k==='value'||k==='days'?' class="right"':'')+'>'+t(k)+'</th>').join('')+'</tr>';
+  const body=rows.map((r,i)=>{
+    const rid=(opts&&opts.prefix||'r')+'-'+i;
+    const tds=cols.map(k=>{
+      if(k==='case')return '<td>'+caseCell(r.caso)+'</td>';
+      if(k==='client')return '<td>'+esc(cliNomeOfCaso(r.caso))+'</td>';
+      if(k==='phase')return '<td>'+esc(fv(r.caso,F.caso.fase)||'—')+'</td>';
+      if(k==='date')return '<td>'+fmtDate(r.cob?fv(r.cob,F.cob.dataCobranca):null)+'</td>';
+      if(k==='days'){const d=r.cob?parseDate(fv(r.cob,F.cob.dataCobranca)):null;return '<td class="right">'+(d?daysBetween(d,today()):'—')+'</td>';}
+      if(k==='value')return '<td class="right">'+fmtBRL(r.valor!=null?r.valor:(r.cob?num(fv(r.cob,F.cob.valorReceber)):0))+'</td>';
+      return '<td></td>';
+    }).join('');
+    const expanded=EXPANDED_ROW===rid;
+    const mainTr='<tr class="clickable'+(expanded?' expanded':'')+'" data-row="'+rid+'" data-caso="'+r.caso.id+'">'+tds+'</tr>';
+    const detailTr=expanded?'<tr class="detail-row"><td colspan="'+cols.length+'" style="padding:0">'+renderRoadmap(r.caso)+'</td></tr>':'';
+    return mainTr+detailTr;
+  }).join('');
+  return '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+}
+
 function renderCobrar(){
-  const list=computeCobrar();
-  const total=list.reduce((s,x)=>s+x.valor,0);
-  return '<div class="section"><h2>'+t('cobrar')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+
-    (list.length===0?'<div class="empty">'+t('noData')+'</div>':
-    '<table><thead><tr><th>'+t('case')+'</th><th>'+t('client')+'</th><th>'+t('phase')+'</th><th>'+t('type')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    list.map(x=>'<tr><td>'+esc(casoNome(x.caso))+'</td><td>'+esc(cliNomeOfCaso(x.caso))+'</td><td>'+esc(fv(x.caso,F.caso.fase)||'—')+'</td><td><span class="tag '+(x.reason==='Encerrado'?'green':'orange')+'">'+esc(x.reason)+'</span></td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+
-    '</tbody></table>')+'</div>';
+  const g=computeCobrar();
+  const sum=a=>a.reduce((s,x)=>s+x.valor,0);
+  let html='';
+  if(g.conf.length){
+    html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','value'],prefix:'cf'})+'</div>';
+  }
+  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','value'],prefix:'enc'})+'</div>';
+  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','value'],prefix:'ini'})+'</div>';
+  return html;
 }
 
 function renderPendentes(){
   const list=computePendentes();
-  const total=list.reduce((s,c)=>s+num(fv(c,F.cob.valorReceber)),0);
-  return '<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+
-    (list.length===0?'<div class="empty">'+t('noData')+'</div>':
-    '<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    list.map(r=>'<tr><td>'+esc(fv(r,F.cob.nome)||'—')+'</td><td>'+fmtDate(fv(r,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(num(fv(r,F.cob.valorReceber)))+'</td></tr>').join('')+
-    '</tbody></table>')+'</div>';
+  const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
+  return '<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','value'],prefix:'pe'})+'</div>';
 }
 
 function renderDevedores(){
   const list=computeDevedores();
-  const total=list.reduce((s,c)=>s+num(fv(c,F.cob.valorReceber)),0);
-  const t0=today();
-  list.sort((a,b)=>(parseDate(fv(a,F.cob.dataCobranca))||0)-(parseDate(fv(b,F.cob.dataCobranca))||0));
-  return '<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+
-    (list.length===0?'<div class="empty">'+t('noData')+'</div>':
-    '<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('days')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    list.map(r=>'<tr><td>'+esc(fv(r,F.cob.nome)||'—')+'</td><td>'+fmtDate(fv(r,F.cob.dataCobranca))+'</td><td class="right">'+daysBetween(parseDate(fv(r,F.cob.dataCobranca)),t0)+'</td><td class="right">'+fmtBRL(num(fv(r,F.cob.valorReceber)))+'</td></tr>').join('')+
-    '</tbody></table>')+'</div>';
+  const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
+  return '<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','days','value'],prefix:'dv'})+'</div>';
 }
 
 function renderPrevisao(){
   const list=computePrevisao();
-  list.sort((a,b)=>(parseDate(fv(a,F.cob.dataCobranca))||0)-(parseDate(fv(b,F.cob.dataCobranca))||0));
-  const total=list.reduce((s,c)=>s+num(fv(c,F.cob.valorReceber)),0);
-  return '<div class="section"><h2>'+t('previsao')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+
-    (list.length===0?'<div class="empty">'+t('noData')+'</div>':
-    '<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    list.map(r=>'<tr><td>'+esc(fv(r,F.cob.nome)||'—')+'</td><td>'+fmtDate(fv(r,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(num(fv(r,F.cob.valorReceber)))+'</td></tr>').join('')+
-    '</tbody></table>')+'</div>';
-}
-
-function renderRoadmap(){
-  const list=computeRoadmap();
-  return '<div class="section"><h2>'+t('roadmap')+' ('+list.length+')</h2>'+
-    (list.length===0?'<div class="empty">'+t('noData')+'</div>':
-    list.map(x=>{
-      const items=x.prazos.map(p=>{
-        const cls=p.concluido?'past':(p.current?'current':'future');
-        return '<div class="tl-item '+cls+'"><div class="date">'+fmtDate(p.data)+'</div><div class="type">'+esc(p.tipo)+'</div></div>';
-      }).join('');
-      return '<div class="case"><div class="case-h"><div style="flex:1"><div class="name">'+esc(casoNome(x.caso))+'</div><div class="meta">'+esc(cliNomeOfCaso(x.caso))+' • '+esc(fv(x.caso,F.caso.fase)||'—')+'</div></div><div style="min-width:180px"><div class="progress"><div class="progress-bar" style="width:'+x.progress+'%"></div></div><div class="meta right">'+x.done+'/'+x.total+'</div></div></div><div class="case-body"><div class="timeline">'+items+'</div></div></div>';
-    }).join(''))+'</div>';
+  const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
+  return '<div class="section"><h2>'+t('previsao')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','value'],prefix:'pr'})+'</div>';
 }
 
 function attachHandlers(){
-  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;render();});
-  document.querySelectorAll('.case-h').forEach(h=>h.onclick=()=>h.parentElement.classList.toggle('open'));
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;EXPANDED_CARD=null;render();});
   document.querySelectorAll('.card[data-card]').forEach(card=>{
     card.onclick=()=>{
-      if(!OVERVIEW_CACHE)return;
       const k=card.dataset.card;
-      const sec=document.getElementById('cardListSec');
-      if(k==='lu'){sec.style.display='none';return;}
-      const arr={ent:OVERVIEW_CACHE.lEnt,sai:OVERVIEW_CACHE.lSai,ab:OVERVIEW_CACHE.lAb}[k];
-      const titles={ent:t('entradas'),sai:t('saidas'),ab:t('aberto')};
-      document.getElementById('cardListTitle').textContent=titles[k];
-      const sorted=arr.slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
-      const html=sorted.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
-        sorted.map(x=>'<tr><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>';
-      document.getElementById('cardList').innerHTML=html;
-      sec.style.display='block';
-      sec.scrollIntoView({behavior:'smooth',block:'nearest'});
+      EXPANDED_CARD=EXPANDED_CARD===k?null:k;
+      render();
+    };
+  });
+  document.querySelectorAll('tr.clickable').forEach(tr=>{
+    tr.onclick=()=>{
+      const rid=tr.dataset.row;
+      EXPANDED_ROW=EXPANDED_ROW===rid?null:rid;
+      render();
     };
   });
 }
 
-document.getElementById('langBtn').onclick=()=>{LANG=LANG==='pt'?'en':'pt';render();};
+document.getElementById('langSel').onchange=e=>{LANG=e.target.value;buildMonthSelector();render();};
 document.getElementById('reloadBtn').onclick=loadData;
 </script>
 </body>
