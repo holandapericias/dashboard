@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holanda Perícias — Dashboard Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F8FC;--card:#FFF;--hdr:#005F88;--ac:#00AEEF;--brd:#D0E8F2;--txt:#1A3A4A;--sub:#6B7A8D;--grn:#0D7A3E;--red:#C62828;--org:#E65100;--warn:#F59E0B;--ff:'Barlow',sans-serif;--ffc:'Barlow Condensed',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--ff);background:var(--bg);color:var(--txt);font-size:14px;min-height:100vh}
+/* PASSWORD GATE */
+.pw-gate{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{text-align:center;padding:40px}
+.pw-box h1{font-family:var(--ffc);color:var(--hdr);font-size:28px;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+.pw-box p{color:var(--sub);margin-bottom:24px;font-size:14px}
+.pw-box input{display:block;width:300px;margin:0 auto 12px;padding:12px 16px;border:2px solid var(--brd);border-radius:6px;font-size:14px;font-family:var(--ff);text-align:center;outline:none;transition:.2s}
+.pw-box input:focus{border-color:var(--ac)}
+.pw-box .btn{background:var(--hdr);color:#fff;border:none;padding:14px 44px;border-radius:6px;font-family:var(--ffc);font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;transition:.2s}
+.pw-box .btn:hover{background:var(--ac)}
+.pw-box .err{color:var(--red);font-size:12px;margin-top:8px;display:none}
+/* HEADER */
+.hdr{background:var(--hdr);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.hdr h1{font-family:var(--ffc);color:#fff;font-size:22px;text-transform:uppercase;letter-spacing:2px;font-weight:700}
+.hdr-r{display:flex;align-items:center;gap:12px}
+.hdr select,.hdr button{font-family:var(--ffc);font-size:13px;padding:6px 12px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;text-transform:uppercase;letter-spacing:1px}
+.hdr select option{background:var(--hdr);color:#fff}
+.hdr button:hover{background:rgba(255,255,255,.2)}
+.grad-bar{height:4px;background:linear-gradient(90deg,var(--ac),var(--hdr))}
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:2px solid var(--brd);padding:0 16px;overflow-x:auto}
+.tab{font-family:var(--ffc);font-size:13px;text-transform:uppercase;letter-spacing:1.2px;padding:12px 18px;cursor:pointer;color:var(--sub);border-bottom:3px solid transparent;white-space:nowrap;transition:.2s;font-weight:600}
+.tab:hover{color:var(--hdr)}
+.tab.active{color:var(--hdr);border-bottom-color:var(--ac)}
+.tab .cnt{background:var(--ac);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:5px;font-weight:700}
+/* MAIN */
+.main{padding:20px;max-width:1200px;margin:0 auto}
+.section{display:none}
+.section.active{display:block}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--brd);border-top:3px solid var(--ac);border-radius:8px;padding:16px;margin-bottom:16px}
+.card-hdr{font-family:var(--ffc);font-size:15px;text-transform:uppercase;letter-spacing:1.2px;color:var(--hdr);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card-hdr .icon{font-size:18px}
+/* STAT CARDS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.st{background:var(--card);border:1px solid var(--brd);border-radius:8px;padding:14px;text-align:center}
+.st .lb{font-family:var(--ffc);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--sub);margin-bottom:4px}
+.st .vl{font-family:var(--ffc);font-size:28px;font-weight:700}
+.st .vl.g{color:var(--grn)}.st .vl.r{color:var(--red)}.st .vl.b{color:var(--ac)}.st .vl.o{color:var(--org)}
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--hdr),#003d57);color:#fff;border-radius:8px;padding:20px;margin-bottom:16px;text-align:center}
+.hero .lb{font-family:var(--ffc);font-size:12px;text-transform:uppercase;letter-spacing:2px;opacity:.7}
+.hero .vl{font-family:var(--ffc);font-size:42px;font-weight:700;margin:4px 0}
+.hero .sub{font-size:13px;opacity:.7}
+/* BADGES */
+.bd{display:inline-block;font-family:var(--ffc);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:3px;font-weight:600}
+.bd-g{background:#E8F5E9;color:var(--grn)}.bd-r{background:#FFEBEE;color:var(--red)}.bd-o{background:#FFF3E0;color:var(--org)}
+.bd-b{background:#E3F2FD;color:var(--ac)}.bd-w{background:#FFF8E1;color:#F57F17}.bd-50{background:#E0F7FA;color:#00838F}
+.bd-100{background:#F3E5F5;color:#7B1FA2}.bd-d{background:#ECEFF1;color:#546E7A}
+/* TABLE ROWS */
+.tbl{width:100%;overflow-x:auto}
+.row{display:grid;padding:10px 12px;border-bottom:1px solid #EEF3F7;align-items:center;font-size:13px;transition:.15s}
+.row:hover{background:#F8FBFD}
+.th{font-family:var(--ffc);font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--sub);background:#F8FBFD;padding:8px 12px;border-bottom:2px solid var(--brd);font-weight:600}
+.row .nm{font-weight:600;color:var(--txt)}
+.row .proc{font-size:11px;color:var(--sub);margin-top:2px}
+.row .val{font-family:var(--ffc);font-weight:700;font-size:15px}
+/* ALERTS */
+.alert{border-radius:8px;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.alert-warn{background:#FFF8E1;border:1px solid #FFE082;border-left:4px solid var(--warn)}
+.alert-danger{background:#FFEBEE;border:1px solid #EF9A9A;border-left:4px solid var(--red)}
+.alert-info{background:#E3F2FD;border:1px solid #90CAF9;border-left:4px solid var(--ac)}
+.alert .icon{font-size:20px;flex-shrink:0}
+.alert .title{font-family:var(--ffc);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.alert .desc{font-size:12px;color:var(--sub)}
+/* ROADMAP */
+.roadmap-toggle{cursor:pointer;user-select:none}
+.roadmap-toggle:hover .nm{color:var(--ac)}
+.roadmap-toggle .arrow{transition:.2s;display:inline-block;font-size:10px;margin-right:6px;color:var(--sub)}
+.roadmap-toggle.open .arrow{transform:rotate(90deg)}
+.roadmap{display:none;padding:12px 16px 16px;background:#F8FBFD;border-top:1px dashed var(--brd);margin:0 -12px;margin-top:8px}
+.roadmap.show{display:block}
+.rm-line{display:flex;align-items:center;gap:0;padding:8px 0;position:relative}
+.rm-step{display:flex;flex-direction:column;align-items:center;position:relative;min-width:120px;z-index:1}
+.rm-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;border:3px solid var(--brd);background:#fff;transition:.2s}
+.rm-dot.done{background:var(--grn);border-color:var(--grn);color:#fff}
+.rm-dot.active{background:var(--ac);border-color:var(--ac);color:#fff;animation:pulse 2s infinite}
+.rm-dot.future{background:#fff;border-color:var(--brd);color:var(--sub)}
+.rm-dot.extra{background:var(--org);border-color:var(--org);color:#fff}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,174,239,.4)}50%{box-shadow:0 0 0 8px rgba(0,174,239,0)}}
+.rm-label{font-family:var(--ffc);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--sub);margin-top:6px;text-align:center;max-width:110px}
+.rm-date{font-size:10px;color:var(--sub);margin-top:2px}
+.rm-connector{flex:1;height:3px;background:var(--brd);min-width:20px;position:relative;top:-8px}
+.rm-connector.done{background:var(--grn)}
+.rm-connector.active{background:linear-gradient(90deg,var(--grn),var(--ac))}
+.rm-fee{font-family:var(--ffc);font-size:10px;color:var(--org);font-weight:700;margin-top:2px}
+.rm-badge{display:inline-block;font-family:var(--ffc);font-size:9px;background:var(--org);color:#fff;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+/* FORECAST */
+.fc-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.fc-label{font-family:var(--ffc);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);min-width:100px}
+.fc-fill{height:20px;border-radius:3px;transition:.3s}
+.fc-val{font-family:var(--ffc);font-size:12px;font-weight:600;min-width:80px;text-align:right}
+/* FOOTER */
+.fo{text-align:center;padding:20px;font-size:11px;color:var(--sub);font-family:var(--ffc);text-transform:uppercase;letter-spacing:1.5px}
+/* LOADING */
+.loading{text-align:center;padding:60px;color:var(--sub)}
+.loading .spin{display:inline-block;width:32px;height:32px;border:3px solid var(--brd);border-top-color:var(--ac);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* RESPONSIVE */
+@media(max-width:768px){.stats{grid-template-columns:1fr 1fr}.hero .vl{font-size:32px}.main{padding:12px}.tab{padding:10px 12px;font-size:12px}}
+@media(max-width:480px){.stats{grid-template-columns:1fr}.hdr h1{font-size:16px}}
+</style>
+</head>
+<body>
+<!-- PASSWORD GATE -->
+<div class="pw-gate" id="gate">
+<div class="pw-box">
+<h1>Holanda Perícias</h1>
+<p>Dashboard Financeiro</p>
+<input type="password" id="pw" placeholder="Senha" onkeydown="if(event.key==='Enter')unlock()">
+<button class="btn" onclick="unlock()">Entrar</button>
+<div class="err" id="pwErr">Senha incorreta</div>
+</div>
+</div>
+<!-- HEADER -->
+<div id="app" style="display:none">
+<div class="hdr">
+<h1>Holanda Perícias</h1>
+<div class="hdr-r">
+<select id="selMonth" onchange="render()"></select>
+<select id="selLang" onchange="setLang(this.value)">
+<option value="pt">PT</option><option value="en">EN</option>
+</select>
+<button onclick="loadData()">↻ Atualizar</button>
+</div>
+</div>
+<div class="grad-bar"></div>
+<!-- TABS -->
+<div class="tabs" id="tabs"></div>
+<!-- CONTENT -->
+<div class="main" id="main">
+<div class="loading"><div class="spin"></div><p style="margin-top:12px">Carregando dados do Airtable...</p></div>
+</div>
+</div>
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG & CONSTANTS
+// ══════════════════════════════════════════════════════════
+const BS='appTEAYT5TYhnQwTn';
+const TABLES={
+  casos:'tbluIGDmDWYdvIXGh',cobrancas:'tblMSxzQ0WlFPYU8A',
+  clientes:'tblJblR6Th5XitkRE',custos:'tblmcxyRVtn2LYqLU',prazos:'tbln95BoOQe7ZXpzJ'
+};
+const FLD={
+  // Casos
+  cNome:'fldj5FBvJfRd0BC22',cFase:'fld86RIjqxRbIyK2H',cTipo:'fldQFTIMb6qh8hvfN',
+  cValor:'fldxj1JNDROjFVS0I',cFormato:'fldorcMm83hAOgwmp',cCliente:'fld7ddtpPu5BrgIoL',
+  cProcesso:'fldzUYMqa3SNmcaiy',cCobrFinal:'fld9OSTcEyzwwMDyI',cCobrs:'fldU5lFjxy72vBki4',
+  cPrazos:'fldOwEr9lEEitNdl7',cDataPericia:'fld1SIT1qCgOrzvwE',cRemarcada:'fld1fejty60p3lNWw',
+  // Cobranças
+  bName:'fldmEqze0enDJ9NgS',bTipo:'flduuDN0KZkIxDa5E',bRecebido:'fldJF2iTO9MuOrvPu',
+  bValorReceber:'fldctzCHWdI5Ywslb',bData:'fld017hwmpf88pMf4',bNFemit:'fldwiByBRFrrfqXi0',
+  bNFnum:'fldrLevtI2kCGLtD2',bNFval:'fldbtApGvyRMw0sgk',bPago:'fldseQscWInxIjkWT',
+  bTipoPag:'fldoz03J5oMdtYtvy',bCaso:'fldxNcSHI6NwRA1Ec',bDataReceb:'flddyKZoD9Kg1i49b',
+  bNFRetida:'fldPNYtiEom533bLg',
+  // Clientes
+  clNome:'fldPlIIeCVL1PjHuP',clCNPJ:'fldBOhkrir7R2kiAX',clEmail:'fldQzZ2UKDTMou901',
+  clRetemISS:'fldCD0uLdWQweBi1f',clAliqISS:'fldDQqYjOfQibcFyb',clConfirmar:'fldRJLmUby1ZcqPoC',
+  // Prazos
+  pData:'fldYl3z2vJDBxc7ql',pRemarcada:'fldQPXvXFiKlS2tXp',pCaso:'fldJ5zNofON8zZHQO'
+};
+const FASES={
+  ativo:'sell1zTLfKx5aTKfn',aguardPericia:'seliNBo4vyRAk5ile',
+  posPericia:'sel5IUfVisDtxcWdW',faltaManif:'selkqXXxGEzQHbDLq',
+  laudoPubl:'seletAcfZtOpiWNbv',paraCobr:'seldshTsV11px5NL2',
+  faltaPag:'selswPWOtGjBgGQUW',devedor:'selxGpeRLVpH26iw6',
+  pago:'selWoDXTq3F3ckME5',arquivado:'selNQep3oDGg7sSIO'
+};
+const FORMATO={f5050:'selCYXVRzxb8CExJr',f100:'selhXc0ZBXyK1yKDP'};
+const ENC_TOKEN='A4iVPSPNQOB/113bupgHUPrGQ+zCfIzfDQAZHbgku48ythSbxcP3E9YvJxkUjYIFTmQGTPaSaIo9O+3TuBngQiUsdhUdVke8c7gTSZ8Bmh7KZV24mLpXlmAXZ+1YAbX1nSMti5ytGgM7UAG/Zjs=';
+let TK='',LANG='pt',DATA={},MONTH=null;
+
+// ══════════════════════════════════════════════════════════
+// I18N
+// ══════════════════════════════════════════════════════════
+const I18N={
+  pt:{overview:'Visão Geral',pendentes:'Pendentes',aCobrar:'A Cobrar',devedores:'Devedores',
+    previsao:'Previsão 30d',alertas:'Alertas',receita:'Receita',saidas:'Saídas',lucro:'Lucro',
+    margem:'Margem',retirada:'Retirada Segura',custosFixos:'Custos Fixos',
+    nfEmitidas:'NFs Emitidas',nfPendentes:'NFs Pendentes',caso:'Caso',cliente:'Cliente',
+    valor:'Valor',fase:'Fase',tipo:'Tipo',data:'Data',dias:'dias',processo:'Processo',
+    emitirNF:'Emitir NF',cobrarAgora:'Cobrar Agora',confirmar:'Confirmar',aguardando:'Aguardando',
+    pago:'Pago',naoPago:'Não Pago',devedor:'Devedor',total:'Total',atraso:'em atraso',
+    iniciais50:'50% Iniciais',finais50:'50% Finais',completo100:'100%',
+    remarcacao:'Taxa Remarcação',recebimentos:'Recebimentos',pagamentos:'Pagamentos',
+    saldo:'Saldo Projetado',atualizado:'Atualizado em',
+    alertaIniciais:'50% Iniciais Esquecidos',alertaCasoPago:'Caso Pago com Nova Atividade',
+    roadmap:'Roadmap do Caso',quesitos:'Quesitos',pericia:'Perícia',manifestacao:'Manifestação',
+    manifCompl:'Manif. Complementar',novoCaso:'Novo Caso (2ª rodada)',
+    esquecido:'50% iniciais nunca cobrados — converter para 100%',
+    novaAtividade:'Caso pago com nova perícia detectada',encerrado:'Encerrado',
+    lUpd:'Atualizado em'},
+  en:{overview:'Overview',pendentes:'Pending',aCobrar:'To Bill',devedores:'Debtors',
+    previsao:'30-Day Forecast',alertas:'Alerts',receita:'Revenue',saidas:'Expenses',lucro:'Profit',
+    margem:'Margin',retirada:'Safe Withdrawal',custosFixos:'Fixed Costs',
+    nfEmitidas:'Invoices Issued',nfPendentes:'Invoices Pending',caso:'Case',cliente:'Client',
+    valor:'Value',fase:'Phase',tipo:'Type',data:'Date',dias:'days',processo:'Process',
+    emitirNF:'Issue Invoice',cobrarAgora:'Bill Now',confirmar:'Confirm',aguardando:'Waiting',
+    pago:'Paid',naoPago:'Unpaid',devedor:'Debtor',total:'Total',atraso:'overdue',
+    iniciais50:'50% Upfront',finais50:'50% Final',completo100:'100%',
+    remarcacao:'Rescheduling Fee',recebimentos:'Receipts',pagamentos:'Payments',
+    saldo:'Projected Balance',atualizado:'Updated at',
+    alertaIniciais:'Forgotten 50% Upfront',alertaCasoPago:'Paid Case w/ New Activity',
+    roadmap:'Case Roadmap',quesitos:'Questions',pericia:'Expert Exam',manifestacao:'Response',
+    manifCompl:'Supplementary Resp.',novoCaso:'New Case (2nd round)',
+    esquecido:'50% upfront never billed — convert to 100%',
+    novaAtividade:'Paid case with new expert exam detected',encerrado:'Closed',
+    lUpd:'Updated at'}
+};
+function t(k){return I18N[LANG][k]||k}
+function setLang(l){LANG=l;render()}
+function $(v){return v==null?'R$ 0,00':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+function fD(d){if(!d)return'—';return new Date(d).toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'short',day:'numeric'})}
+function fDF(d){if(!d)return'—';return new Date(d).toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'short',day:'numeric',year:'numeric'})}
+function daysSince(d){if(!d)return null;return Math.floor((Date.now()-new Date(d).getTime())/864e5)}
+function esc(s){if(!s)return'';const el=document.createElement('span');el.textContent=s;return el.innerHTML}
+
+// ══════════════════════════════════════════════════════════
+// AES DECRYPTION
+// ══════════════════════════════════════════════════════════
+async function decrypt(pwd){
+  const enc=Uint8Array.from(atob(ENC_TOKEN),c=>c.charCodeAt(0));
+  const iv=enc.slice(0,12),tag=enc.slice(12,28),ct=enc.slice(28);
+  const combined=new Uint8Array(ct.length+tag.length);
+  combined.set(ct);combined.set(tag,ct.length);
+  const keyMat=await crypto.subtle.importKey('raw',new TextEncoder().encode(pwd),{name:'PBKDF2'},false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:new TextEncoder().encode('HolandaPericias2026'),iterations:100000,hash:'SHA-256'},keyMat,{name:'AES-GCM',length:256},false,['decrypt']);
+  const dec=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,combined);
+  return new TextDecoder().decode(dec);
+}
+
+async function unlock(){
+  const pwd=document.getElementById('pw').value;
+  try{
+    TK=await decrypt(pwd);
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    localStorage.setItem('hp_tk',TK);
+    loadData();
+  }catch(e){
+    document.getElementById('pwErr').style.display='block';
+  }
+}
+
+// Auto-login if token cached
+(async()=>{
+  const cached=localStorage.getItem('hp_tk');
+  if(cached&&cached.startsWith('pat')){
+    TK=cached;
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    loadData();
+  }
+})();
+
+// ══════════════════════════════════════════════════════════
+// AIRTABLE FETCH
+// ══════════════════════════════════════════════════════════
+async function fetchTable(tableId,fields,filter){
+  let all=[],offset=null;
+  do{
+    let url=`https://api.airtable.com/v0/${BS}/${tableId}?`;
+    if(fields)fields.forEach(f=>url+=`fields[]=${f}&`);
+    if(filter)url+=`filterByFormula=${encodeURIComponent(filter)}&`;
+    if(offset)url+=`offset=${offset}`;
+    const r=await fetch(url,{headers:{Authorization:`Bearer ${TK}`}});
+    if(!r.ok)throw new Error(`Airtable error: ${r.status}`);
+    const d=await r.json();
+    all=all.concat(d.records||[]);
+    offset=d.offset;
+  }while(offset);
+  return all;
+}
+
+async function loadData(){
+  document.getElementById('main').innerHTML='<div class="loading"><div class="spin"></div><p style="margin-top:12px">Carregando dados do Airtable...</p></div>';
+  try{
+    const[casos,cobrs,clients,prazos]=await Promise.all([
+      fetchTable(TABLES.casos,[FLD.cNome,FLD.cFase,FLD.cTipo,FLD.cValor,FLD.cFormato,FLD.cCliente,FLD.cProcesso,FLD.cCobrFinal,FLD.cCobrs,FLD.cPrazos,FLD.cDataPericia,FLD.cRemarcada]),
+      fetchTable(TABLES.cobrancas,[FLD.bName,FLD.bTipo,FLD.bRecebido,FLD.bValorReceber,FLD.bData,FLD.bNFemit,FLD.bNFnum,FLD.bNFval,FLD.bPago,FLD.bTipoPag,FLD.bCaso,FLD.bDataReceb,FLD.bNFRetida]),
+      fetchTable(TABLES.clientes,[FLD.clNome,FLD.clCNPJ,FLD.clEmail,FLD.clRetemISS,FLD.clAliqISS,FLD.clConfirmar]),
+      fetchTable(TABLES.prazos,[FLD.pData,FLD.pRemarcada,FLD.pCaso,'fldkTeLb6lYFLbPOq','fldjDFBE9E3w6hBsH','fldRl3A0JJbGwb8Wd'])
+    ]);
+    // Build lookup maps
+    const clientMap={};clients.forEach(c=>clientMap[c.id]={id:c.id,...c.fields});
+    const cobrMap={};cobrs.forEach(c=>{
+      const casoIds=c.fields[FLD.bCaso]||[];
+      casoIds.forEach(id=>{if(!cobrMap[id])cobrMap[id]=[];cobrMap[id].push({id:c.id,...c.fields})});
+    });
+    const prazoMap={};prazos.forEach(p=>{
+      const casoIds=p.fields[FLD.pCaso]||[];
+      casoIds.forEach(id=>{if(!prazoMap[id])prazoMap[id]=[];prazoMap[id].push({id:p.id,...p.fields})});
+    });
+    // Build enriched cases
+    DATA.casos=casos.map(c=>{
+      const f=c.fields;
+      const clientIds=f[FLD.cCliente]||[];
+      const cl=clientIds.length?clientMap[clientIds[0]]:null;
+      const cobs=cobrMap[c.id]||[];
+      const przs=(prazoMap[c.id]||[]).sort((a,b)=>(a[FLD.pData]||'').localeCompare(b[FLD.pData]||''));
+      // Count remarcações
+      const periciaCount=(f[FLD.cDataPericia]||[]).length;
+      const remarcacoes=Math.max(0,periciaCount-1);
+      const taxaRemarcacao=remarcacoes*500;
+      return{
+        id:c.id,nome:f[FLD.cNome]||'',fase:f[FLD.cFase]||'',tipo:f[FLD.cTipo]||'',
+        valor:f[FLD.cValor]||0,formato:f[FLD.cFormato]||'',
+        cliente:cl,clienteNome:cl?cl[FLD.clNome]:'',
+        processo:f[FLD.cProcesso]||'',cobrFinal:f[FLD.cCobrFinal]||'',
+        cobrs:cobs,prazos:przs,remarcacoes,taxaRemarcacao,
+        confirmar:cl?cl[FLD.clConfirmar]:false,
+        retemISS:cl?cl[FLD.clRetemISS]:false
+      };
+    });
+    DATA.cobrs=cobrs.map(c=>({id:c.id,...c.fields}));
+    DATA.clients=clients;
+    DATA.prazos=prazos;
+    // Populate month selector
+    populateMonths();
+    // Apply business rules
+    applyBusinessRules();
+    render();
+  }catch(e){
+    document.getElementById('main').innerHTML=`<div class="card"><div class="card-hdr">❌ Erro</div><p>${esc(e.message)}</p><button class="btn" onclick="loadData()" style="margin-top:12px;background:var(--hdr);color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer">Tentar novamente</button></div>`;
+  }
+}
+
+function populateMonths(){
+  const sel=document.getElementById('selMonth');
+  const months=new Set();
+  DATA.cobrs.forEach(c=>{
+    const d=c[FLD.bData]||c[FLD.bDataReceb];
+    if(d)months.add(d.substring(0,7));
+  });
+  const sorted=[...months].sort().reverse();
+  const now=new Date().toISOString().substring(0,7);
+  if(!sorted.includes(now))sorted.unshift(now);
+  sorted.sort().reverse();
+  sel.innerHTML=sorted.map(m=>`<option value="${m}"${m===now?' selected':''}>${m}</option>`).join('');
+  MONTH=now;
+  sel.onchange=function(){MONTH=this.value;render()};
+}
+
+// ══════════════════════════════════════════════════════════
+// BUSINESS RULES
+// ══════════════════════════════════════════════════════════
+function applyBusinessRules(){
+  DATA.alertas={iniciais:[],novaAtividade:[]};
+  DATA.aCobrar=[];DATA.pendentes=[];DATA.devedores=[];DATA.aguardConf=[];
+  
+  DATA.casos.forEach(c=>{
+    const entradas=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada');
+    const saidas=c.cobrs.filter(b=>b[FLD.bTipo]==='Saída');
+    
+    // STEP 3: Check forgotten 50% iniciais
+    if(c.formato===FORMATO.f5050){
+      const posPericia=[FASES.posPericia,FASES.faltaManif,FASES.laudoPubl,FASES.paraCobr,FASES.faltaPag,FASES.pago];
+      if(posPericia.includes(c.fase)){
+        const hasIniciais=entradas.some(b=>(b[FLD.bTipoPag]||'').includes('Iniciais'));
+        if(!hasIniciais&&entradas.length===0){
+          DATA.alertas.iniciais.push(c);
+        }
+      }
+    }
+    
+    // STEP 4: Check "Encerrado - Pago" with new activity
+    if(c.fase===FASES.pago){
+      const thisYear=new Date().getFullYear();
+      const recentPrazos=c.prazos.filter(p=>{
+        const d=p[FLD.pData];
+        return d&&new Date(d).getFullYear()>=thisYear-1;
+      });
+      // If has prazos from recent period AND all cobranças are old
+      const lastCobr=entradas.reduce((max,b)=>{
+        const d=b[FLD.bData]||'';return d>max?d:max;
+      },'');
+      if(recentPrazos.length>0&&lastCobr&&lastCobr<`${thisYear}-01-01`){
+        DATA.alertas.novaAtividade.push({caso:c,prazos:recentPrazos});
+      }
+    }
+    
+    // Categorize cases for billing
+    if(c.fase===FASES.paraCobr){
+      if(c.confirmar){DATA.aguardConf.push(c)}
+      else{DATA.aCobrar.push(c)}
+    }
+    // 50% iniciais for active 50/50 cases
+    if(c.formato===FORMATO.f5050&&[FASES.ativo,FASES.aguardPericia].includes(c.fase)){
+      const hasAny=entradas.length>0;
+      if(!hasAny)DATA.aCobrar.push({...c,_tipo50:'iniciais'});
+    }
+    // Pending payment
+    if(c.fase===FASES.faltaPag){
+      const ds=daysSince(entradas[0]?entradas[0][FLD.bData]:null);
+      if(ds!==null&&ds>90){DATA.devedores.push(c)}
+      else{DATA.pendentes.push(c)}
+    }
+    if(c.fase===FASES.devedor){DATA.devedores.push(c)}
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════
+const TAB_KEYS=['overview','aCobrar','pendentes','devedores','alertas','previsao'];
+let activeTab='overview';
+
+function render(){
+  // Tabs
+  const alertCount=DATA.alertas.iniciais.length+DATA.alertas.novaAtividade.length;
+  const tabsHtml=TAB_KEYS.map(k=>{
+    let label=t(k),cnt='';
+    if(k==='aCobrar')cnt=DATA.aCobrar.length+DATA.aguardConf.length;
+    if(k==='pendentes')cnt=DATA.pendentes.length;
+    if(k==='devedores')cnt=DATA.devedores.length;
+    if(k==='alertas')cnt=alertCount;
+    return`<div class="tab${activeTab===k?' active':''}" onclick="activeTab='${k}';render()">${label}${cnt?`<span class="cnt">${cnt}</span>`:''}</div>`;
+  }).join('');
+  document.getElementById('tabs').innerHTML=tabsHtml;
+  
+  // Content
+  const m=document.getElementById('main');
+  switch(activeTab){
+    case'overview':m.innerHTML=renderOverview();break;
+    case'aCobrar':m.innerHTML=renderACobrar();break;
+    case'pendentes':m.innerHTML=renderPendentes();break;
+    case'devedores':m.innerHTML=renderDevedores();break;
+    case'alertas':m.innerHTML=renderAlertas();break;
+    case'previsao':m.innerHTML=renderPrevisao();break;
+  }
+  m.innerHTML+=`<div class="fo">${t('lUpd')} ${new Date().toLocaleString(LANG==='pt'?'pt-BR':'en-US')} · Holanda Perícias FP&A</div>`;
+}
+
+// ── OVERVIEW ──
+function renderOverview(){
+  const month=MONTH;
+  const monthCobrs=DATA.cobrs.filter(c=>(c[FLD.bData]||'').startsWith(month));
+  const entradas=monthCobrs.filter(c=>c[FLD.bTipo]==='Entrada');
+  const saidasList=monthCobrs.filter(c=>c[FLD.bTipo]==='Saída');
+  const recebidos=entradas.filter(c=>c[FLD.bRecebido]||c[FLD.bPago]);
+  const receita=recebidos.reduce((s,c)=>s+(c[FLD.bValorReceber]||0),0);
+  const saidasVal=saidasList.reduce((s,c)=>s+(c[FLD.bValorReceber]||0),0);
+  const lucro=receita-saidasVal;
+  const margem=receita?Math.round(lucro/receita*100):0;
+  const nfEmitidas=entradas.filter(c=>c[FLD.bNFemit]).length;
+  const nfPendentes=entradas.filter(c=>!c[FLD.bNFemit]).length;
+  
+  let h=`<div class="hero"><div class="lb">${t('lucro')} — ${month}</div><div class="vl">${$(lucro)}</div><div class="sub">${t('margem')}: ${margem}%</div></div>`;
+  h+=`<div class="stats">
+    <div class="st"><div class="lb">${t('receita')}</div><div class="vl g">${$(receita)}</div></div>
+    <div class="st"><div class="lb">${t('saidas')}</div><div class="vl r">${$(saidasVal)}</div></div>
+    <div class="st"><div class="lb">${t('nfEmitidas')}</div><div class="vl b">${nfEmitidas}</div></div>
+    <div class="st"><div class="lb">${t('nfPendentes')}</div><div class="vl o">${nfPendentes}</div></div>
+  </div>`;
+  
+  // Alert summary if any
+  const alertCount=DATA.alertas.iniciais.length+DATA.alertas.novaAtividade.length;
+  if(alertCount>0){
+    h+=`<div class="alert alert-warn"><div class="icon">⚠️</div><div><div class="title">${alertCount} ${t('alertas')}</div><div class="desc">`;
+    if(DATA.alertas.iniciais.length)h+=`${DATA.alertas.iniciais.length}× ${t('alertaIniciais')}. `;
+    if(DATA.alertas.novaAtividade.length)h+=`${DATA.alertas.novaAtividade.length}× ${t('alertaCasoPago')}. `;
+    h+=`</div></div></div>`;
+  }
+  
+  // Phase distribution
+  const faseCount={};
+  DATA.casos.forEach(c=>{const f=c.fase;faseCount[f]=(faseCount[f]||0)+1});
+  const faseLabels={
+    [FASES.ativo]:'Ativo (s/ data)',[FASES.aguardPericia]:'Aguardando perícia',
+    [FASES.posPericia]:'Pós-perícia',[FASES.faltaManif]:'Falta manifestação',
+    [FASES.laudoPubl]:'Laudo publicado',[FASES.paraCobr]:'Para cobrança',
+    [FASES.faltaPag]:'Falta pagamento',[FASES.devedor]:'Devedor',
+    [FASES.pago]:'Pago',[FASES.arquivado]:'Arquivado'
+  };
+  h+=`<div class="card"><div class="card-hdr"><span class="icon">📊</span> Distribuição por Fase</div><div class="tbl">`;
+  Object.entries(faseCount).sort((a,b)=>b[1]-a[1]).forEach(([f,n])=>{
+    const pct=Math.round(n/DATA.casos.length*100);
+    const label=faseLabels[f]||f;
+    const color=f===FASES.pago?'var(--grn)':f===FASES.devedor?'var(--red)':f===FASES.paraCobr?'var(--org)':'var(--ac)';
+    h+=`<div style="display:flex;align-items:center;gap:8px;padding:4px 0"><span style="font-family:var(--ffc);font-size:12px;min-width:160px;color:var(--sub)">${esc(label)}</span><div style="flex:1;background:var(--brd);height:16px;border-radius:3px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:.3s"></div></div><span style="font-family:var(--ffc);font-size:12px;font-weight:700;min-width:40px;text-align:right">${n}</span></div>`;
+  });
+  h+=`</div></div>`;
+  
+  // Recent payments received
+  const recent=DATA.cobrs.filter(c=>c[FLD.bTipo]==='Entrada'&&(c[FLD.bRecebido]||c[FLD.bPago])).sort((a,b)=>(b[FLD.bDataReceb]||b[FLD.bData]||'').localeCompare(a[FLD.bDataReceb]||a[FLD.bData]||'')).slice(0,8);
+  if(recent.length){
+    h+=`<div class="card"><div class="card-hdr"><span class="icon">💰</span> Últimos Recebimentos</div><div class="tbl">`;
+    h+=`<div class="th" style="grid-template-columns:2fr 80px 80px">
+      <span>${t('caso')}</span><span>${t('valor')}</span><span>${t('data')}</span></div>`;
+    recent.forEach(c=>{
+      h+=`<div class="row" style="grid-template-columns:2fr 80px 80px">
+        <span class="nm">${esc(c[FLD.bName]||'')}</span>
+        <span class="val g">${$(c[FLD.bValorReceber])}</span>
+        <span>${fD(c[FLD.bDataReceb]||c[FLD.bData])}</span></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  return h;
+}
+
+// ── ROADMAP BUILDER ──
+function buildRoadmap(caso){
+  const przs=caso.prazos;
+  if(!przs||!przs.length)return'<div style="color:var(--sub);font-size:12px;padding:8px">Nenhum prazo cadastrado.</div>';
+  
+  // Categorize prazos by type
+  const tipoPrazo=przs.map(p=>{
+    const tipo=p['fldkTeLb6lYFLbPOq']||'';
+    const data=p[FLD.pData]||'';
+    const finalizado=p['fldRl3A0JJbGwb8Wd']||false;
+    const situacao=p['fldjDFBE9E3w6hBsH']||'';
+    return{tipo,data,finalizado,situacao,remarcada:p[FLD.pRemarcada]};
+  });
+  
+  // Standard stages
+  const stages=['Quesitos e Assistentes','Perícia','Manifestação ao Laudo','Manifestação Complementar'];
+  const stageLabels={
+    'Quesitos e Assistentes':t('quesitos'),'Perícia':t('pericia'),
+    'Manifestação ao Laudo':t('manifestacao'),'Manifestação Complementar':t('manifCompl')
+  };
+  
+  // Group prazos by stage type
+  const grouped={};
+  tipoPrazo.forEach(p=>{
+    const key=stages.find(s=>p.tipo.includes(s))||p.tipo;
+    if(!grouped[key])grouped[key]=[];
+    grouped[key].push(p);
+  });
+  
+  // Determine which stages exist and their status
+  let h='<div class="rm-line">';
+  let prevDone=true;
+  const activeStages=stages.filter(s=>grouped[s]&&grouped[s].length>0);
+  // If no typed prazos, try to infer from dates
+  if(activeStages.length===0&&przs.length>0){
+    // Fallback: show all prazos chronologically
+    h+='<div style="font-size:12px;color:var(--sub);padding:4px 0">';
+    przs.forEach((p,i)=>{
+      const data=p[FLD.pData]?fD(p[FLD.pData]):'—';
+      const done=p['fldRl3A0JJbGwb8Wd'];
+      h+=`<div style="display:flex;align-items:center;gap:8px;padding:3px 0">
+        <span style="width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;${done?'background:var(--grn);color:#fff':'background:#fff;border:2px solid var(--brd);color:var(--sub)'}">${done?'✓':i+1}</span>
+        <span>${data}</span></div>`;
+    });
+    h+='</div>';
+    return h;
+  }
+  
+  activeStages.forEach((stage,idx)=>{
+    const items=grouped[stage]||[];
+    const allDone=items.every(p=>p.finalizado);
+    const anyDone=items.some(p=>p.finalizado);
+    const status=allDone?'done':anyDone?'active':'future';
+    const isPericias=stage==='Perícia';
+    
+    // Connector before (except first)
+    if(idx>0){
+      const connClass=status==='done'?'done':status==='active'?'active':'';
+      h+=`<div class="rm-connector ${connClass}"></div>`;
+    }
+    
+    if(isPericias&&items.length>1){
+      // Multiple pericias = remarcações
+      h+=`<div style="display:flex;flex-direction:column;align-items:center">`;
+      items.forEach((p,pi)=>{
+        const pStatus=p.finalizado?'done':pi===items.length-1?'active':'extra';
+        const dotClass=pi<items.length-1?'extra':pStatus;
+        h+=`<div class="rm-step" style="margin-bottom:${pi<items.length-1?'4px':'0'}">
+          <div class="rm-dot ${dotClass}">${pi+1}</div>
+          <div class="rm-date">${fD(p.data)}</div>
+          ${pi<items.length-1?'<div class="rm-fee">+R$ 500</div>':''}
+        </div>`;
+      });
+      h+=`<div class="rm-label">${stageLabels[stage]||stage}</div>`;
+      if(caso.remarcacoes>0)h+=`<div class="rm-badge">${caso.remarcacoes}× remarcação</div>`;
+      h+=`</div>`;
+    }else{
+      const item=items[0];
+      const dotClass=status;
+      const icon=status==='done'?'✓':status==='active'?'●':idx+1;
+      h+=`<div class="rm-step">
+        <div class="rm-dot ${dotClass}">${icon}</div>
+        <div class="rm-label">${stageLabels[stage]||stage}</div>
+        <div class="rm-date">${item?fD(item.data):'—'}</div>
+      </div>`;
+    }
+    prevDone=allDone;
+  });
+  h+=`</div>`;
+  
+  // Novo caso badge
+  if(caso.nome.includes('NOVO CASO')){
+    h+=`<div class="rm-badge" style="margin-top:8px;background:var(--ac)">🔄 ${t('novoCaso')}</div>`;
+  }
+  return h;
+}
+
+// ── CASE ROW WITH ROADMAP ──
+function caseRow(c,cols,extraHtml){
+  const uid='rm_'+c.id.replace(/[^a-zA-Z0-9]/g,'');
+  let h=`<div>
+    <div class="row roadmap-toggle" style="grid-template-columns:${cols}" onclick="toggleRoadmap('${uid}',this)">
+      <div><span class="arrow">▶</span><span class="nm">${esc(c.nome)}</span><div class="proc">${esc(c.processo)}</div></div>
+      <span>${esc(c.clienteNome)}</span>
+      <span class="val">${$(c.valor)}</span>
+      ${extraHtml||''}
+    </div>
+    <div class="roadmap" id="${uid}">${buildRoadmap(c)}</div>
+  </div>`;
+  return h;
+}
+
+function toggleRoadmap(id,el){
+  const rm=document.getElementById(id);
+  rm.classList.toggle('show');
+  el.classList.toggle('open');
+}
+
+// ── A COBRAR ──
+function renderACobrar(){
+  let h='';
+  // Separate: direct bill vs confirm first
+  const direct=DATA.aCobrar.filter(c=>!c.confirmar);
+  const confirm=DATA.aguardConf;
+  
+  // 50% iniciais
+  const iniciais=direct.filter(c=>c._tipo50==='iniciais');
+  const encerrados=direct.filter(c=>!c._tipo50);
+  
+  if(iniciais.length){
+    h+=`<div class="card"><div class="card-hdr"><span class="icon">📋</span> ${t('iniciais50')} — Cobrar Agora</div>`;
+    h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px 80px">
+      <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')} 50%</span><span>Remarcação</span></div>`;
+    iniciais.forEach(c=>{
+      const val50=c.valor/2;
+      h+=caseRow(c,'2fr 1fr 80px 80px',
+        `<span class="val b">${$(val50)}</span><span>${c.remarcacoes?`<span class="bd bd-o">+${$(c.taxaRemarcacao)}</span>`:'—'}</span>`);
+    });
+    h+=`</div></div>`;
+  }
+  
+  if(encerrados.length){
+    h+=`<div class="card"><div class="card-hdr"><span class="icon">💰</span> ${t('encerrado')} — ${t('emitirNF')}</div>`;
+    h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px 80px 60px">
+      <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')}</span><span>Remarcação</span><span>${t('tipo')}</span></div>`;
+    encerrados.forEach(c=>{
+      const entradas=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada');
+      const has50i=entradas.some(b=>(b[FLD.bTipoPag]||'').includes('Iniciais'));
+      let valorNF=c.valor+c.taxaRemarcacao;
+      let tipoBd='<span class="bd bd-100">100%</span>';
+      if(c.formato===FORMATO.f5050&&has50i){
+        valorNF=c.valor/2+c.taxaRemarcacao;
+        tipoBd='<span class="bd bd-50">50% Finais</span>';
+      }
+      h+=caseRow(c,'2fr 1fr 80px 80px 60px',
+        `<span class="val g">${$(valorNF)}</span><span>${c.remarcacoes?`<span class="bd bd-o">+${$(c.taxaRemarcacao)}</span>`:'—'}</span><span>${tipoBd}</span>`);
+    });
+    h+=`</div></div>`;
+  }
+  
+  if(confirm.length){
+    h+=`<div class="card" style="border-top-color:var(--warn)"><div class="card-hdr" style="color:var(--org)"><span class="icon">⚠️</span> ${t('confirmar')} com Cliente Antes da NF</div>`;
+    h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px">
+      <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')}</span></div>`;
+    confirm.forEach(c=>{
+      h+=caseRow(c,'2fr 1fr 80px',`<span class="val o">${$(c.valor+c.taxaRemarcacao)}</span>`);
+    });
+    h+=`</div></div>`;
+  }
+  
+  if(!iniciais.length&&!encerrados.length&&!confirm.length){
+    h+=`<div class="card"><div class="card-hdr"><span class="icon">✅</span> Nenhuma cobrança pendente</div><p style="color:var(--sub)">Todos os casos estão em dia.</p></div>`;
+  }
+  
+  // Total
+  const totalACobrar=[...direct,...confirm].reduce((s,c)=>{
+    if(c._tipo50==='iniciais')return s+c.valor/2;
+    const entradas=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada');
+    const has50i=entradas.some(b=>(b[FLD.bTipoPag]||'').includes('Iniciais'));
+    if(c.formato===FORMATO.f5050&&has50i)return s+c.valor/2+c.taxaRemarcacao;
+    return s+c.valor+c.taxaRemarcacao;
+  },0);
+  h+=`<div class="st" style="margin-top:12px"><div class="lb">${t('total')} a cobrar</div><div class="vl g">${$(totalACobrar)}</div></div>`;
+  return h;
+}
+
+// ── PENDENTES ──
+function renderPendentes(){
+  let h='';
+  if(!DATA.pendentes.length){
+    return`<div class="card"><div class="card-hdr"><span class="icon">✅</span> Nenhuma cobrança pendente de pagamento</div></div>`;
+  }
+  h+=`<div class="card"><div class="card-hdr"><span class="icon">⏳</span> ${t('pendentes')} — NF Emitida, Aguardando Pagamento</div>`;
+  h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px 70px">
+    <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')}</span><span>${t('atraso')}</span></div>`;
+  DATA.pendentes.sort((a,b)=>{
+    const da=a.cobrs[0]?a.cobrs[0][FLD.bData]:'';
+    const db=b.cobrs[0]?b.cobrs[0][FLD.bData]:'';
+    return(da||'').localeCompare(db||'');
+  }).forEach(c=>{
+    const entr=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada')[0];
+    const dias=entr?daysSince(entr[FLD.bData]):null;
+    const diasClass=dias>60?'bd-r':dias>30?'bd-o':'bd-d';
+    h+=caseRow(c,'2fr 1fr 80px 70px',
+      `<span class="val o">${$(entr?entr[FLD.bValorReceber]:c.valor)}</span>
+       <span><span class="bd ${diasClass}">${dias||'?'} ${t('dias')}</span></span>`);
+  });
+  h+=`</div></div>`;
+  const totalPend=DATA.pendentes.reduce((s,c)=>{
+    const entr=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada')[0];
+    return s+(entr?entr[FLD.bValorReceber]:c.valor);
+  },0);
+  h+=`<div class="st" style="margin-top:12px"><div class="lb">${t('total')} pendente</div><div class="vl o">${$(totalPend)}</div></div>`;
+  return h;
+}
+
+// ── DEVEDORES ──
+function renderDevedores(){
+  let h='';
+  if(!DATA.devedores.length){
+    return`<div class="card"><div class="card-hdr"><span class="icon">✅</span> Nenhum devedor</div></div>`;
+  }
+  h+=`<div class="card" style="border-top-color:var(--red)"><div class="card-hdr" style="color:var(--red)"><span class="icon">🚨</span> ${t('devedores')} — +90 ${t('dias')}</div>`;
+  h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px 70px 60px">
+    <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')}</span><span>${t('atraso')}</span><span>NF Retida</span></div>`;
+  DATA.devedores.forEach(c=>{
+    const entr=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada')[0];
+    const dias=entr?daysSince(entr[FLD.bData]):null;
+    const retida=c.cobrs.some(b=>b[FLD.bNFRetida]);
+    h+=caseRow(c,'2fr 1fr 80px 70px 60px',
+      `<span class="val r">${$(entr?entr[FLD.bValorReceber]:c.valor)}</span>
+       <span><span class="bd bd-r">${dias||'?'} ${t('dias')}</span></span>
+       <span>${retida?'<span class="bd bd-r">Retida</span>':'—'}</span>`);
+  });
+  h+=`</div></div>`;
+  const totalDev=DATA.devedores.reduce((s,c)=>{
+    const entr=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada')[0];
+    return s+(entr?entr[FLD.bValorReceber]:c.valor);
+  },0);
+  h+=`<div class="st" style="margin-top:12px"><div class="lb">${t('total')} devedor</div><div class="vl r">${$(totalDev)}</div></div>`;
+  return h;
+}
+
+// ── ALERTAS ──
+function renderAlertas(){
+  let h='';
+  const{iniciais,novaAtividade}=DATA.alertas;
+  
+  if(!iniciais.length&&!novaAtividade.length){
+    return`<div class="card"><div class="card-hdr"><span class="icon">✅</span> Nenhum alerta</div><p style="color:var(--sub)">Todos os casos estão regulares.</p></div>`;
+  }
+  
+  // 50% iniciais esquecidos
+  if(iniciais.length){
+    h+=`<div class="card" style="border-top-color:var(--warn)"><div class="card-hdr" style="color:var(--org)"><span class="icon">⚠️</span> ${t('alertaIniciais')}</div>`;
+    h+=`<div class="alert alert-warn" style="margin-bottom:16px"><div class="icon">💡</div><div><div class="desc">${t('esquecido')}</div></div></div>`;
+    h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 1fr 80px 100px">
+      <span>${t('caso')}</span><span>${t('cliente')}</span><span>${t('valor')}</span><span>${t('fase')}</span></div>`;
+    iniciais.forEach(c=>{
+      const faseLabels={
+        [FASES.posPericia]:'Pós-Perícia',[FASES.faltaManif]:'Falta Manif.',
+        [FASES.laudoPubl]:'Laudo Publ.',[FASES.paraCobr]:'P/ Cobrança',
+        [FASES.faltaPag]:'Falta Pag.'
+      };
+      h+=caseRow(c,'2fr 1fr 80px 100px',
+        `<span class="val o">${$(c.valor)}</span>
+         <span><span class="bd bd-w">${faseLabels[c.fase]||c.fase}</span></span>`);
+    });
+    h+=`</div></div>`;
+  }
+  
+  // Casos pagos com nova atividade
+  if(novaAtividade.length){
+    h+=`<div class="card" style="border-top-color:var(--red)"><div class="card-hdr" style="color:var(--red)"><span class="icon">🔴</span> ${t('alertaCasoPago')}</div>`;
+    h+=`<div class="alert alert-danger" style="margin-bottom:16px"><div class="icon">🔄</div><div><div class="desc">${t('novaAtividade')}</div></div></div>`;
+    novaAtividade.forEach(({caso:c,prazos:rp})=>{
+      h+=`<div class="row" style="grid-template-columns:2fr 1fr 80px;border-bottom:1px solid var(--brd)">
+        <div><span class="nm">${esc(c.nome)}</span><div class="proc">${esc(c.processo)}</div></div>
+        <span>${esc(c.clienteNome)}</span>
+        <span class="val">${$(c.valor)}</span>
+      </div>`;
+      h+=`<div style="padding:8px 16px;background:#FFF5F5;border-bottom:1px solid var(--brd)">
+        <div style="font-family:var(--ffc);font-size:11px;text-transform:uppercase;color:var(--red);margin-bottom:6px">Prazos Recentes Detectados:</div>`;
+      rp.forEach(p=>{
+        const tipo=p['fldkTeLb6lYFLbPOq']||'Prazo';
+        h+=`<div style="font-size:12px;padding:2px 0">• ${esc(tipo)} — ${fD(p[FLD.pData])}</div>`;
+      });
+      h+=`<div style="margin-top:8px;font-size:11px;color:var(--red);font-weight:600">
+        → Criar "(NOVO CASO) ${esc(c.nome)}" com formato 100% pós-manifestação</div></div>`;
+    });
+    h+=`</div>`;
+  }
+  return h;
+}
+
+// ── PREVISÃO 30 DIAS ──
+function renderPrevisao(){
+  let h='';
+  // Expected receipts: pending cases + overdue
+  const expectedReceipts=DATA.pendentes.reduce((s,c)=>{
+    const entr=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada')[0];
+    const dias=entr?daysSince(entr[FLD.bData]):null;
+    // Probability based on aging
+    let prob=dias<30?.9:dias<60?.7:dias<90?.4:.1;
+    const val=entr?entr[FLD.bValorReceber]:c.valor;
+    return s+val*prob;
+  },0);
+  
+  // Expected from cases ready to bill
+  const expectedBilling=DATA.aCobrar.reduce((s,c)=>{
+    if(c._tipo50==='iniciais')return s+c.valor/2*.8;
+    const entradas=c.cobrs.filter(b=>b[FLD.bTipo]==='Entrada');
+    const has50i=entradas.some(b=>(b[FLD.bTipoPag]||'').includes('Iniciais'));
+    if(c.formato===FORMATO.f5050&&has50i)return s+(c.valor/2+c.taxaRemarcacao)*.7;
+    return s+(c.valor+c.taxaRemarcacao)*.7;
+  },0);
+  
+  // Expected payments: upcoming pericias
+  const now=new Date();
+  const in30=new Date(now.getTime()+30*864e5);
+  const upcomingPericias=DATA.prazos.filter(p=>{
+    const d=p.fields?p.fields[FLD.pData]:p[FLD.pData];
+    if(!d)return false;
+    const dt=new Date(d);
+    return dt>=now&&dt<=in30;
+  });
+  // Estimate R$800 per pericia for assistant costs
+  const expectedPayments=upcomingPericias.length*800;
+  
+  const totalIn=expectedReceipts+expectedBilling;
+  const totalOut=expectedPayments;
+  const netProjected=totalIn-totalOut;
+  const maxBar=Math.max(totalIn,totalOut,1);
+  
+  h+=`<div class="card"><div class="card-hdr"><span class="icon">🔮</span> ${t('previsao')}</div>`;
+  h+=`<div style="margin-bottom:16px">
+    <div class="fc-bar"><div class="fc-label">${t('recebimentos')}</div><div class="fc-fill" style="width:${totalIn/maxBar*100}%;background:var(--grn)"></div><div class="fc-val" style="color:var(--grn)">${$(totalIn)}</div></div>
+    <div style="font-size:11px;color:var(--sub);padding:0 0 8px 110px">Pendentes: ${$(expectedReceipts)} + Novos: ${$(expectedBilling)}</div>
+    <div class="fc-bar"><div class="fc-label">${t('pagamentos')}</div><div class="fc-fill" style="width:${totalOut/maxBar*100}%;background:var(--red)"></div><div class="fc-val" style="color:var(--red)">${$(totalOut)}</div></div>
+    <div style="font-size:11px;color:var(--sub);padding:0 0 8px 110px">${upcomingPericias.length} perícias agendadas × ~R$ 800</div>
+  </div>`;
+  
+  h+=`<div class="stats"><div class="st"><div class="lb">${t('saldo')}</div><div class="vl ${netProjected>=0?'g':'r'}">${$(netProjected)}</div></div>
+    <div class="st"><div class="lb">${t('retirada')}</div><div class="vl b">${$(Math.max(0,netProjected*.5))}</div></div></div>`;
+  h+=`<div style="font-size:11px;color:var(--sub);padding:8px;background:#F8FBFD;border-radius:4px">
+    Fórmula: Se projeção líquida &gt; 0 → retirada = 50% do líquido projetado. Reserva mantida para cobrir imprevistos.</div>`;
+  h+=`</div>`;
+  
+  // Upcoming pericias list
+  if(upcomingPericias.length){
+    h+=`<div class="card"><div class="card-hdr"><span class="icon">📅</span> Perícias nos Próximos 30 Dias</div>`;
+    h+=`<div class="tbl"><div class="th" style="grid-template-columns:2fr 80px"><span>${t('caso')}</span><span>${t('data')}</span></div>`;
+    upcomingPericias.forEach(p=>{
+      const f=p.fields||p;
+      const casoIds=f[FLD.pCaso]||[];
+      const caso=DATA.casos.find(c=>casoIds.includes(c.id));
+      h+=`<div class="row" style="grid-template-columns:2fr 80px">
+        <span class="nm">${caso?esc(caso.nome):'—'}</span>
+        <span>${fD(f[FLD.pData])}</span></div>`;
+    });
+    h+=`</div></div>`;
+  }
+  return h;
+}
+</script>
+</body>
+</html>
