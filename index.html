@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holanda Perícias — Dashboard Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F2F8FC;--cd:#FFF;--hd:#005F88;--ac:#00AEEF;--bd:#D0E8F2;--tx:#1A3A4A;--sb:#6B7A8D;--gn:#0D7A3E;--rd:#C62828;--og:#E65100;--wn:#F59E0B;--ff:'Barlow',sans-serif;--fc:'Barlow Condensed',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--ff);background:var(--bg);color:var(--tx);font-size:14px}
+
+
+.hd{background:var(--hd);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}.hd h1{font-family:var(--fc);color:#fff;font-size:22px;text-transform:uppercase;letter-spacing:2px;font-weight:700}.hr{display:flex;align-items:center;gap:10px}.hd select,.hd button{font-family:var(--fc);font-size:13px;padding:6px 12px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;text-transform:uppercase;letter-spacing:1px}
+.gbar{height:4px;background:linear-gradient(90deg,var(--ac),var(--hd))}
+.tabs{display:flex;background:#fff;border-bottom:2px solid var(--bd);padding:0 16px;overflow-x:auto}.tab{font-family:var(--fc);font-size:13px;text-transform:uppercase;letter-spacing:1.2px;padding:12px 18px;cursor:pointer;color:var(--sb);border-bottom:3px solid transparent;white-space:nowrap;font-weight:600}.tab:hover{color:var(--hd)}.tab.on{color:var(--hd);border-bottom-color:var(--ac)}.tab .n{background:var(--ac);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;margin-left:5px;font-weight:700}
+.mn{padding:20px;max-width:1200px;margin:0 auto}
+/* Summary cards */
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px}
+.sc{background:var(--cd);border:1px solid var(--bd);border-radius:8px;overflow:hidden;cursor:pointer;transition:.15s}.sc:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.st{padding:16px;display:flex;align-items:center;justify-content:space-between}.st .l{font-family:var(--fc);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--sb)}.st .v{font-family:var(--fc);font-size:26px;font-weight:700}.st .a{font-size:12px;color:var(--sb);transition:.2s}.sc.op .st .a{transform:rotate(180deg)}
+.sd{display:none;border-top:1px solid var(--bd);padding:12px 16px;background:#FAFCFE;max-height:300px;overflow-y:auto}.sc.op .sd{display:block}
+.sr{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #EEF3F7;font-size:12px;gap:8px}.sr:last-child{border-bottom:none}.sr .nm{flex:1}.sr .vv{font-family:var(--fc);font-weight:600;white-space:nowrap}
+/* Cards & tables */
+.cd{background:var(--cd);border:1px solid var(--bd);border-top:3px solid var(--ac);border-radius:8px;padding:16px;margin-bottom:16px}
+.ch{font-family:var(--fc);font-size:15px;text-transform:uppercase;letter-spacing:1.2px;color:var(--hd);font-weight:700;margin-bottom:12px}
+.rw{display:grid;padding:10px 12px;border-bottom:1px solid #EEF3F7;align-items:center;font-size:13px;cursor:pointer;transition:.1s}.rw:hover{background:#F0F7FB}
+.th{font-family:var(--fc);font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--sb);background:#F8FBFD;padding:8px 12px;border-bottom:2px solid var(--bd);font-weight:600;display:grid}
+.nm{font-weight:600}.pc{font-size:11px;color:var(--sb);margin-top:1px}.vl{font-family:var(--fc);font-weight:700;font-size:15px}
+.bd{display:inline-block;font-family:var(--fc);font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:3px;font-weight:600}
+.bg{background:#E8F5E9;color:var(--gn)}.br{background:#FFEBEE;color:var(--rd)}.bo{background:#FFF3E0;color:var(--og)}.bb{background:#E3F2FD;color:var(--ac)}
+.al{border-radius:8px;padding:12px 16px;margin-bottom:12px;border-left:4px solid var(--wn);background:#FFF8E1;font-size:13px}
+/* Roadmap */
+.rp{display:none;background:#F8FBFD;border:1px solid var(--bd);border-radius:0 0 8px 8px;margin:-1px 0 12px;padding:16px 20px;animation:sl .2s ease}.rp.sh{display:block}
+@keyframes sl{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.rt{display:flex;align-items:flex-start;gap:0;padding:10px 0;overflow-x:auto}
+.rn{display:flex;flex-direction:column;align-items:center;min-width:90px;flex:0 0 auto}
+.dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;border:3px solid #D0D8E0;background:#fff;color:#B0B8C0}
+.dot.dn{background:var(--gn);border-color:var(--gn);color:#fff}
+.dot.nw{background:var(--ac);border-color:var(--ac);color:#fff;animation:pl 2s infinite}
+.dot.sk{background:var(--og);border-color:var(--og);color:#fff}
+@keyframes pl{0%,100%{box-shadow:0 0 0 0 rgba(0,174,239,.4)}50%{box-shadow:0 0 0 8px rgba(0,174,239,0)}}
+.rl{font-family:var(--fc);font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--sb);margin-top:5px;text-align:center;max-width:90px;line-height:1.2}
+.rd{font-size:10px;color:var(--sb);margin-top:2px}
+.rf{font-size:10px;color:var(--og);font-weight:700;font-family:var(--fc)}
+.ln{flex:1;height:3px;min-width:14px;margin-top:16px}
+.ln.dn{background:var(--gn)}.ln.hf{background:linear-gradient(90deg,var(--gn),#D0D8E0)}.ln.no{background:#D0D8E0}
+.pb{height:8px;background:#E0E4E8;border-radius:4px;margin-top:12px;overflow:hidden}.pf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gn),var(--ac))}
+.pp{font-family:var(--fc);font-size:11px;color:var(--sb);margin-top:4px;text-align:right}
+.fo{text-align:center;padding:20px;font-size:11px;color:var(--sb);font-family:var(--fc);text-transform:uppercase;letter-spacing:1.5px}
+.sp{display:inline-block;width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:sn 1s linear infinite}@keyframes sn{to{transform:rotate(360deg)}}
+@media(max-width:600px){.sg{grid-template-columns:1fr}.hd h1{font-size:16px}.mn{padding:12px}}
+</style>
+</head>
+<body>
+<div id="A">
+<div class="hd"><h1>Holanda Perícias</h1><div class="hr"><select id="sm"></select><select id="sL" onchange="LN=this.value;render()"><option value="pt">PT</option><option value="en">EN</option></select><button onclick="load()">↻</button></div></div>
+<div class="gbar"></div><div class="tabs" id="tb"></div>
+<div class="mn" id="mn"><div style="text-align:center;padding:60px"><div class="sp"></div></div></div></div>
+<script>
+// === CONFIG ===
+const BS='appTEAYT5TYhnQwTn',
+TB={c:'tbluIGDmDWYdvIXGh',b:'tblMSxzQ0WlFPYU8A',cl:'tblJblR6Th5XitkRE',p:'tbln95BoOQe7ZXpzJ'},
+// Field IDs - confirmed format: field IDs as keys, singleSelect=string, multipleSelects=[string], links=[recId]
+f={cN:'fldj5FBvJfRd0BC22',cF:'fld86RIjqxRbIyK2H',cV:'fldxj1JNDROjFVS0I',cM:'fldorcMm83hAOgwmp',cL:'fld7ddtpPu5BrgIoL',cP:'fldzUYMqa3SNmcaiy',cD:'fld1SIT1qCgOrzvwE',
+bN:'fldmEqze0enDJ9NgS',bT:'flduuDN0KZkIxDa5E',bR:'fldJF2iTO9MuOrvPu',bV:'fldctzCHWdI5Ywslb',bD:'fld017hwmpf88pMf4',bE:'fldwiByBRFrrfqXi0',bG:'fldseQscWInxIjkWT',bP:'fldoz03J5oMdtYtvy',bC:'fldxNcSHI6NwRA1Ec',bDR:'flddyKZoD9Kg1i49b',bRT:'fldPNYtiEom533bLg',bVP:'fldNRRnaAxXSwcyZ0',bDP:'fldMqz2o0dokkPDKI',
+lN:'fldPlIIeCVL1PjHuP',lC:'fldRJLmUby1ZcqPoC',
+pD:'fldYl3z2vJDBxc7ql',pC:'fldJ5zNofON8zZHQO',pT:'fldwFdFcb76bkbjD4',pF:'fldrhICAJtN3gqXkR',pA:'fldp3Y2x1I5EZHzyE'},
+FA={pc:'Encerrado PARA COBRANÇA',fp:'Encerrado - Falta Pagamento',dv:'Devedor',pg:'Encerrado - Pago',at:'Ativo (sem data da perícia)',ag:'Ativo - Aguardando perícia (com data)',ps:'Ativo - Pós Perícia - Aguardando Laudo',fm:'Para cobrança pós perícia, falta manifestação',lp:'Ativo - Laudo já publicado'},
+FM='50/50 (contratação + pós-perícia)',
+
+let TK='patUImrXK1EQGmOQ6.b11a324c84d2dd8b34f62ca5a81bb2ef330dd9b8e4bd589bc4e162a581ff1f15',D={},MO='',TAB='ov',LN='pt';
+const I={pt:{ov:'Visão Geral',co:'A Cobrar',pn:'Pendentes',dv:'Devedores',pr:'Previsão 30d',ent:'Entradas',sai:'Saídas',ab:'Em Aberto (30d)',luc:'Lucro',pgtos:'pgtos',nfs:'NFs',ini50:'50% Iniciais',encNF:'Encerrados — Emitir NF',confCli:'Confirmar com Cliente',aguard:'Aguardando Pagamento',devs:'Devedores',prev:'Previsão 30 Dias',receb:'Recebimentos',pgmt:'Pagamentos',saldo:'Saldo Projetado',retir:'Retirada Segura',per30:'Perícias em 30d',prog:'Progresso',nenhum:'Nenhum',caso:'Caso',cli:'Cliente',val:'Valor',tipo:'Tipo',atraso:'Atraso',quest:'Quesitos',peric:'Perícia',manif:'Manifestação',mCompl:'Manif. Compl.',fases:'Casos por Fase',atuEm:'Atualizado',nadaCob:'Nada a cobrar',nenPend:'Nenhum pendente',nenDev:'Nenhum devedor',nenRec:'Nenhum recebimento.',nenSai:'Nenhuma saída.',nenAb:'Nenhuma NF em aberto.',a50:'50% Iniciais Esquecidos',aPago:'Caso Pago com Nova Atividade',novoCaso:'Novo Caso (2ª rodada)',prazos:'prazos',nenPrazo:'Nenhum prazo cadastrado.'},
+en:{ov:'Overview',co:'To Bill',pn:'Pending',dv:'Debtors',pr:'30-Day Forecast',ent:'Revenue',sai:'Expenses',ab:'Open (30d)',luc:'Profit',pgtos:'payments',nfs:'invoices',ini50:'50% Upfront',encNF:'Closed — Issue Invoice',confCli:'Confirm with Client',aguard:'Awaiting Payment',devs:'Debtors',prev:'30-Day Forecast',receb:'Receipts',pgmt:'Payments',saldo:'Projected Balance',retir:'Safe Withdrawal',per30:'Exams in 30d',prog:'Progress',nenhum:'None',caso:'Case',cli:'Client',val:'Value',tipo:'Type',atraso:'Overdue',quest:'Questions',peric:'Expert Exam',manif:'Response',mCompl:'Suppl. Resp.',fases:'Cases by Phase',atuEm:'Updated',nadaCob:'Nothing to bill',nenPend:'No pending',nenDev:'No debtors',nenRec:'No receipts.',nenSai:'No expenses.',nenAb:'No open invoices.',a50:'Forgotten 50% Upfront',aPago:'Paid Case w/ New Activity',novoCaso:'New Case (2nd round)',prazos:'deadlines',nenPrazo:'No deadlines registered.'}};
+const t=k=>I[LN][k]||k;
+const $=v=>v==null?'R$ 0,00':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+const fd=d=>{if(!d)return'—';try{return new Date(d).toLocaleDateString('pt-BR',{month:'short',day:'numeric'})}catch{return d}};
+const ds=d=>d?Math.floor((Date.now()-new Date(d).getTime())/864e5):null;
+const ec=s=>{if(!s)return'';const e=document.createElement('span');e.textContent=s;return e.innerHTML};
+const gf=r=>r.fields||{}; // returnFieldsByFieldId=true → fields has fld* keys, values are plain strings/arrays
+
+// Auto-load on page open
+load();
+
+// === FETCH ===
+async function ft(t,fds){let a=[],o=null;do{let u=`https://api.airtable.com/v0/${BS}/${t}?returnFieldsByFieldId=true&`;fds.forEach(x=>u+=`fields[]=${x}&`);if(o)u+=`offset=${o}`;const r=await fetch(u,{headers:{Authorization:`Bearer ${TK}`}});if(!r.ok)throw new Error(`Airtable ${r.status}`);const d=await r.json();a=a.concat(d.records||[]);o=d.offset}while(o);return a}
+
+// === LOAD ===
+async function load(){
+  document.getElementById('mn').innerHTML='<div style="text-align:center;padding:60px"><div class="sp"></div></div>';
+  try{
+    const[rc,rb,rl,rp]=await Promise.all([
+      ft(TB.c,[f.cN,f.cF,f.cV,f.cM,f.cL,f.cP,f.cD]),
+      ft(TB.b,[f.bN,f.bT,f.bR,f.bV,f.bD,f.bE,f.bG,f.bP,f.bC,f.bDR,f.bRT,f.bVP,f.bDP]),
+      ft(TB.cl,[f.lN,f.lC]),
+      ft(TB.p,[f.pD,f.pC,f.pT,f.pF,f.pA])]);
+    // Maps — no normalization needed, data comes as plain strings/arrays
+    const cm={};rl.forEach(r=>{const g=gf(r);cm[r.id]={nm:g[f.lN]||'',cf:g[f.lC]||false}});
+    const bm={};rb.forEach(r=>{const g=gf(r);(g[f.bC]||[]).forEach(id=>{if(!bm[id])bm[id]=[];bm[id].push({id:r.id,...g})})});
+    const pm={};rp.forEach(r=>{const g=gf(r);(g[f.pC]||[]).forEach(id=>{if(!pm[id])pm[id]=[];pm[id].push({id:r.id,...g})})});
+    D.c=rc.map(r=>{const g=gf(r),cl=(g[f.cL]||[])[0],ci=cl?cm[cl]:null;
+      const dp=g[f.cD]||[],rm=Math.max(0,(Array.isArray(dp)?dp.length:0)-1);
+      return{id:r.id,nm:g[f.cN]||'',fa:g[f.cF]||'',vl:g[f.cV]||0,fm:g[f.cM]||'',cn:ci?ci.nm:'',pr:g[f.cP]||'',
+        cb:bm[r.id]||[],pz:(pm[r.id]||[]).sort((a,b)=>(a[f.pD]||'').localeCompare(b[f.pD]||'')),rm,tx:rm*500,cf:ci?ci.cf:false}});
+    D.b=rb.map(r=>({id:r.id,...gf(r)}));
+    D.p=rp.map(r=>({id:r.id,...gf(r)}));
+    // Month selector
+    const ms=new Set();D.b.forEach(c=>{const d=c[f.bD]||c[f.bDP];if(d)ms.add(d.substring(0,7))});
+    const nw=new Date().toISOString().substring(0,7);ms.add(nw);
+    const sl=document.getElementById('sm');sl.innerHTML=[...ms].sort().reverse().map(m=>`<option value="${m}"${m===nw?' selected':''}>${m}</option>`).join('');
+    MO=nw;sl.onchange=function(){MO=this.value;render()};
+    rules();render();
+  }catch(e){console.error(e);document.getElementById('mn').innerHTML=`<div class="cd"><div class="ch">❌ Erro</div><p>${ec(e.message)}</p><pre style="font-size:10px;color:var(--sb);white-space:pre-wrap;margin-top:8px">${ec(e.stack||'')}</pre><button onclick="load()" style="margin-top:8px;padding:8px 16px;background:var(--hd);color:#fff;border:none;border-radius:4px;cursor:pointer">Tentar novamente</button></div>`}
+}
+
+// === RULES ===
+function rules(){
+  D.al={i:[],n:[]};D.ac=[];D.pn=[];D.dv=[];D.cf=[];
+  const pp=[FA.ps,FA.fm,FA.lp,FA.pc,FA.fp,FA.pg];
+  D.c.forEach(c=>{
+    const en=c.cb.filter(b=>b[f.bT]==='Entrada');
+    if(c.fm===FM&&pp.includes(c.fa)&&en.length===0)D.al.i.push(c);
+    if(c.fa===FA.pg){const yr=new Date().getFullYear();const rp=c.pz.filter(p=>p[f.pD]&&new Date(p[f.pD]).getFullYear()>=yr);if(rp.length){const lb=en.reduce((m,b)=>b[f.bD]>m?b[f.bD]:m,'');if(!lb||lb<yr+'-01-01')D.al.n.push({c,pz:rp})}}
+    if(c.fa===FA.pc){c.cf?D.cf.push(c):D.ac.push(c)}
+    if(c.fm===FM&&[FA.at,FA.ag].includes(c.fa)&&en.length===0)D.ac.push({...c,_i:1});
+    if(c.fa===FA.fp){ds((en[0]||{})[f.bD])>90?D.dv.push(c):D.pn.push(c)}
+    if(c.fa===FA.dv)D.dv.push(c);
+  });
+}
+
+// === RENDER ===
+function render(){
+  const ts={ov:t('ov'),co:t('co'),pn:t('pn'),dv:t('dv'),pr:t('pr')};
+  const ct={co:D.ac.length+D.cf.length,pn:D.pn.length,dv:D.dv.length};
+  document.getElementById('tb').innerHTML=Object.entries(ts).map(([k,v])=>`<div class="tab${TAB===k?' on':''}" onclick="TAB='${k}';render()">${v}${ct[k]?`<span class="n">${ct[k]}</span>`:''}</div>`).join('');
+  const fn={ov:rOv,co:rCo,pn:rPn,dv:rDv,pr:rPr};
+  document.getElementById('mn').innerHTML=(fn[TAB]||rOv)()+`<div class="fo">${t('atuEm')} ${new Date().toLocaleString('pt-BR')} · Holanda Perícias</div>`;
+}
+function tg(e){e.closest('.sc').classList.toggle('op')}
+function tr(id){document.getElementById(id).classList.toggle('sh')}
+
+// === OVERVIEW ===
+function rOv(){
+  const mc=D.b.filter(c=>{const d=c[f.bD]||c[f.bDP]||'';return d.startsWith(MO)});
+  const ent=mc.filter(c=>c[f.bT]==='Entrada'), sai=mc.filter(c=>c[f.bT]==='Saída');
+  const rec=ent.filter(c=>c[f.bR]||c[f.bG]);
+  const tR=rec.reduce((s,c)=>s+(c[f.bV]||0),0);
+  const tS=sai.reduce((s,c)=>s+(c[f.bVP]||c[f.bV]||0),0);
+  const lu=tR-tS;
+  // Em aberto: NFs emitidas últimos 30 dias, não pagas
+  const d30=new Date(Date.now()-30*864e5).toISOString().substring(0,10);
+  const ab=D.b.filter(c=>c[f.bT]==='Entrada'&&c[f.bE]&&!c[f.bR]&&!c[f.bG]&&(c[f.bD]||'')>=d30);
+  const tA=ab.reduce((s,c)=>s+(c[f.bV]||0),0);
+  const nfe=ent.filter(c=>c[f.bE]).length;
+
+  let h=`<div class="sg">`;
+  // Entradas
+  h+=`<div class="sc" style="border-top:3px solid var(--gn)" onclick="tg(this)"><div class="st"><div><div class="l">${t('ent')} — ${MO}</div><div class="v" style="color:var(--gn)">${$(tR)}</div></div><div><span style="font-size:11px;color:var(--sb)">${rec.length} pgtos</span> <span class="a">▼</span></div></div><div class="sd">${rec.length?rec.map(c=>`<div class="sr"><span class="nm">${ec(c[f.bN]||'—')}</span><span class="vv" style="color:var(--gn)">${$(c[f.bV])}</span></div>`).join(''):'<span style="color:var(--sb)">${t('nenRec')}</span>'}</div></div>`;
+  // Saídas
+  h+=`<div class="sc" style="border-top:3px solid var(--rd)" onclick="tg(this)"><div class="st"><div><div class="l">${t('sai')} — ${MO}</div><div class="v" style="color:var(--rd)">${$(tS)}</div></div><div><span style="font-size:11px;color:var(--sb)">${sai.length} pgtos</span> <span class="a">▼</span></div></div><div class="sd">${sai.length?sai.map(c=>`<div class="sr"><span class="nm">${ec(c[f.bN]||'—')}</span><span class="vv" style="color:var(--rd)">${$(c[f.bVP]||c[f.bV])}</span></div>`).join(''):'<span style="color:var(--sb)">${t('nenSai')}</span>'}</div></div>`;
+  // Em aberto
+  h+=`<div class="sc" style="border-top:3px solid var(--og)" onclick="tg(this)"><div class="st"><div><div class="l">${t('ab')}</div><div class="v" style="color:var(--og)">${$(tA)}</div></div><div><span style="font-size:11px;color:var(--sb)">${ab.length} NFs</span> <span class="a">▼</span></div></div><div class="sd">${ab.length?ab.map(c=>`<div class="sr"><span class="nm">${ec(c[f.bN]||'—')}</span><span class="vv" style="color:var(--og)">${$(c[f.bV])} <span class="bd bo">${ds(c[f.bD])||'?'}d</span></span></div>`).join(''):'<span style="color:var(--sb)">${t('nenAb')}</span>'}</div></div>`;
+  // Lucro
+  h+=`<div class="sc" style="border-top:3px solid ${lu>=0?'var(--gn)':'var(--rd)'}"><div class="st"><div><div class="l">${t('luc')} — ${MO}</div><div class="v" style="color:${lu>=0?'var(--gn)':'var(--rd)'}">${$(lu)}</div></div><div><span style="font-size:11px;color:var(--sb)">${nfe} NFs</span></div></div></div>`;
+  h+=`</div>`;
+  // Alerts
+  if(D.al.i.length)h+=`<div class="al"><strong>⚠️ ${D.al.i.length}× ${t('a50')}</strong> —  ${D.al.i.map(c=>ec(c.nm.substring(0,40))).join(', ')}</div>`;
+  if(D.al.n.length)h+=`<div class="al" style="border-color:var(--rd);background:#FFEBEE"><strong>🔴 ${D.al.n.length}× ${t('aPago')}</strong> — ${D.al.n.map(x=>ec(x.c.nm.substring(0,40))).join(', ')}</div>`;
+  // Phase dist
+  const fc={};D.c.forEach(c=>{fc[c.fa]=(fc[c.fa]||0)+1});
+  h+=`<div class="cd"><div class="ch">📊 ${t('fases')}</div>`;
+  Object.entries(fc).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{const p=Math.round(v/D.c.length*100);const cl=k===FA.pg?'var(--gn)':k===FA.dv?'var(--rd)':k===FA.pc?'var(--og)':'var(--ac)';
+    h+=`<div style="display:flex;align-items:center;gap:8px;padding:3px 0"><span style="font-family:var(--fc);font-size:11px;min-width:200px;color:var(--sb)">${ec(k||'(vazio)')}</span><div style="flex:1;background:var(--bd);height:12px;border-radius:3px;overflow:hidden"><div style="height:100%;width:${p}%;background:${cl};border-radius:3px"></div></div><span style="font-family:var(--fc);font-size:11px;font-weight:700;min-width:25px;text-align:right">${v}</span></div>`});
+  h+=`</div>`;return h;
+}
+
+// === ROADMAP ===
+function mkR(c){
+  const p=c.pz;if(!p||!p.length)return'<div style="color:var(--sb);font-size:12px">${t('nenPrazo')}</div>';
+  const STG=['Quesitos e Assistentes','Perícia','Manifestação ao Laudo','Manifestação Complementar'];
+  const SL={'Quesitos e Assistentes':t('quest'),'Perícia':t('peric'),'Manifestação ao Laudo':t('manif'),'Manifestação Complementar':t('mCompl')};
+  const gr={};p.forEach(x=>{const tp=x[f.pT]||[];const ts=Array.isArray(tp)?tp.join(','):String(tp);const k=STG.find(s=>ts.includes(s))||ts||'Outro';if(!gr[k])gr[k]=[];gr[k].push(x)});
+  const ac=STG.filter(s=>gr[s]&&gr[s].length);
+  if(!ac.length)return p.map(x=>{const done=x[f.pF]||(x[f.pD]&&new Date(x[f.pD])<new Date());return`<span style="display:inline-flex;align-items:center;gap:4px;margin:3px"><span class="dot${done?' dn':''}" style="width:20px;height:20px;font-size:9px">${done?'✓':'○'}</span><span style="font-size:11px">${fd(x[f.pD])}</span></span>`}).join('');
+  const now=new Date();let tot=0,dn=0;ac.forEach(s=>{const i=gr[s];tot+=i.length;dn+=i.filter(x=>x[f.pF]||(x[f.pD]&&new Date(x[f.pD])<now)).length});
+  const pct=tot?Math.round(dn/tot*100):0;
+  let h='<div class="rt">';
+  ac.forEach((s,i)=>{
+    const nw2=new Date();const it=gr[s],isDone=x=>x[f.pF]||(x[f.pD]&&new Date(x[f.pD])<nw2),ad=it.every(isDone),ay=it.some(isDone);
+    if(i>0)h+=`<div class="ln ${ad?'dn':ay?'hf':'no'}"></div>`;
+    if(s==='Perícia'&&it.length>1){
+      h+=`<div class="rn"><div style="display:flex;flex-direction:column;gap:3px">`;
+      it.forEach((x,j)=>{const cl=isDone(x)?'dn':j===it.length-1&&ay?'nw':'sk';
+        h+=`<div style="display:flex;align-items:center;gap:4px"><div class="dot ${cl}" style="width:24px;height:24px;font-size:10px">${j+1}</div><span class="rd">${fd(x[f.pD])}</span>${j<it.length-1?'<span class="rf">+R$500</span>':''}</div>`});
+      h+=`</div><div class="rl">${SL[s]}</div>${c.rm?`<div class="rf">${c.rm}× remarcação</div>`:''}</div>`;
+    }else{const x=it[0],st=ad?'dn':ay?'nw':'';
+      h+=`<div class="rn"><div class="dot ${st}">${ad?'✓':ay?'●':(i+1)}</div><div class="rl">${SL[s]||s}</div><div class="rd">${x?fd(x[f.pD]):'—'}</div></div>`}
+  });
+  h+=`</div><div class="pb"><div class="pf" style="width:${pct}%"></div></div><div class="pp">${t('prog')}: ${pct}%</div>`;
+  if(c.nm.includes('NOVO CASO'))h+=`<div style="margin-top:4px"><span class="bd bb">🔄 ${t('novoCaso')}</span></div>`;
+  return h;
+}
+function cR(c,cols,ex){const u='r'+c.id.replace(/\W/g,'');
+  return`<div><div class="rw" style="grid-template-columns:${cols}" onclick="tr('${u}')"><div><span class="nm">${ec(c.nm)}</span><div class="pc">${ec(c.pr)}</div></div><span>${ec(c.cn)}</span>${ex||''}</div><div class="rp" id="${u}">${mkR(c)}</div></div>`}
+
+// === A COBRAR ===
+function rCo(){let h='';const ini=D.ac.filter(c=>c._i),enc=D.ac.filter(c=>!c._i);
+  if(ini.length){h+=`<div class="cd"><div class="ch">📋 ${t('ini50')}</div><div class="th" style="grid-template-columns:2fr 1fr 90px"><span>${t('caso')}</span><span>${t('cli')}</span><span>${t('val')} 50%</span></div>`;
+    ini.forEach(c=>h+=cR(c,'2fr 1fr 90px',`<span class="vl" style="color:var(--ac)">${$(c.vl/2)}</span>`));h+=`</div>`}
+  if(enc.length){h+=`<div class="cd"><div class="ch">💰 ${t('encNF')}</div><div class="th" style="grid-template-columns:2fr 1fr 90px 60px"><span>${t('caso')}</span><span>${t('cli')}</span><span>${t('val')}</span><span>${t('tipo')}</span></div>`;
+    enc.forEach(c=>{const en=c.cb.filter(b=>b[f.bT]==='Entrada');const h5=en.some(b=>((b[f.bP]||[]).join(' ')).includes('Iniciais'));let v=c.vl+c.tx,tp='<span class="bd bb">100%</span>';if(c.fm===FM&&h5){v=c.vl/2+c.tx;tp='<span class="bd bo">50%F</span>'}h+=cR(c,'2fr 1fr 90px 60px',`<span class="vl" style="color:var(--gn)">${$(v)}</span><span>${tp}</span>`)});h+=`</div>`}
+  if(D.cf.length){h+=`<div class="cd" style="border-top-color:var(--wn)"><div class="ch" style="color:var(--og)">⚠️ ${t('confCli')}</div><div class="th" style="grid-template-columns:2fr 1fr 90px"><span>${t('caso')}</span><span>${t('cli')}</span><span>${t('val')}</span></div>`;D.cf.forEach(c=>h+=cR(c,'2fr 1fr 90px',`<span class="vl" style="color:var(--og)">${$(c.vl+c.tx)}</span>`));h+=`</div>`}
+  if(!ini.length&&!enc.length&&!D.cf.length)h=`<div class="cd"><div class="ch">✅ ${t('nadaCob')}</div></div>`;return h}
+
+// === PENDENTES ===
+function rPn(){if(!D.pn.length)return`<div class="cd"><div class="ch">✅ ${t('nenPend')}</div></div>`;
+  let h=`<div class="cd"><div class="ch">⏳ ${t('aguard')}</div><div class="th" style="grid-template-columns:2fr 1fr 80px 60px"><span>Caso</span><span>Cliente</span><span>Valor</span><span>Atraso</span></div>`;
+  D.pn.forEach(c=>{const e=c.cb.filter(b=>b[f.bT]==='Entrada')[0];const d=e?ds(e[f.bD]):null;h+=cR(c,'2fr 1fr 80px 60px',`<span class="vl" style="color:var(--og)">${$(e?e[f.bV]:c.vl)}</span><span><span class="bd ${d>60?'br':d>30?'bo':'bb'}">${d||'?'}d</span></span>`)});
+  return h+`</div>`}
+
+// === DEVEDORES ===
+function rDv(){if(!D.dv.length)return`<div class="cd"><div class="ch">✅ ${t('nenDev')}</div></div>`;
+  let h=`<div class="cd" style="border-top-color:var(--rd)"><div class="ch" style="color:var(--rd)">🚨 ${t('devs')}</div><div class="th" style="grid-template-columns:2fr 1fr 80px 60px"><span>Caso</span><span>Cliente</span><span>Valor</span><span>Atraso</span></div>`;
+  D.dv.forEach(c=>{const e=c.cb.filter(b=>b[f.bT]==='Entrada')[0];const d=e?ds(e[f.bD]):null;h+=cR(c,'2fr 1fr 80px 60px',`<span class="vl" style="color:var(--rd)">${$(e?e[f.bV]:c.vl)}</span><span><span class="bd br">${d||'?'}d</span></span>`)});
+  return h+`</div>`}
+
+// === PREVISÃO ===
+function rPr(){
+  const eR=D.pn.reduce((s,c)=>{const e=c.cb.filter(b=>b[f.bT]==='Entrada')[0];const d=e?ds(e[f.bD]):30;return s+(e?e[f.bV]:c.vl)*(d<30?.9:d<60?.7:.4)},0);
+  const eB=D.ac.reduce((s,c)=>s+(c._i?c.vl/2:c.vl+c.tx)*.7,0);
+  const nw=new Date(),i3=new Date(nw.getTime()+30*864e5);
+  const up=D.p.filter(p=>{const d=p[f.pD];return d&&new Date(d)>=nw&&new Date(d)<=i3});
+  const eP=up.reduce((s,p)=>s+(p[f.pA]||800),0);
+  const tI=eR+eB,tO=eP,nt=tI-tO,mx=Math.max(tI,tO,1);
+  let h=`<div class="cd"><div class="ch">🔮 ${t('prev')}</div>
+    <div style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-family:var(--fc);font-size:11px;text-transform:uppercase;color:var(--sb);min-width:100px">${t('receb')}</span><div style="flex:1;height:18px;border-radius:3px;background:var(--gn);width:${tI/mx*100}%"></div><span style="font-family:var(--fc);font-size:12px;font-weight:600;color:var(--gn);min-width:90px;text-align:right">${$(tI)}</span></div>
+    <div style="font-size:11px;color:var(--sb);padding:0 0 8px 110px">Pendentes: ${$(eR)} + Novos: ${$(eB)}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><span style="font-family:var(--fc);font-size:11px;text-transform:uppercase;color:var(--sb);min-width:100px">${t('pgmt')}</span><div style="flex:1;height:18px;border-radius:3px;background:var(--rd);width:${tO/mx*100}%"></div><span style="font-family:var(--fc);font-size:12px;font-weight:600;color:var(--rd);min-width:90px;text-align:right">${$(tO)}</span></div>
+    <div style="font-size:11px;color:var(--sb);padding:0 0 8px 110px">${up.length} perícias agendadas</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div style="text-align:center;padding:14px;background:#F8FBFD;border-radius:6px"><div style="font-family:var(--fc);font-size:11px;text-transform:uppercase;color:var(--sb)">${t('saldo')}</div><div style="font-family:var(--fc);font-size:26px;font-weight:700;color:${nt>=0?'var(--gn)':'var(--rd)'}">${$(nt)}</div></div>
+    <div style="text-align:center;padding:14px;background:#F8FBFD;border-radius:6px"><div style="font-family:var(--fc);font-size:11px;text-transform:uppercase;color:var(--sb)">${t('retir')}</div><div style="font-family:var(--fc);font-size:26px;font-weight:700;color:var(--ac)">${$(Math.max(0,nt*.5))}</div></div></div></div>`;
+  if(up.length){h+=`<div class="cd"><div class="ch">📅 ${t('per30')}</div>`;
+    up.forEach(p=>{const ci=p[f.pC]||[];const ca=D.c.find(c=>ci.includes(c.id));h+=`<div class="rw" style="grid-template-columns:2fr 80px 80px;cursor:default"><span class="nm">${ca?ec(ca.nm):'—'}</span><span>${fd(p[f.pD])}</span><span class="vl" style="color:var(--rd)">${$(p[f.pA]||800)}</span></div>`});h+=`</div>`}
+  return h;
+}
+</script></body></html>
