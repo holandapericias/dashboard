@@ -1072,10 +1072,38 @@ function renderPedidoSection(rows,total){
     '</div>';
 }
 
+function lastReceivedCob(){
+  let best=null,bestD=null;
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.recebido)!==true)continue;
+    const d=parseDate(fv(co,F.cob.dataReceb));
+    if(!d)continue;
+    if(!bestD||d>bestD){bestD=d;best=co;}
+  }
+  return best?{cob:best,data:bestD}:null;
+}
+
 function renderPendentes(){
   const list=computePendentes();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  return sortToolbar()+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
+  const last=lastReceivedCob();
+  let banner='';
+  if(last){
+    const cid=fv(last.cob,F.cob.caso);
+    const c=cid&&cid[0]?casoById(cid[0]):null;
+    const cli=c?cliNomeOfCaso(c):'—';
+    const v=num(fv(last.cob,F.cob.valorReceber));
+    const nfNum=fv(last.cob,F.cob.numeroNF)||'';
+    banner='<div class="section" style="background:#eaf7f0;border-left:4px solid #22a06b">'+
+      '<h2 style="color:#1a7a4f">✓ Último recebimento registrado</h2>'+
+      '<div style="font-size:14px;color:#003c56">'+
+      '<strong>'+fmtDate(last.data)+'</strong> — '+esc(fv(last.cob,F.cob.nome)||'—')+
+      '<div style="margin-top:4px;font-size:13px;color:#6b7c8c">Cliente: '+esc(cli)+' • Valor: <strong>'+fmtBRL(v)+'</strong>'+(nfNum?' • NF '+esc(nfNum):'')+'</div>'+
+      '<div style="margin-top:8px;font-size:12px;color:#6b7c8c;font-style:italic">Verifique seu extrato bancário a partir desta data.</div>'+
+      '</div></div>';
+  }
+  return banner+sortToolbar()+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
 function renderDevedores(){
