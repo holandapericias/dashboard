@@ -206,7 +206,7 @@ const t=k=>I18N[LANG][k]||k;
 const F={
 caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I',formato:'fldorcMm83hAOgwmp',cliente:'fld7ddtpPu5BrgIoL',processo:'fldzUYMqa3SNmcaiy',dataPericia:'fld1SIT1qCgOrzvwE',obs:'fld82hJx9whlWhMhs'},
 cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',numeroNF:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI'},
-cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC'},
+cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC',ref:'fldDLgDwqCwlyVUy3'},
 prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
 cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'}
 };
@@ -434,6 +434,32 @@ function computeOverview(){
 }
 
 const FASES_POS_PERICIA=['Ativo - Pós Perícia - Aguardando Laudo','Para cobrança pós perícia, falta manifestação','Ativo - Laudo já publicado'];
+
+// Detecção de cliente que exige pedido/autorização antes da NF
+function pedidoInfo(caso){
+  const cl=cliOfCaso(caso);
+  const cliNome=cl?String(fv(cl,F.cli.nome)||''):'';
+  const up=cliNome.toUpperCase();
+  let tipo=null,instr=null;
+  if(up.indexOf('MOURA DUBEUX')>=0||up.indexOf('MOURA DOUBEX')>=0||/^MD\s|^MD CE/.test(up)){
+    tipo='SAP';instr='Solicitar pedido SAP 4500xxxxxx — contato: elissonete.bessa@mouradubeux.com.br';
+  }else if(up.indexOf('PARANGABA')>=0){
+    tipo='SAP';instr='Solicitar pedido SAP 4500xxxxxx';
+  }else if(up.indexOf('COBAP')>=0){
+    tipo='PC';instr='Solicitar Pedido de Compra (5 dígitos)';
+  }else if(up.indexOf('SERVIS')>=0||up.indexOf('SERVTEC')>=0){
+    tipo='PED';instr='Solicitar nº de pedido';
+  }else if(cl&&fv(cl,F.cli.confirmar)===true){
+    tipo='AUTH';instr='Solicitar autorização antes de emitir NF';
+  }
+  if(!tipo)return null;
+  const ref=cl?fv(cl,F.cli.ref):null;
+  return {tipo,instr,ref};
+}
+function pedidoJaRecebido(caso){
+  const obs=String(fv(caso,F.caso.obs)||'');
+  return /pedido n[ºo°]?\s*\S+\s*recebido/i.test(obs);
+}
 const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&String(tipoPagLabel(co)).toLowerCase().indexOf('inicia')>=0);
 const hasFinalCob=cobs=>cobs.some(co=>!isSaida(co)&&(String(tipoPagLabel(co)).toLowerCase().indexOf('final')>=0||String(tipoPagLabel(co)).indexOf('100')>=0));
 function caseRemarcFee(caso){
@@ -443,36 +469,40 @@ function caseRemarcFee(caso){
 }
 
 function computeCobrar(){
-  const enc=[],ini=[],finais=[],conf=[];
+  const enc=[],ini=[],finais=[],pedido=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
     if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue;
     const isEnc=fase==='Encerrado PARA COBRANÇA';
     const fmt=fv(c,F.caso.formato);
     const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
-    const needsConfirm=cliConfirmarOfCaso(c);
+    const pInfo=pedidoInfo(c);
+    const needsPedido=pInfo&&!pedidoJaRecebido(c);
     const cobs=COBS_BY_CASO[c.id]||[];
+    let item=null,destCat=null;
     if(isEnc){
       const remarc=caseRemarcFee(c);
       const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
-      const item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
-      if(needsConfirm)conf.push(item);else enc.push(item);
+      item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
+      destCat=enc;
     }else if(is5050&&fase&&fase.indexOf('Ativo')>=0&&FASES_POS_PERICIA.indexOf(fase)<0){
       const hasEntrada=cobs.some(co=>!isSaida(co)&&num(fv(co,F.cob.valorReceber))>0);
       if(!hasEntrada){
-        const item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50% Iniciais'};
-        if(needsConfirm)conf.push(item);else ini.push(item);
+        item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50% Iniciais'};
+        destCat=ini;
       }
     }else if(is5050&&FASES_POS_PERICIA.indexOf(fase)>=0){
-      // Categoria 3: 50% Finais pós-perícia
       if(hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
         const remarc=caseRemarcFee(c);
-        const item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
-        if(needsConfirm)conf.push(item);else finais.push(item);
+        item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
+        destCat=finais;
       }
     }
+    if(!item)continue;
+    if(needsPedido){item.pInfo=pInfo;pedido.push(item);}
+    else destCat.push(item);
   }
-  return {enc,ini,finais,conf};
+  return {enc,ini,finais,pedido};
 }
 
 // Auto-encerrar casos cuja manifestação ao laudo passou há mais de 3 dias
@@ -803,6 +833,15 @@ async function handleSave(btn){
       const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
       const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
       await patchRecord(TBL.casos,form.dataset.casoid,fields);
+    }else if(type==='pedido'){
+      const numPedido=form.querySelector('[name=numPedido]').value.trim();
+      if(!numPedido){msg.textContent='Digite o número';msg.className='msg err';return;}
+      const casoId=form.dataset.casoid;
+      const caso=casoById(casoId);
+      const cur=fv(caso,F.caso.obs)||'';
+      const newText='['+nowStamp()+'] Pedido nº '+numPedido+' recebido\n'+cur;
+      const fields={};fields[F.caso.obs]=newText;
+      await patchRecord(TBL.casos,casoId,fields);
     }else if(type==='cfpay'){
       const val=parseFloat(form.querySelector('[name=val]').value)||0;
       const d=form.querySelector('[name=d]').value||todayISO();
@@ -986,11 +1025,51 @@ function renderCobrar(){
   const g=computeCobrar();
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
   let html=sortToolbar();
-  if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','type','value'],prefix:'cf',form:'nf'})+'</div>';
   html+='<div class="section"><h2>1. '+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
   html+='<div class="section"><h2>2. '+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
   html+='<div class="section"><h2>3. 50% Finais Pós-Perícia — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
+  html+=renderPedidoSection(g.pedido,sum(g.pedido));
   return html;
+}
+
+function renderPedidoSection(rows,total){
+  if(!rows.length)return '<div class="section warn"><h2>📋 4. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(0)+' (0)</h2><div class="empty">'+t('noData')+'</div></div>';
+  const sorted=sortRows(rows);
+  let lastClient=null;
+  const body=sorted.map((r,i)=>{
+    const rid='ped-'+i;
+    const expanded=EXPANDED_ROW===rid;
+    let groupHead='';
+    if(SORT_MODE==='client'&&r.caso){
+      const cn=cliNomeOfCaso(r.caso);
+      if(cn!==lastClient){lastClient=cn;groupHead='<tr class="group-head"><td colspan="5">'+esc(cn)+'</td></tr>';}
+    }
+    let caseExtra='';
+    const dp=fv(r.caso,F.caso.dataPericia);
+    const np=Array.isArray(dp)?dp.length:(dp?1:0);
+    if(np>1)caseExtra=' <span class="tag orange">'+(np-1)+' remarc</span>';
+    const tds='<td>'+caseCell(r.caso)+caseExtra+'</td>'+
+      '<td>'+esc(cliNomeOfCaso(r.caso))+'</td>'+
+      '<td><span class="tag yellow">'+r.pInfo.tipo+'</span></td>'+
+      '<td><span class="tag blue">'+r.tipo+'</span></td>'+
+      '<td class="right">'+fmtBRL(r.valor)+'</td>';
+    let det='';
+    if(expanded){
+      det+=renderRoadmap(r.caso);
+      det+='<h4>Instrução</h4><div style="font-size:13px;color:#003c56;background:#fffbec;padding:10px;border-radius:6px;border:1px solid #f3d98a">'+esc(r.pInfo.instr)+(r.pInfo.ref?'<div style="margin-top:6px;font-size:12px;color:#6b7c8c">Referência cliente: '+esc(r.pInfo.ref)+'</div>':'')+'</div>';
+      det+='<h4>Registrar Pedido Recebido</h4><div class="form" data-form="pedido" data-casoid="'+r.caso.id+'">'+
+        '<div style="grid-column:1/-1"><label>Nº do Pedido / Autorização</label><input name="numPedido" placeholder="Ex: 4500123456"></div>'+
+        '<div class="actions"><button class="btn orange" data-act="save">Pedido Recebido — Mover para Emitir NF</button><span class="msg"></span></div>'+
+        '</div>';
+      det+=renderNoteForm(r.caso);
+    }
+    const mainTr='<tr class="clickable'+(expanded?' expanded':'')+'" data-row="'+rid+'">'+tds+'</tr>';
+    const detTr=expanded?'<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>':'';
+    return groupHead+mainTr+detTr;
+  }).join('');
+  return '<div class="section warn"><h2>📋 4. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(total)+' ('+rows.length+')</h2>'+
+    '<table><thead><tr><th>'+t('case')+'</th><th>'+t('client')+'</th><th>Pedido</th><th>'+t('type')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
+    '</div>';
 }
 
 function renderPendentes(){
