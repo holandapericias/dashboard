@@ -849,7 +849,6 @@ async function handleSave(btn){
       const fields={};
       fields[F.cob.numeroNF]='CF: '+name;
       fields[F.cob.tipo]='Saída';
-      fields[F.cob.tipoPag]='Custo Fixo';
       fields[F.cob.valorPag]=val;
       fields[F.cob.dataPag]=d;
       fields[F.cob.pago]=true;
@@ -861,7 +860,6 @@ async function handleSave(btn){
       const fields={};
       fields[F.cob.numeroNF]='RETIRADA: '+(desc||'Retirada pessoal');
       fields[F.cob.tipo]='Saída';
-      fields[F.cob.tipoPag]='Pró-labore';
       fields[F.cob.valorPag]=val;
       fields[F.cob.dataPag]=d||todayISO();
       fields[F.cob.pago]=true;
