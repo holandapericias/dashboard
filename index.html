@@ -1028,7 +1028,14 @@ function renderOverview(){
     '<div><label>Valor</label><input name="val" type="number" step="0.01" value="'+(saldo.valor||'')+'"></div>'+
     '<div><label>Data do extrato</label><input name="d" type="date" value="'+(saldo.data||todayISO())+'"></div>'+
     '<div class="actions"><button class="btn green" data-act="save">Atualizar Saldo</button><button class="btn" data-act="fecharMes" style="margin-left:auto">Fechar Mês</button><span class="msg"></span></div>'+
-    '</div></div></div></div>';
+    '</div></div></div>'+
+    '<div style="margin-top:14px;border-top:1px solid #c8e8d3;padding-top:14px"><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600;margin-bottom:6px">Retirada de Lucro — '+monthLabel(SELECTED_MONTH||monthKey(new Date()))+' (Total: '+fmtBRL(retMes)+')</div>'+
+    '<div class="form" data-form="retirada" style="margin:0;background:#fff">'+
+    '<div><label>Valor</label><input name="val" type="number" step="0.01"></div>'+
+    '<div><label>Data</label><input name="d" type="date" value="'+todayISO()+'"></div>'+
+    '<div><label>Descrição</label><input name="desc" placeholder="Ex: pró-labore abril"></div>'+
+    '<div class="actions"><button class="btn orange" data-act="save">Registrar Retirada de Lucro</button><span class="msg"></span></div>'+
+    '</div></div></div>';
   return saldoCard+'<div class="cards">'+
     card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
     card('sai','red',t('saidasLbl'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
@@ -1093,7 +1100,10 @@ function caseTable(rows,opts){
 function renderCobrar(){
   const g=computeCobrar();
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
-  let html=sortToolbar();
+  const grandTotal=sum(g.enc)+sum(g.ini)+sum(g.finais)+sum(g.pedido);
+  const grandCount=g.enc.length+g.ini.length+g.finais.length+g.pedido.length;
+  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Total a Cobrar (todas as categorias)</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(grandTotal)+'</div><div style="font-size:12px;color:#6b7c8c">'+grandCount+' casos</div></div><div style="font-size:12px;color:#6b7c8c;line-height:1.6"><div>1. Encerrados: <strong>'+fmtBRL(sum(g.enc))+'</strong></div><div>2. 50% Iniciais: <strong>'+fmtBRL(sum(g.ini))+'</strong></div><div>3. 50% Finais: <strong>'+fmtBRL(sum(g.finais))+'</strong></div><div>4. Solicitar Pedido: <strong>'+fmtBRL(sum(g.pedido))+'</strong></div></div></div></div>';
+  html+=sortToolbar();
   html+='<div class="section"><h2>1. '+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
   html+='<div class="section"><h2>2. '+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
   html+='<div class="section"><h2>3. 50% Finais Pós-Perícia — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
