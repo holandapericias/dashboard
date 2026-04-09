@@ -33,9 +33,12 @@ main{padding:24px 28px;max-width:1400px;margin:0 auto}
 .section.warn{background:#fffbec;border:1px solid #f3d98a}
 .section.warn h2{color:#a35a07}
 .section .note{font-size:12px;color:#6b7c8c;margin-top:8px;font-style:italic}
+.section .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;font-size:13px;color:#6b7c8c}
+.section .toolbar select{padding:6px 10px;border:1px solid #cdd9e3;border-radius:5px;font-family:inherit;font-size:13px;background:#fff}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{text-align:left;padding:10px 8px;background:#F2F8FC;color:#005F88;font-weight:600;border-bottom:2px solid #d6e4ef;font-size:12px;text-transform:uppercase}
 td{padding:10px 8px;border-bottom:1px solid #eef3f7;vertical-align:top}
+tr.group-head td{background:#eef5fa;font-weight:700;color:#005F88;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;font-size:12px;padding:6px 8px}
 tr.clickable{cursor:pointer}
 tr.clickable:hover td{background:#eef5fa}
 tr.expanded td{background:#f0f7fc}
@@ -50,6 +53,8 @@ tr.expanded td{background:#f0f7fc}
 .tag.purple{background:#eee2f7;color:#5a2b87}
 .alert{background:#fff7e6;border-left:4px solid #f08c1f;padding:12px 14px;border-radius:6px;margin-bottom:10px;font-size:14px}
 .alert.red{background:#fdecec;border-left-color:#d64545}
+.toast{position:fixed;top:16px;right:16px;background:#005F88;color:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:200;max-width:360px;font-size:13px}
+.toast.warn{background:#a35a07}
 .right{text-align:right}
 .empty{padding:20px;text-align:center;color:#6b7c8c;font-style:italic}
 .loader{text-align:center;padding:40px;color:#6b7c8c}
@@ -84,6 +89,7 @@ tr.expanded td{background:#f0f7fc}
 .btn{background:#00AEEF;color:#fff;border:0;padding:8px 14px;border-radius:5px;font-family:'Barlow',sans-serif;font-weight:600;cursor:pointer;font-size:13px}
 .btn:hover{background:#0098d1}
 .btn.green{background:#22a06b}.btn.green:hover{background:#1a8358}
+.btn.orange{background:#f08c1f}.btn.orange:hover{background:#c47314}
 .msg{font-size:12px;font-weight:600}
 .msg.ok{color:#1a7a4f}.msg.err{color:#a82929}
 .bar-chart{display:flex;align-items:flex-end;gap:6px;height:180px;padding:10px 0;border-bottom:1px solid #d6e4ef}
@@ -103,6 +109,8 @@ tr.expanded td{background:#f0f7fc}
 .phase-bar .name{flex:0 0 260px;color:#003c56}
 .phase-bar .fill{height:18px;background:#00AEEF;border-radius:3px;min-width:2px}
 .phase-bar .cnt{font-weight:700;color:#005F88;min-width:40px}
+tr.cf-row td{font-size:13px}
+tr.cf-row.neg td{background:#fdecec}
 #login{position:fixed;inset:0;background:#005F88;display:flex;align-items:center;justify-content:center;z-index:100}
 #login .box{background:#fff;padding:36px;border-radius:12px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.3);max-width:340px;width:90%}
 #login h2{font-family:'Barlow Condensed',sans-serif;color:#005F88;margin-bottom:18px;font-size:22px}
@@ -127,7 +135,7 @@ tr.expanded td{background:#f0f7fc}
 <header>
   <h1>HOLANDA PERÍCIAS</h1>
   <div class="actions">
-    <select id="monthSel" title="Mês"></select>
+    <select id="monthSel"></select>
     <select id="langSel"><option value="pt">Português</option><option value="en">English</option></select>
     <button id="reloadBtn" title="Reload">↻</button>
   </div>
@@ -137,53 +145,59 @@ tr.expanded td{background:#f0f7fc}
   <button data-tab="cobrar"></button>
   <button data-tab="pendentes"></button>
   <button data-tab="devedores"></button>
+  <button data-tab="saidas"></button>
   <button data-tab="previsao"></button>
   <button data-tab="fpa"></button>
 </nav>
 <main id="content"><div class="loader">Carregando...</div></main>
 </div>
+<div id="toastHost"></div>
 
 <script>
 // ========== I18N ==========
 const I18N={
-pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",previsao:"Previsão 30d",fpa:"FP&A",
-entradas:"Entradas",saidas:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
-case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",
-forgot50:"50% iniciais esquecidos",paidActivity:"Caso pago com nova atividade",
+pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",previsao:"Previsão 30d",fpa:"FP&A",
+entradas:"Entradas",saidasLbl:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
+case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",
+forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",
 noData:"Sem dados",loading:"Carregando",err:"Erro",allMonths:"Todos os meses",
+sortBy:"Ordenar por",sortDate:"Data",sortClient:"Cliente",
 s50:"50% Iniciais",sEnc:"Encerrados — Emitir NF",sConf:"Confirmar com Cliente",
+secAssist:"Assistentes Técnicos Pendentes",secCF:"Custos Fixos Mensais",secPro:"Pró-Labore / Retiradas Pessoais",
+btnRegistrarSaida:"Registrar Retirada",descricao:"Descrição",
 quesitos:"Quesitos e Assistentes",pericia:"Perícia",manifest:"Manifestação ao Laudo",manifestC:"Manif. Complementar",
 progress:"Progresso",remarc:"remarcação(ões)",newCase:"NOVO CASO (2ª rodada)",nfRetida:"NF Retida",
 fmt50:"50/50",fmt100:"100%",
 recebidos:"Recebimentos Previstos",pagamentos:"Pagamentos Previstos",saldo:"Saldo Projetado",retirada:"Retirada Segura",
-aging:"Aging de Recebíveis",top5:"Top 5 Clientes (Receita Histórica)",monthly:"Resumo Anual",dso:"DSO",margem:"Margem Mensal (últimos 6 meses)",custosAtivos:"Custos Fixos Ativos",
+jaCobrados:"Já cobrados (aguardando pagamento)",cobrPrev:"Cobranças previstas próx 30d",cashflow:"Fluxo de Caixa Dia a Dia",
+aging:"Aging de Recebíveis",top10:"Top 10 Clientes",monthly:"Resumo Anual",dso:"DSO",margem:"Margem Líquida (6m)",custosAtivos:"Custos Fixos Ativos",inad:"Taxa de Inadimplência",conc:"Concentração (Top 3)",
 nfNum:"Número NF",nfValor:"Valor NF",dataCob:"Data Cobrança",dataRec:"Data Recebimento",dataPag:"Data Pagamento",obs:"Comentário",
 btnSaveNF:"Salvar NF",btnSavePay:"Marcar Recebido",btnPaid:"Marcar Pago",btnAddNote:"Adicionar",
-saved:"Salvo!",saveErr:"Erro",
-sStepCasos:"Carregando casos…",sStepCob:"Carregando cobranças…",sStepCli:"Carregando clientes…",sStepPrazo:"Carregando prazos…",sStepCF:"Carregando custos fixos…",
+saved:"Salvo!",saveErr:"Erro",autoDev:"Caso movido para Devedor automaticamente",
+sStepCasos:"casos",sStepCob:"cobranças",sStepCli:"clientes",sStepPrazo:"prazos",sStepCF:"custos fixos",
 prob:"Prob",esperado:"Esperado",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
-formulaR:"Fórmula: cada cobrança pendente × probabilidade por aging + casos a cobrar × 70%.",
-formulaP:"Fórmula: perícias agendadas × valor do assistente (R$800 default) + custos fixos ativos.",
-formulaS:"Saldo = Recebimentos − Pagamentos. Retirada: 50% se saldo>1.5×custos, 25% se positivo, 0 se negativo."},
-en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",previsao:"Next 30d",fpa:"FP&A",
-entradas:"Income",saidas:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
-case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",
-forgot50:"Forgotten 50% upfront",paidActivity:"Paid case with new activity",
+event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado"},
+en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",previsao:"Next 30d",fpa:"FP&A",
+entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
+case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
+forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",
 noData:"No data",loading:"Loading",err:"Error",allMonths:"All months",
+sortBy:"Sort by",sortDate:"Date",sortClient:"Client",
 s50:"Pending 50% Upfront",sEnc:"Closed — Issue Invoice",sConf:"Confirm with Client",
+secAssist:"Pending Technical Assistants",secCF:"Monthly Fixed Costs",secPro:"Owner Draws / Personal Withdrawals",
+btnRegistrarSaida:"Log Withdrawal",descricao:"Description",
 quesitos:"Questions & Experts",pericia:"Inspection",manifest:"Statement on Report",manifestC:"Add'l Statement",
 progress:"Progress",remarc:"reschedule(s)",newCase:"NEW CASE (2nd round)",nfRetida:"Held Invoice",
 fmt50:"50/50",fmt100:"100%",
 recebidos:"Expected Receipts",pagamentos:"Expected Payments",saldo:"Projected Balance",retirada:"Safe Withdrawal",
-aging:"Receivables Aging",top5:"Top 5 Clients (Historical)",monthly:"Annual Summary",dso:"DSO",margem:"Monthly Margin (last 6 months)",custosAtivos:"Active Fixed Costs",
+jaCobrados:"Already billed (awaiting payment)",cobrPrev:"Expected invoices next 30d",cashflow:"Day-by-Day Cashflow",
+aging:"Receivables Aging",top10:"Top 10 Clients",monthly:"Annual Summary",dso:"DSO",margem:"Net Margin (6m)",custosAtivos:"Active Fixed Costs",inad:"Default Rate",conc:"Concentration (Top 3)",
 nfNum:"Invoice #",nfValor:"Invoice Amount",dataCob:"Billing Date",dataRec:"Receipt Date",dataPag:"Payment Date",obs:"Comment",
 btnSaveNF:"Save Invoice",btnSavePay:"Mark Received",btnPaid:"Mark Paid",btnAddNote:"Add",
-saved:"Saved!",saveErr:"Error",
-sStepCasos:"Loading cases…",sStepCob:"Loading invoices…",sStepCli:"Loading clients…",sStepPrazo:"Loading deadlines…",sStepCF:"Loading fixed costs…",
+saved:"Saved!",saveErr:"Error",autoDev:"Case auto-moved to Overdue",
+sStepCasos:"cases",sStepCob:"invoices",sStepCli:"clients",sStepPrazo:"deadlines",sStepCF:"fixed costs",
 prob:"Prob",esperado:"Expected",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
-formulaR:"Formula: each pending invoice × aging probability + cases to bill × 70%.",
-formulaP:"Formula: scheduled inspections × assistant fee (R$800 default) + active fixed costs.",
-formulaS:"Balance = Receipts − Payments. Withdrawal: 50% if balance>1.5×costs, 25% if positive, 0 if negative."}
+event:"Event",entrada:"In",saida:"Out",saldoAc:"Running Balance"}
 };
 let LANG='pt';
 const t=k=>I18N[LANG][k]||k;
@@ -226,7 +240,7 @@ const DATA={casos:[],cob:[],cli:[],prazo:[],cf:[]};
 const PRAZOS_BY_CASO={};
 const COBS_BY_CASO={};
 
-async function fetchAll(table,onProgress){
+async function fetchAll(table){
   const recs=[];let offset='';
   do{
     const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(table)+'?returnFieldsByFieldId=true&pageSize=100'+(offset?'&offset='+offset:'');
@@ -235,7 +249,6 @@ async function fetchAll(table,onProgress){
     const j=await r.json();
     recs.push.apply(recs,j.records);
     offset=j.offset||'';
-    if(onProgress)onProgress(recs.length);
   }while(offset);
   return recs;
 }
@@ -245,25 +258,70 @@ async function patchRecord(table,recordId,fields){
   if(!r.ok)throw new Error('HTTP '+r.status+': '+(await r.text()));
   return r.json();
 }
+async function createRecord(table,fields){
+  const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(table)+'?returnFieldsByFieldId=true';
+  const r=await fetch(url,{method:'POST',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields})});
+  if(!r.ok)throw new Error('HTTP '+r.status+': '+(await r.text()));
+  return r.json();
+}
 
 function setLoader(){
   document.getElementById('content').innerHTML='<div class="loader"><div class="sp"></div>'+
-    '<div id="ldCasos" class="step">⏳ '+t('sStepCasos')+'</div>'+
-    '<div id="ldCob" class="step">⏳ '+t('sStepCob')+'</div>'+
-    '<div id="ldCli" class="step">⏳ '+t('sStepCli')+'</div>'+
-    '<div id="ldPrazo" class="step">⏳ '+t('sStepPrazo')+'</div>'+
-    '<div id="ldCF" class="step">⏳ '+t('sStepCF')+'</div></div>';
+    '<div id="ldCasos" class="step">⏳ '+t('loading')+' '+t('sStepCasos')+'…</div>'+
+    '<div id="ldCob" class="step">⏳ '+t('loading')+' '+t('sStepCob')+'…</div>'+
+    '<div id="ldCli" class="step">⏳ '+t('loading')+' '+t('sStepCli')+'…</div>'+
+    '<div id="ldPrazo" class="step">⏳ '+t('loading')+' '+t('sStepPrazo')+'…</div>'+
+    '<div id="ldCF" class="step">⏳ '+t('loading')+' '+t('sStepCF')+'…</div></div>';
 }
 const mark=(id,txt)=>{const el=document.getElementById(id);if(el){el.className='step done';el.textContent='✓ '+txt;}};
+
+function showToast(msg,warn){
+  const host=document.getElementById('toastHost');
+  const d=document.createElement('div');
+  d.className='toast'+(warn?' warn':'');
+  d.textContent=msg;
+  host.appendChild(d);
+  setTimeout(()=>d.remove(),6000);
+}
+
+async function autoMarkDevedores(){
+  const t0=today();const changes=[];
+  const toUpdateCob=[];const toUpdateCaso=new Set();
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.nfEmitida)!==true)continue;
+    if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
+    const d=parseDate(fv(co,F.cob.dataCobranca));
+    if(!d||daysBetween(d,t0)<=90)continue;
+    const cid=fv(co,F.cob.caso);if(!cid||!cid[0])continue;
+    const c=casoById(cid[0]);if(!c)continue;
+    if(fv(c,F.caso.fase)==='Devedor'&&fv(co,F.cob.nfRetida)===true)continue;
+    changes.push({caso:c,dias:daysBetween(d,t0)});
+    if(fv(co,F.cob.nfRetida)!==true)toUpdateCob.push(co.id);
+    if(fv(c,F.caso.fase)!=='Devedor')toUpdateCaso.add(c.id);
+  }
+  for(const cid of toUpdateCaso){
+    try{const fields={};fields[F.caso.fase]='Devedor';await patchRecord(TBL.casos,cid,fields);
+      const c=casoById(cid);if(c)c.fields[F.caso.fase]='Devedor';
+    }catch(e){}
+  }
+  for(const coid of toUpdateCob){
+    try{const fields={};fields[F.cob.nfRetida]=true;await patchRecord(TBL.cob,coid,fields);
+      const co=DATA.cob.find(x=>x.id===coid);if(co)co.fields[F.cob.nfRetida]=true;
+    }catch(e){}
+  }
+  const uniq=[...new Set(changes.map(x=>x.caso.id))].map(id=>changes.find(x=>x.caso.id===id));
+  for(const ch of uniq)showToast(t('autoDev')+': '+casoNome(ch.caso)+' ('+ch.dias+'d)',true);
+}
 
 async function loadData(){
   setLoader();
   try{
-    const pCasos=fetchAll(TBL.casos).then(r=>{DATA.casos=r;mark('ldCasos',t('sStepCasos')+' ('+r.length+')');});
-    const pCob=fetchAll(TBL.cob).then(r=>{DATA.cob=r;mark('ldCob',t('sStepCob')+' ('+r.length+')');});
-    const pCli=fetchAll(TBL.cli).then(r=>{DATA.cli=r;mark('ldCli',t('sStepCli')+' ('+r.length+')');});
-    const pPrazo=fetchAll(TBL.prazo).then(r=>{DATA.prazo=r;mark('ldPrazo',t('sStepPrazo')+' ('+r.length+')');});
-    const pCF=fetchAll(TBL.cf).then(r=>{DATA.cf=r;mark('ldCF',t('sStepCF')+' ('+r.length+')');}).catch(()=>{DATA.cf=[];mark('ldCF','—');});
+    const pCasos=fetchAll(TBL.casos).then(r=>{DATA.casos=r;mark('ldCasos',r.length+' '+t('sStepCasos'));});
+    const pCob=fetchAll(TBL.cob).then(r=>{DATA.cob=r;mark('ldCob',r.length+' '+t('sStepCob'));});
+    const pCli=fetchAll(TBL.cli).then(r=>{DATA.cli=r;mark('ldCli',r.length+' '+t('sStepCli'));});
+    const pPrazo=fetchAll(TBL.prazo).then(r=>{DATA.prazo=r;mark('ldPrazo',r.length+' '+t('sStepPrazo'));});
+    const pCF=fetchAll(TBL.cf).then(r=>{DATA.cf=r;mark('ldCF',r.length+' '+t('sStepCF'));}).catch(()=>{DATA.cf=[];mark('ldCF','—');});
     await Promise.all([pCasos,pCob,pCli,pPrazo,pCF]);
     for(const k in PRAZOS_BY_CASO)delete PRAZOS_BY_CASO[k];
     for(const k in COBS_BY_CASO)delete COBS_BY_CASO[k];
@@ -271,6 +329,7 @@ async function loadData(){
     for(const co of DATA.cob){const cid=fv(co,F.cob.caso);if(cid&&cid[0])(COBS_BY_CASO[cid[0]]=COBS_BY_CASO[cid[0]]||[]).push(co);}
     buildMonthSelector();
     render();
+    autoMarkDevedores();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
 
@@ -295,13 +354,13 @@ const casoProcesso=r=>fv(r,F.caso.processo)||'';
 const cliOfCaso=c=>{const cid=fv(c,F.caso.cliente);if(!cid||!cid[0])return null;return cliById(cid[0]);};
 const cliNomeOfCaso=c=>{const cl=cliOfCaso(c);return cl?(fv(cl,F.cli.nome)||'—'):'—';};
 const cliConfirmarOfCaso=c=>{const cl=cliOfCaso(c);return cl?fv(cl,F.cli.confirmar)===true:false;};
-
 const tipoCob=co=>{const v=fv(co,F.cob.tipo);return v?String(v).toLowerCase():'';};
-const isSaida=co=>{const tp=tipoCob(co);return tp.indexOf('saída')>=0||tp.indexOf('saida')>=0||tp.indexOf('despesa')>=0||!!fv(co,F.cob.dataPag);};
-const isEntradaType=co=>!isSaida(co);
+const isSaida=co=>{const tp=tipoCob(co);return tp.indexOf('saída')>=0||tp.indexOf('saida')>=0||tp.indexOf('despesa')>=0||!!fv(co,F.cob.dataPag)||!!fv(co,F.cob.valorPag);};
+const tipoPagLabel=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return String(v);};
 
 // ========== MONTH ==========
 let SELECTED_MONTH=null;
+let SORT_MODE='date';
 function buildMonthSelector(){
   const set=new Set();
   for(const c of DATA.cob){
@@ -338,7 +397,6 @@ function computeOverview(){
       }
     }
   }
-  // Em Aberto: últimos 30 dias (não filtrado por mês selecionado)
   const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()-30);
   for(const co of DATA.cob){
     if(isSaida(co))continue;
@@ -348,7 +406,9 @@ function computeOverview(){
     if(!d||d<t30||d>t0)continue;
     const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
     aberto+=v;
-    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:d,cob:co,dias:daysBetween(d,t0)});
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    if(c&&fv(c,F.caso.fase)==='Devedor')continue;
+    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:d,cob:co,dias:daysBetween(d,t0),caso:c});
   }
   return {entradas,saidas,aberto,lucro:entradas-saidas,lEnt,lSai,lAb};
 }
@@ -357,7 +417,7 @@ function computeCobrar(){
   const enc=[],ini=[],conf=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
-    if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)')continue;
+    if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue;
     const isEnc=fase==='Encerrado PARA COBRANÇA';
     const fmt=fv(c,F.caso.formato);
     const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
@@ -385,14 +445,14 @@ function computePendentes(){
     if(fv(co,F.cob.nfEmitida)!==true)continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    if(c&&fv(c,F.caso.fase)==='Devedor')continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));
     const dias=d?daysBetween(d,t0):0;
     if(d&&dias>90)continue;
-    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     out.push({caso:c,cob:co,dias});
   }
-  // também casos fase Encerrado - Falta Pagamento com cobranças
-  return out.sort((a,b)=>b.dias-a.dias);
+  return out;
 }
 
 function computeDevedores(){
@@ -409,55 +469,110 @@ function computeDevedores(){
       if(!seen.has(co.id)){seen.add(co.id);out.push({caso:c,cob:co,dias});}
     }
   }
-  return out.sort((a,b)=>b.dias-a.dias);
+  return out;
 }
 
 function activeCF(){return DATA.cf.filter(c=>fv(c,F.cf.ativo)===true);}
 
+function avgRetiradas3m(){
+  // média de saídas tipo "pró-labore"/"retirada" últimos 3 meses
+  const t0=today();const t3=new Date(t0);t3.setMonth(t3.getMonth()-3);
+  let total=0;const months=new Set();
+  for(const co of DATA.cob){
+    if(!isSaida(co))continue;
+    const tp=tipoCob(co);
+    if(tp.indexOf('labore')<0&&tp.indexOf('retirada')<0&&tp.indexOf('pessoal')<0)continue;
+    const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
+    if(!d||d<t3||d>t0)continue;
+    total+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+    months.add(monthKey(d));
+  }
+  return total/Math.max(1,months.size||3);
+}
+
 function computePrevisao(){
   const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()+30);
-  let recebidos=0;const lRec=[];
+  // A) Já cobrados
+  const jaCobrados=[];
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(fv(co,F.cob.nfEmitida)!==true)continue;
     const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    if(c&&fv(c,F.caso.fase)==='Devedor')continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));
     const age=d?daysBetween(d,t0):0;
-    let p;if(age<30)p=0.9;else if(age<60)p=0.7;else if(age<90)p=0.4;else p=0.1;
-    recebidos+=v*p;
-    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    lRec.push({nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),valor:v,prob:p,esperado:v*p,age,cob:co});
+    let p;if(age<30)p=0.9;else if(age<60)p=0.7;else if(age<90)p=0.4;else continue;
+    const dso=20;
+    const expectedDate=new Date(t0);expectedDate.setDate(expectedDate.getDate()+Math.max(5,dso-age));
+    jaCobrados.push({nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),valor:v,prob:p,esperado:v*p,age,cob:co,expectedDate});
   }
-  const cb=computeCobrar();
-  const prontos=cb.enc.concat(cb.conf);
-  const lProntos=prontos.map(x=>({nome:casoNome(x.caso),valor:x.valor,prob:0.7,esperado:x.valor*0.7}));
-  let prontosSoma=0;for(const x of lProntos){recebidos+=x.esperado;prontosSoma+=x.esperado;}
-  // Pagamentos
-  let pagamentos=0;const lPag=[];
+  // B) Cobranças previstas: perícias agendadas próximos 30d em casos 50/50 sem parte final cobrada → vão gerar cobrança
+  const cobrPrev=[];
   for(const p of DATA.prazo){
     const d=parseDate(fv(p,F.prazo.data));
     if(!d||d<t0||d>t30)continue;
     const tp=String(fv(p,F.prazo.tipo)||'').toLowerCase();
     if(tp.indexOf('perícia')<0&&tp.indexOf('pericia')<0)continue;
-    const v=num(fv(p,F.prazo.valorAss))||800;
-    pagamentos+=v;
+    const cid=fv(p,F.prazo.caso);if(!cid||!cid[0])continue;
+    const c=casoById(cid[0]);if(!c)continue;
+    const fmt=fv(c,F.caso.formato);
+    if(!fmt||String(fmt).indexOf('50/50')<0)continue;
+    const casoVal=num(fv(c,F.caso.valor));if(!casoVal)continue;
+    const cobs=COBS_BY_CASO[c.id]||[];
+    const hasFinal=cobs.some(co=>!isSaida(co)&&tipoCob(co).indexOf('final')>=0);
+    if(hasFinal)continue;
+    const est=new Date(d);est.setDate(est.getDate()+7);
+    cobrPrev.push({caso:c,valor:casoVal/2,dataEst:est,prob:0.8});
+  }
+  // Pagamentos
+  const lPag=[];let pericias=0;
+  for(const p of DATA.prazo){
+    const d=parseDate(fv(p,F.prazo.data));
+    if(!d||d<t0||d>t30)continue;
+    const tp=String(fv(p,F.prazo.tipo)||'').toLowerCase();
+    if(tp.indexOf('perícia')<0&&tp.indexOf('pericia')<0)continue;
+    const vCerto=num(fv(p,F.prazo.valorAss));
+    const v=vCerto||800;
+    pericias+=v;
     const cid=fv(p,F.prazo.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    lPag.push({data:d,valor:v,nome:c?casoNome(c):'—'});
+    lPag.push({data:d,valor:v,nome:c?casoNome(c):'—',certo:vCerto>0});
   }
   const cfs=activeCF();
-  let custosFixos=0;const lCF=[];
-  for(const cf of cfs){const v=num(fv(cf,F.cf.valor));custosFixos+=v;lCF.push({nome:fv(cf,F.cf.nome)||'—',valor:v,dia:fv(cf,F.cf.dia)||null});}
-  pagamentos+=custosFixos;
+  const lCF=cfs.map(cf=>({nome:fv(cf,F.cf.nome)||'—',valor:num(fv(cf,F.cf.valor)),dia:fv(cf,F.cf.dia)||null,rec:cf}));
+  const custosFixos=lCF.reduce((s,x)=>s+x.valor,0);
+  const retiradasMed=avgRetiradas3m();
+  // Cashflow dia a dia
+  const events=[];
+  for(const r of jaCobrados)events.push({date:r.expectedDate,ev:'Recebimento: '+r.nome,entrada:r.esperado,saida:0});
+  for(const r of cobrPrev){const est2=new Date(r.dataEst);est2.setDate(est2.getDate()+20);events.push({date:est2,ev:'Receb. futuro: '+casoNome(r.caso),entrada:r.valor*r.prob,saida:0});}
+  for(const p of lPag)events.push({date:p.data,ev:'Perícia: '+p.nome,entrada:0,saida:p.valor});
+  for(const cf of lCF){
+    if(cf.dia){
+      const now=new Date(t0);const d=new Date(now.getFullYear(),now.getMonth(),Math.min(28,cf.dia));
+      if(d<t0)d.setMonth(d.getMonth()+1);
+      if(d<=t30)events.push({date:d,ev:'Custo fixo: '+cf.nome,entrada:0,saida:cf.valor});
+    }
+  }
+  events.sort((a,b)=>a.date-b.date);
+  let acc=0;let minSaldo=0;let minDate=t0;
+  for(const e of events){acc+=e.entrada-e.saida;e.saldo=acc;if(acc<minSaldo){minSaldo=acc;minDate=e.date;}}
+  const recebidos=jaCobrados.reduce((s,x)=>s+x.esperado,0)+cobrPrev.reduce((s,x)=>s+x.valor*x.prob,0);
+  const pagamentos=pericias+custosFixos+retiradasMed;
   const saldo=recebidos-pagamentos;
-  let retirada=0;
-  if(saldo>1.5*custosFixos)retirada=saldo*0.5;
-  else if(saldo>0)retirada=saldo*0.25;
-  return {recebidos,pagamentos,saldo,retirada,custosFixos,lRec,lProntos,lPag,lCF,prontosSoma};
+  // Retirada segura = min cashflow - 1 mês custos fixos (não pode ser negativa)
+  const retirada=Math.max(0,minSaldo+recebidos-custosFixos); // mínimo simulado + extras
+  // Melhor: retirada = max(0, minSaldo - custosFixos) mas considerando que minSaldo já incorpora tudo
+  const retiradaSegura=Math.max(0,minSaldo-custosFixos+recebidos);
+  // Simplificação: minSaldo representa pior ponto ao longo de 30d. Reserva = custosFixos.
+  const retiradaFinal=Math.max(0,minSaldo-custosFixos);
+  return {jaCobrados,cobrPrev,lPag,lCF,custosFixos,retiradasMed,pericias,events,minSaldo,minDate,recebidos,pagamentos,saldo,retirada:Math.max(0,retiradaFinal+recebidos)};
 }
 
 function computeAlerts(){
   const a=[];
+  const t0=today();
   for(const c of DATA.casos){
     const fmt=fv(c,F.caso.formato);const fase=fv(c,F.caso.fase);
     if(fmt&&String(fmt).indexOf('50/50')>=0&&fase&&(fase.indexOf('Pós')>=0||fase.indexOf('Laudo')>=0||fase.indexOf('Encerrado')>=0)){
@@ -466,22 +581,34 @@ function computeAlerts(){
       if(!hasEnt)a.push({type:'forgot50',caso:c});
     }
   }
-  const year=new Date().getFullYear();
-  for(const c of DATA.casos){
-    if(fv(c,F.caso.fase)==='Encerrado - Pago'){
-      const ps=PRAZOS_BY_CASO[c.id]||[];
-      if(ps.some(p=>{const d=parseDate(fv(p,F.prazo.data));return d&&d.getFullYear()===year;}))a.push({type:'paidActivity',caso:c});
+  // Vencida 60+
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.nfEmitida)!==true)continue;
+    if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
+    const d=parseDate(fv(co,F.cob.dataCobranca));if(!d)continue;
+    const dias=daysBetween(d,t0);
+    if(dias>=60&&dias<=90){
+      const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+      a.push({type:'vencida60',caso:c,cob:co,dias});
     }
+  }
+  // Perícia próx 2 dias
+  const t2=new Date(t0);t2.setDate(t2.getDate()+2);
+  for(const p of DATA.prazo){
+    const d=parseDate(fv(p,F.prazo.data));
+    if(!d||d<t0||d>t2)continue;
+    const tp=String(fv(p,F.prazo.tipo)||'').toLowerCase();
+    if(tp.indexOf('perícia')<0&&tp.indexOf('pericia')<0)continue;
+    const cid=fv(p,F.prazo.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    a.push({type:'periciaProx',caso:c,data:d});
   }
   return a;
 }
 
 function computePhaseDistribution(){
   const m={};
-  for(const c of DATA.casos){
-    const f=fv(c,F.caso.fase)||'—';
-    m[f]=(m[f]||0)+1;
-  }
+  for(const c of DATA.casos){const f=fv(c,F.caso.fase)||'—';m[f]=(m[f]||0)+1;}
   return Object.entries(m).sort((a,b)=>b[1]-a[1]);
 }
 
@@ -542,8 +669,8 @@ function renderNFForm(cob,caso){
     '<div class="actions"><button class="btn green" data-act="save">'+t('btnSaveNF')+'</button><span class="msg"></span></div>'+
     '</div>';
 }
-function renderPayForm(cob){
-  return '<h4>'+t('btnSavePay')+'</h4><div class="form" data-form="pay" data-cobid="'+cob.id+'">'+
+function renderPayForm(cob,caso){
+  return '<h4>'+t('btnSavePay')+'</h4><div class="form" data-form="pay" data-cobid="'+cob.id+'" data-casoid="'+(caso?caso.id:'')+'">'+
     '<div><label>'+t('dataRec')+'</label><input name="dRec" type="date" value="'+todayISO()+'"></div>'+
     '<div class="actions"><button class="btn green" data-act="save">'+t('btnSavePay')+'</button><span class="msg"></span></div>'+
     '</div>';
@@ -581,13 +708,21 @@ async function handleSave(btn){
       if(cobId)await patchRecord(TBL.cob,cobId,fields);
       else{
         fields[F.cob.caso]=[casoId];fields[F.cob.valorReceber]=nfVal;fields[F.cob.tipo]='Entrada';
-        const r=await fetch('https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(TBL.cob)+'?returnFieldsByFieldId=true',{method:'POST',headers:{Authorization:'Bearer '+TK,'Content-Type':'application/json'},body:JSON.stringify({fields})});
-        if(!r.ok)throw new Error('HTTP '+r.status);
+        await createRecord(TBL.cob,fields);
       }
     }else if(type==='pay'){
       const fields={};fields[F.cob.recebido]=true;
       const d=form.querySelector('[name=dRec]').value;if(d)fields[F.cob.dataReceb]=d;
       await patchRecord(TBL.cob,form.dataset.cobid,fields);
+      // Se era devedor, mudar fase para Encerrado - Pago
+      const casoId=form.dataset.casoid;
+      if(casoId){
+        const c=casoById(casoId);
+        if(c&&fv(c,F.caso.fase)==='Devedor'){
+          const cf={};cf[F.caso.fase]='Encerrado - Pago';
+          await patchRecord(TBL.casos,casoId,cf);
+        }
+      }
     }else if(type==='paid'){
       const fields={};fields[F.cob.pago]=true;
       const d=form.querySelector('[name=dPag]').value;if(d)fields[F.cob.dataPag]=d;
@@ -597,6 +732,18 @@ async function handleSave(btn){
       const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
       const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
       await patchRecord(TBL.casos,form.dataset.casoid,fields);
+    }else if(type==='retirada'){
+      const val=parseFloat(form.querySelector('[name=val]').value)||0;
+      const d=form.querySelector('[name=d]').value;
+      const desc=form.querySelector('[name=desc]').value;
+      const fields={};
+      fields[F.cob.nome]=desc||'Retirada pessoal';
+      fields[F.cob.tipo]='Saída';
+      fields[F.cob.tipoPag]='Pró-labore';
+      fields[F.cob.valorPag]=val;
+      fields[F.cob.dataPag]=d||todayISO();
+      fields[F.cob.pago]=true;
+      await createRecord(TBL.cob,fields);
     }
     msg.textContent=t('saved');msg.className='msg ok';
     setTimeout(loadData,600);
@@ -620,6 +767,7 @@ function render(){
   else if(TAB==='cobrar')c.innerHTML=renderCobrar();
   else if(TAB==='pendentes')c.innerHTML=renderPendentes();
   else if(TAB==='devedores')c.innerHTML=renderDevedores();
+  else if(TAB==='saidas')c.innerHTML=renderSaidas();
   else if(TAB==='previsao')c.innerHTML=renderPrevisao();
   else if(TAB==='fpa')c.innerHTML=renderFPA();
   attachHandlers();
@@ -636,6 +784,23 @@ function daysBadge(d){
   return '<span class="tag '+cls+'">'+d+'d</span>';
 }
 
+function sortToolbar(){
+  return '<div class="toolbar">'+t('sortBy')+': <select id="sortSel"><option value="date"'+(SORT_MODE==='date'?' selected':'')+'>'+t('sortDate')+'</option><option value="client"'+(SORT_MODE==='client'?' selected':'')+'>'+t('sortClient')+'</option></select></div>';
+}
+function sortRows(rows){
+  const r=rows.slice();
+  if(SORT_MODE==='client'){
+    r.sort((a,b)=>{
+      const an=a.caso?cliNomeOfCaso(a.caso):'';const bn=b.caso?cliNomeOfCaso(b.caso):'';
+      if(an!==bn)return an.localeCompare(bn);
+      return (a.dias||0)-(b.dias||0);
+    });
+  }else{
+    r.sort((a,b)=>(b.dias||0)-(a.dias||0));
+  }
+  return r;
+}
+
 function renderOverview(){
   OV=computeOverview();
   const a=computeAlerts();
@@ -645,10 +810,10 @@ function renderOverview(){
   let exp='';
   if(EXPANDED_CARD){
     const map={ent:OV.lEnt,sai:OV.lSai,ab:OV.lAb,lu:OV.lEnt.concat(OV.lSai)};
-    const titles={ent:t('entradas'),sai:t('saidas'),ab:t('aberto'),lu:t('lucro')};
+    const titles={ent:t('entradas'),sai:t('saidasLbl'),ab:t('aberto'),lu:t('lucro')};
     const arr=map[EXPANDED_CARD].slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
     exp='<div class="section"><h2>'+titles[EXPANDED_CARD]+'</h2>'+
-      (arr.length?'<table><thead><tr><th>Caso</th><th>'+t('date')+'</th>'+(EXPANDED_CARD==='ab'?'<th class="right">'+t('days')+'</th>':'')+(EXPANDED_CARD==='sai'?'<th>Status</th>':'')+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
+      (arr.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th>'+(EXPANDED_CARD==='ab'?'<th class="right">'+t('days')+'</th>':'')+(EXPANDED_CARD==='sai'?'<th>Status</th>':'')+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
       arr.map((x,i)=>{
         const rid='ov-'+EXPANDED_CARD+'-'+i;
         const expRow=EXPANDED_ROW===rid;
@@ -668,15 +833,19 @@ function renderOverview(){
         return row;
       }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   }
+  const alertHtml=a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>{
+    const lbl={forgot50:t('forgot50'),vencida60:t('vencida60'),periciaProx:t('periciaProx')}[x.type];
+    const cls=x.type==='forgot50'||x.type==='vencida60'?'red':'';
+    const extra=x.type==='vencida60'?' ('+x.dias+'d)':(x.type==='periciaProx'?' ('+fmtDate(x.data)+')':'');
+    return '<div class="alert '+cls+'"><strong>'+lbl+':</strong> '+esc(x.caso?casoNome(x.caso):'—')+extra+'</div>';
+  }).join('');
   return '<div class="cards">'+
     card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
-    card('sai','red',t('saidas'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
+    card('sai','red',t('saidasLbl'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
     card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • últimos 30d')+
     card('lu','blue',t('lucro'),OV.lucro,monthLabel(SELECTED_MONTH))+
     '</div>'+exp+
-    '<div class="section"><h2>'+t('alerts')+'</h2>'+
-    (a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>'<div class="alert '+(x.type==='forgot50'?'red':'')+'"><strong>'+(x.type==='forgot50'?t('forgot50'):t('paidActivity'))+':</strong> '+esc(casoNome(x.caso))+' — '+esc(cliNomeOfCaso(x.caso))+'</div>').join(''))+
-    '</div>'+
+    '<div class="section"><h2>'+t('alerts')+'</h2>'+alertHtml+'</div>'+
     '<div class="section"><h2>'+t('distFase')+'</h2>'+
     phases.map(p=>'<div class="phase-bar"><div class="name">'+esc(p[0])+'</div><div class="fill" style="width:'+(p[1]/maxP*60)+'%"></div><div class="cnt">'+p[1]+'</div></div>').join('')+
     '</div>';
@@ -685,10 +854,17 @@ function renderOverview(){
 function caseTable(rows,opts){
   if(!rows.length)return '<div class="empty">'+t('noData')+'</div>';
   const cols=opts.cols;
-  const head='<tr>'+cols.map(k=>'<th'+(k==='value'||k==='days'?' class="right"':'')+'>'+(k==='tipo'?'Tipo':t(k))+'</th>').join('')+'</tr>';
-  const body=rows.map((r,i)=>{
+  const head='<tr>'+cols.map(k=>'<th'+(k==='value'||k==='days'?' class="right"':'')+'>'+t(k)+'</th>').join('')+'</tr>';
+  const sorted=sortRows(rows);
+  let lastClient=null;
+  const body=sorted.map((r,i)=>{
     const rid=opts.prefix+'-'+i;
     const expanded=EXPANDED_ROW===rid;
+    let groupHead='';
+    if(SORT_MODE==='client'&&r.caso){
+      const cn=cliNomeOfCaso(r.caso);
+      if(cn!==lastClient){lastClient=cn;groupHead='<tr class="group-head"><td colspan="'+cols.length+'">'+esc(cn)+'</td></tr>';}
+    }
     const tds=cols.map(k=>{
       if(k==='case'){
         let extra='';
@@ -702,7 +878,8 @@ function caseTable(rows,opts){
       }
       if(k==='client')return '<td>'+esc(r.caso?cliNomeOfCaso(r.caso):'—')+'</td>';
       if(k==='phase')return '<td>'+esc(r.caso?(fv(r.caso,F.caso.fase)||'—'):'—')+'</td>';
-      if(k==='tipo')return '<td><span class="tag blue">'+(r.tipo||'—')+'</span></td>';
+      if(k==='type')return '<td><span class="tag blue">'+(r.tipo||'—')+'</span></td>';
+      if(k==='tipoPag'){const tp=r.cob?tipoPagLabel(r.cob):'';return '<td>'+(tp?'<span class="tag purple">'+esc(tp)+'</span>':'—')+'</td>';}
       if(k==='date')return '<td>'+fmtDate(r.cob?fv(r.cob,F.cob.dataCobranca):null)+'</td>';
       if(k==='days')return '<td class="right">'+daysBadge(r.dias)+'</td>';
       if(k==='value')return '<td class="right">'+fmtBRL(r.valor!=null?r.valor:(r.cob?num(fv(r.cob,F.cob.valorReceber)):0))+'</td>';
@@ -712,12 +889,12 @@ function caseTable(rows,opts){
     if(expanded&&r.caso){
       det+=renderRoadmap(r.caso);
       if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso);
-      if(opts.form==='pay'&&r.cob)det+=renderPayForm(r.cob);
+      if(opts.form==='pay'&&r.cob)det+=renderPayForm(r.cob,r.caso);
       det+=renderNoteForm(r.caso);
     }
     const mainTr='<tr class="clickable'+(expanded?' expanded':'')+'" data-row="'+rid+'">'+tds+'</tr>';
     const detTr=expanded?'<tr><td colspan="'+cols.length+'" style="padding:0"><div class="detail">'+det+'</div></td></tr>':'';
-    return mainTr+detTr;
+    return groupHead+mainTr+detTr;
   }).join('');
   return '<table><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
 }
@@ -725,23 +902,71 @@ function caseTable(rows,opts){
 function renderCobrar(){
   const g=computeCobrar();
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
-  let html='';
-  if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','tipo','value'],prefix:'cf',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','tipo','value'],prefix:'enc',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','tipo','value'],prefix:'ini',form:'nf'})+'</div>';
+  let html=sortToolbar();
+  if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','type','value'],prefix:'cf',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
   return html;
 }
 
 function renderPendentes(){
   const list=computePendentes();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  return '<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
+  return sortToolbar()+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
 function renderDevedores(){
   const list=computeDevedores();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  return '<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','date','days','value'],prefix:'dv',form:'pay'})+'</div>';
+  return sortToolbar()+'<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'dv',form:'pay'})+'</div>';
+}
+
+function renderSaidas(){
+  // A) Assistentes pendentes
+  const assist=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
+  const assistTotal=assist.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
+  // B) Custos fixos
+  const cfs=activeCF();const cfTotal=cfs.reduce((s,c)=>s+num(fv(c,F.cf.valor)),0);
+  // C) Retiradas do mês
+  const now=new Date();const mk=monthKey(now);
+  const retiradas=DATA.cob.filter(co=>{
+    if(!isSaida(co))return false;
+    const tp=tipoCob(co);
+    if(tp.indexOf('labore')<0&&tp.indexOf('retirada')<0)return false;
+    const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
+    return d&&monthKey(d)===mk;
+  });
+
+  let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
+    (assist.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    assist.map((co,i)=>{
+      const rid='sa-'+i;const exp=EXPANDED_ROW===rid;
+      const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+      const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+      let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
+      if(exp){
+        let det='';if(c)det+=renderRoadmap(c);
+        det+=renderPaidForm(co);
+        if(c)det+=renderNoteForm(c);
+        row+='<tr><td colspan="3" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
+      }
+      return row;
+    }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+  html+='<div class="section"><h2>B. '+t('secCF')+' — '+fmtBRL(cfTotal)+' ('+cfs.length+')</h2>'+
+    (cfs.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    cfs.map(c=>'<tr><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
+    '</div>';
+  const retTotal=retiradas.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
+  html+='<div class="section"><h2>C. '+t('secPro')+' — '+fmtBRL(retTotal)+' ('+retiradas.length+')</h2>'+
+    '<div class="form" data-form="retirada">'+
+    '<div><label>'+t('date')+'</label><input name="d" type="date" value="'+todayISO()+'"></div>'+
+    '<div><label>'+t('value')+'</label><input name="val" type="number" step="0.01"></div>'+
+    '<div><label>'+t('descricao')+'</label><input name="desc" placeholder="Ex: conta de luz"></div>'+
+    '<div class="actions"><button class="btn orange" data-act="save">'+t('btnRegistrarSaida')+'</button><span class="msg"></span></div></div>'+
+    (retiradas.length?'<table><thead><tr><th>'+t('descricao')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    retiradas.map(co=>'<tr><td>'+esc(fv(co,F.cob.nome)||'—')+'</td><td>'+fmtDate(fv(co,F.cob.dataPag))+'</td><td class="right">'+fmtBRL(num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber)))+'</td></tr>').join('')+'</tbody></table>':'')+
+    '</div>';
+  return html;
 }
 
 function renderPrevisao(){
@@ -752,21 +977,35 @@ function renderPrevisao(){
     '<div class="card blue"><div class="label">'+t('saldo')+'</div><div class="value">'+fmtBRL(p.saldo)+'</div></div>'+
     '<div class="card orange"><div class="label">'+t('retirada')+'</div><div class="value">'+fmtBRL(p.retirada)+'</div></div>'+
     '</div>';
-  html+='<div class="section"><h2>'+t('recebidos')+'</h2><div class="note">'+t('formulaR')+'</div>'+
-    (p.lRec.length?'<h3>Cobranças pendentes</h3><table><thead><tr><th>Caso</th><th class="right">'+t('days')+'</th><th class="right">'+t('prob')+'</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
-    p.lRec.sort((a,b)=>b.esperado-a.esperado).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+x.age+'</td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'')+
-    (p.lProntos.length?'<h3>Casos a cobrar × 70% = '+fmtBRL(p.prontosSoma)+'</h3><table><thead><tr><th>Caso</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
-    p.lProntos.sort((a,b)=>b.esperado-a.esperado).slice(0,10).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'')+
+  // Parte 1 - Já cobrados
+  html+='<div class="section"><h2>'+t('recebidos')+' — '+t('jaCobrados')+'</h2>'+
+    (p.jaCobrados.length?'<table><thead><tr><th>'+t('case')+'</th><th class="right">'+t('days')+'</th><th class="right">'+t('prob')+'</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
+    p.jaCobrados.sort((a,b)=>b.esperado-a.esperado).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+x.age+'d</td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
     '</div>';
-  html+='<div class="section"><h2>'+t('pagamentos')+'</h2><div class="note">'+t('formulaP')+'</div>'+
-    '<h3>Perícias agendadas (próximos 30d)</h3>'+
-    (p.lPag.length?'<table><thead><tr><th>Data</th><th>Caso</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+fmtDate(x.data)+'</td><td>'+esc(x.nome)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+  // Cobranças previstas
+  html+='<div class="section"><h2>'+t('cobrPrev')+'</h2>'+
+    (p.cobrPrev.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+' est.</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    p.cobrPrev.map(x=>'<tr><td>'+esc(casoNome(x.caso))+'</td><td>'+fmtDate(x.dataEst)+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
+    '</div>';
+  // Pagamentos
+  html+='<div class="section"><h2>'+t('pagamentos')+'</h2>'+
+    '<h3>Perícias próximos 30d — '+fmtBRL(p.pericias)+'</h3>'+
+    (p.lPag.length?'<table><thead><tr><th>'+t('date')+'</th><th>'+t('case')+'</th><th>Valor</th><th class="right">R$</th></tr></thead><tbody>'+
+    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+fmtDate(x.data)+'</td><td>'+esc(x.nome)+'</td><td><span class="tag '+(x.certo?'green':'orange')+'">'+(x.certo?'Valor certo':'Estimado')+'</span></td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
     '<h3>'+t('custosAtivos')+' — '+fmtBRL(p.custosFixos)+'</h3>'+
     (p.lCF.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     p.lCF.map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+(x.dia||'—')+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+    '<div style="margin-top:10px;font-size:13px"><strong>Retiradas pessoais (média 3m):</strong> '+fmtBRL(p.retiradasMed)+'</div>'+
     '</div>';
-  html+='<div class="section"><h2>'+t('saldo')+' / '+t('retirada')+'</h2><div class="note">'+t('formulaS')+'</div>'+
+  // Cashflow
+  html+='<div class="section"><h2>'+t('cashflow')+'</h2>'+
+    (p.events.length?'<table><thead><tr><th>'+t('date')+'</th><th>'+t('event')+'</th><th class="right">'+t('entrada')+'</th><th class="right">'+t('saida')+'</th><th class="right">'+t('saldoAc')+'</th></tr></thead><tbody>'+
+    p.events.map(e=>'<tr class="cf-row'+(e.saldo<0?' neg':'')+'"><td>'+fmtDate(e.date)+'</td><td>'+esc(e.ev)+'</td><td class="right">'+(e.entrada?fmtBRL(e.entrada):'')+'</td><td class="right">'+(e.saida?fmtBRL(e.saida):'')+'</td><td class="right"><strong>'+fmtBRL(e.saldo)+'</strong></td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+    '<div class="note">Menor saldo acumulado: <strong>'+fmtBRL(p.minSaldo)+'</strong> em '+fmtDate(p.minDate)+'</div>'+
+    '</div>';
+  // Retirada segura
+  html+='<div class="section"><h2>'+t('retirada')+'</h2>'+
+    '<div class="note">O ponto mais baixo do seu saldo nos próximos 30 dias é <strong>'+fmtBRL(p.minSaldo)+'</strong> em '+fmtDate(p.minDate)+'. Subtraindo <strong>'+fmtBRL(p.custosFixos)+'</strong> de reserva (1 mês de custos fixos), a retirada segura é <strong>'+fmtBRL(p.retirada)+'</strong>.</div>'+
     '<div class="kpi"><div class="box green"><div class="l">'+t('recebidos')+'</div><div class="v">'+fmtBRL(p.recebidos)+'</div></div>'+
     '<div class="box red"><div class="l">'+t('pagamentos')+'</div><div class="v">'+fmtBRL(p.pagamentos)+'</div></div>'+
     '<div class="box"><div class="l">'+t('saldo')+'</div><div class="v">'+fmtBRL(p.saldo)+'</div></div>'+
@@ -776,19 +1015,21 @@ function renderPrevisao(){
 
 function renderFPA(){
   const t0=today();
-  // Aging
   const buckets={a0:{c:0,v:0,l:t('aging0')},a30:{c:0,v:0,l:t('aging30')},a60:{c:0,v:0,l:t('aging60')},a90:{c:0,v:0,l:t('aging90')}};
+  let totalCob=0,totalDev=0;
   for(const co of DATA.cob){
     if(isSaida(co))continue;
-    if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(fv(co,F.cob.nfEmitida)!==true)continue;
-    const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
-    const d=parseDate(fv(co,F.cob.dataCobranca));if(!d)continue;
-    const age=daysBetween(d,t0);
-    const k=age<30?'a0':age<60?'a30':age<90?'a60':'a90';
-    buckets[k].c++;buckets[k].v+=v;
+    totalCob++;
+    if(fv(co,F.cob.recebido)!==true&&fv(co,F.cob.pago)!==true){
+      const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
+      const d=parseDate(fv(co,F.cob.dataCobranca));if(!d)continue;
+      const age=daysBetween(d,t0);
+      const k=age<30?'a0':age<60?'a30':age<90?'a60':'a90';
+      buckets[k].c++;buckets[k].v+=v;
+      if(age>90)totalDev++;
+    }
   }
-  // Top 5
   const byCli={};
   for(const co of DATA.cob){
     if(isSaida(co))continue;
@@ -798,8 +1039,10 @@ function renderFPA(){
     const cl=cliNomeOfCaso(c);
     byCli[cl]=(byCli[cl]||0)+num(fv(co,F.cob.valorReceber));
   }
-  const top=Object.entries(byCli).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  // Monthly (year)
+  const top=Object.entries(byCli).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const totalRev=Object.values(byCli).reduce((a,b)=>a+b,0);
+  const top3Sum=top.slice(0,3).reduce((s,x)=>s+x[1],0);
+  const conc=totalRev?(top3Sum/totalRev*100).toFixed(1):'0';
   const year=new Date().getFullYear();
   const byMonth={};for(let m=1;m<=12;m++)byMonth[m]={e:0,s:0};
   for(const co of DATA.cob){
@@ -812,7 +1055,6 @@ function renderFPA(){
     }
   }
   const maxV=Math.max(1,...Object.values(byMonth).flatMap(x=>[x.e,x.s]));
-  // DSO
   let dsoSum=0,dsoCnt=0;
   for(const co of DATA.cob){
     if(isSaida(co)||fv(co,F.cob.recebido)!==true)continue;
@@ -820,40 +1062,41 @@ function renderFPA(){
     if(!dc||!dr)continue;dsoSum+=daysBetween(dc,dr);dsoCnt++;
   }
   const dso=dsoCnt?Math.round(dsoSum/dsoCnt):0;
-  // Margem últimos 6 meses
-  const now=new Date();
-  const last6=[];
+  const now=new Date();const last6=[];
   for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);last6.push({k:monthKey(d),lbl:d.toLocaleDateString(LANG==='pt'?'pt-BR':'en-US',{month:'short'}),e:0,s:0});}
-  const last6Map={};last6.forEach(x=>last6Map[x.k]=x);
+  const l6m={};last6.forEach(x=>l6m[x.k]=x);
   for(const co of DATA.cob){
     if(isSaida(co)){
       const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));if(!d)continue;
-      const k=monthKey(d);if(last6Map[k])last6Map[k].s+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+      const k=monthKey(d);if(l6m[k])l6m[k].s+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     }else if(fv(co,F.cob.recebido)===true){
       const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));if(!d)continue;
-      const k=monthKey(d);if(last6Map[k])last6Map[k].e+=num(fv(co,F.cob.valorReceber));
+      const k=monthKey(d);if(l6m[k])l6m[k].e+=num(fv(co,F.cob.valorReceber));
     }
   }
-  // Custos ativos
   const cfs=activeCF();let cfTotal=0;for(const c of cfs)cfTotal+=num(fv(c,F.cf.valor));
+  const inad=totalCob?(totalDev/totalCob*100).toFixed(1):'0';
 
   let html='<div class="section"><h2>'+t('aging')+'</h2>'+
     '<div class="kpi">'+Object.values(buckets).map(v=>'<div class="box"><div class="l">'+v.l+'</div><div class="v">'+fmtBRL(v.v)+'</div><div class="l">'+v.c+' cob</div></div>').join('')+'</div></div>';
-  html+='<div class="section"><h2>'+t('top5')+'</h2>'+
-    (top.length?'<table><thead><tr><th>'+t('client')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    top.map(x=>'<tr><td>'+esc(x[0])+'</td><td class="right">'+fmtBRL(x[1])+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+  html+='<div class="section"><h2>'+t('top10')+'</h2>'+
+    (top.length?'<table><thead><tr><th>'+t('client')+'</th><th class="right">'+t('value')+'</th><th class="right">%</th></tr></thead><tbody>'+
+    top.map(x=>'<tr><td>'+esc(x[0])+'</td><td class="right">'+fmtBRL(x[1])+'</td><td class="right">'+(totalRev?(x[1]/totalRev*100).toFixed(1):'0')+'%</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   html+='<div class="section"><h2>'+t('monthly')+' '+year+'</h2>'+
     '<div class="bar-chart">'+Object.entries(byMonth).map(([m,v])=>{
       const he=Math.round(v.e/maxV*130),hs=Math.round(v.s/maxV*130);
       return '<div class="bar-col"><div class="bars"><div class="bar green" style="height:'+he+'px" title="'+fmtBRL(v.e)+'"></div><div class="bar red" style="height:'+hs+'px" title="'+fmtBRL(v.s)+'"></div></div><div class="lbl">'+m+'</div></div>';
     }).join('')+'</div>'+
-    '<div style="margin-top:8px;font-size:12px;color:#6b7c8c"><span style="color:#22a06b">■</span> '+t('entradas')+'  <span style="color:#d64545">■</span> '+t('saidas')+'</div></div>';
-  const max6=Math.max(1,...last6.flatMap(x=>[x.e,x.s]));
+    '<div style="margin-top:8px;font-size:12px;color:#6b7c8c"><span style="color:#22a06b">■</span> '+t('entradas')+'  <span style="color:#d64545">■</span> '+t('saidasLbl')+'</div></div>';
   html+='<div class="section"><h2>'+t('margem')+'</h2>'+
-    '<table><thead><tr><th>Mês</th><th class="right">'+t('entradas')+'</th><th class="right">'+t('saidas')+'</th><th class="right">Margem</th></tr></thead><tbody>'+
+    '<table><thead><tr><th>Mês</th><th class="right">'+t('entradas')+'</th><th class="right">'+t('saidasLbl')+'</th><th class="right">Margem</th></tr></thead><tbody>'+
     last6.map(x=>'<tr><td>'+x.lbl+'</td><td class="right">'+fmtBRL(x.e)+'</td><td class="right">'+fmtBRL(x.s)+'</td><td class="right">'+fmtBRL(x.e-x.s)+'</td></tr>').join('')+'</tbody></table></div>';
-  html+='<div class="section"><h2>'+t('dso')+'</h2>'+
-    '<div class="kpi"><div class="box"><div class="l">DSO médio</div><div class="v">'+dso+' d</div></div></div></div>';
+  html+='<div class="section"><div class="kpi">'+
+    '<div class="box"><div class="l">'+t('dso')+'</div><div class="v">'+dso+' d</div></div>'+
+    '<div class="box red"><div class="l">'+t('inad')+'</div><div class="v">'+inad+'%</div></div>'+
+    '<div class="box orange"><div class="l">'+t('conc')+'</div><div class="v">'+conc+'%</div></div>'+
+    '<div class="box"><div class="l">Custos fixos/mês</div><div class="v">'+fmtBRL(cfTotal)+'</div></div>'+
+    '</div></div>';
   html+='<div class="section"><h2>'+t('custosAtivos')+' — '+fmtBRL(cfTotal)+'</h2>'+
     (cfs.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     cfs.sort((a,b)=>num(fv(b,F.cf.valor))-num(fv(a,F.cf.valor))).map(c=>'<tr><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
@@ -874,6 +1117,8 @@ function attachHandlers(){
   });
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
+  const ss=document.getElementById('sortSel');
+  if(ss)ss.onchange=e=>{SORT_MODE=e.target.value;render();};
 }
 
 document.getElementById('langSel').onchange=e=>{LANG=e.target.value;buildMonthSelector();render();};
