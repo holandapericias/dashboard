@@ -406,7 +406,13 @@ function computeOverview(){
       if(inMonth(dp)||inMonth(dc)){
         const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
         saidas+=v;
-        lSai.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:dp||dc,cob:co,pago:fv(co,F.cob.pago)===true});
+        const marker=String(fv(co,F.cob.numeroNF)||'');
+        let nome=fv(co,F.cob.nome)||'';
+        let isRet=false;
+        if(/^RETIRADA:/i.test(marker)){nome='Adiantamento pró-labore: '+marker.replace(/^RETIRADA:\s*/i,'');isRet=true;}
+        else if(/^CF:/i.test(marker)){nome='Custo fixo: '+marker.replace(/^CF:\s*/i,'');}
+        else if(!nome)nome=marker||'—';
+        lSai.push({nome,valor:v,data:dp||dc,cob:co,pago:fv(co,F.cob.pago)===true,isRet});
       }
     }else if(fv(co,F.cob.recebido)===true){
       const dc=fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca);
@@ -975,7 +981,8 @@ function renderOverview(){
       arr.map((x,i)=>{
         const rid='ov-'+EXPANDED_CARD+'-'+i;
         const expRow=EXPANDED_ROW===rid;
-        let row='<tr class="clickable'+(expRow?' expanded':'')+'" data-row="'+rid+'"><td>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td>';
+        const nameStyle=x.isRet?' style="font-style:italic;color:#a35a07"':'';
+        let row='<tr class="clickable'+(expRow?' expanded':'')+'" data-row="'+rid+'"><td'+nameStyle+'>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td>';
         if(EXPANDED_CARD==='ab')row+='<td class="right">'+daysBadge(x.dias)+'</td>';
         if(EXPANDED_CARD==='sai')row+='<td>'+(x.pago?'<span class="tag green">Pago</span>':'<span class="tag orange">Pendente</span>')+'</td>';
         row+='<td class="right">'+fmtBRL(x.valor)+'</td></tr>';
