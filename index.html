@@ -751,6 +751,18 @@ async function handleSave(btn){
       const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
       const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
       await patchRecord(TBL.casos,form.dataset.casoid,fields);
+    }else if(type==='cfpay'){
+      const val=parseFloat(form.querySelector('[name=val]').value)||0;
+      const d=form.querySelector('[name=d]').value||todayISO();
+      const name=form.dataset.cfname;
+      const fields={};
+      fields[F.cob.nome]=name;
+      fields[F.cob.tipo]='Saída';
+      fields[F.cob.tipoPag]='Custo Fixo';
+      fields[F.cob.valorPag]=val;
+      fields[F.cob.dataPag]=d;
+      fields[F.cob.pago]=true;
+      await createRecord(TBL.cob,fields);
     }else if(type==='retirada'){
       const val=parseFloat(form.querySelector('[name=val]').value)||0;
       const d=form.querySelector('[name=d]').value;
@@ -971,9 +983,42 @@ function renderSaidas(){
       }
       return row;
     }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+  // Match paid CF this month by name
+  const cfPayments={};
+  for(const co of DATA.cob){
+    if(!isSaida(co)||fv(co,F.cob.pago)!==true)continue;
+    const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
+    if(!d||monthKey(d)!==mk)continue;
+    const tp=tipoCob(co);
+    if(tp.indexOf('custo')<0&&tp.indexOf('fixo')<0)continue;
+    const nm=String(fv(co,F.cob.nome)||'').toLowerCase().trim();
+    if(nm)cfPayments[nm]=co;
+  }
   html+='<div class="section"><h2>B. '+t('secCF')+' — '+fmtBRL(cfTotal)+' ('+cfs.length+')</h2>'+
-    (cfs.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    cfs.map(c=>'<tr><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
+    (cfs.length?'<table><thead><tr><th></th><th>Nome</th><th class="right">Dia</th><th class="right">Estimado</th><th class="right">Pago</th></tr></thead><tbody>'+
+    cfs.map((c,i)=>{
+      const nm=String(fv(c,F.cf.nome)||'').toLowerCase().trim();
+      const paid=cfPayments[nm];
+      const rid='cf-'+i;
+      const exp=EXPANDED_ROW===rid;
+      const check=paid?'<span style="color:#22a06b;font-size:18px">☑</span>':'<span style="color:#c8d2dc;font-size:18px">☐</span>';
+      let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+check+'</td><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td><td class="right">'+(paid?fmtBRL(num(fv(paid,F.cob.valorPag))||num(fv(paid,F.cob.valorReceber)))+'<div class="proc">'+fmtDate(fv(paid,F.cob.dataPag))+'</div>':'—')+'</td></tr>';
+      if(exp){
+        let det='';
+        if(paid){
+          det='<h4>Pagamento registrado</h4><div style="font-size:13px;color:#6b7c8c">Valor: <strong>'+fmtBRL(num(fv(paid,F.cob.valorPag))||num(fv(paid,F.cob.valorReceber)))+'</strong> • Data: <strong>'+fmtDate(fv(paid,F.cob.dataPag))+'</strong></div>';
+        }else{
+          const est=num(fv(c,F.cf.valor));
+          det='<h4>Registrar pagamento</h4><div class="form" data-form="cfpay" data-cfname="'+esc(fv(c,F.cf.nome)||'').replace(/"/g,'&quot;')+'">'+
+            '<div><label>'+t('value')+' (final)</label><input name="val" type="number" step="0.01" value="'+est+'"></div>'+
+            '<div><label>'+t('dataPag')+'</label><input name="d" type="date" value="'+todayISO()+'"></div>'+
+            '<div class="actions"><button class="btn green" data-act="save">'+t('btnPaid')+'</button><span class="msg"></span></div>'+
+            '</div>';
+        }
+        row+='<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
+      }
+      return row;
+    }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
     '</div>';
   const retTotal=retiradas.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
   html+='<div class="section"><h2>C. '+t('secPro')+' — '+fmtBRL(retTotal)+' ('+retiradas.length+')</h2>'+
