@@ -1285,7 +1285,32 @@ function renderSaidas(){
 
 function renderPrevisao(){
   const p=computePrevisao();
-  let html='<div class="cards">'+
+  const ov=computeOverview();
+  const saldo=getSaldo();
+  // Retiradas do mês
+  const mk=SELECTED_MONTH||monthKey(new Date());
+  let retMes=0;
+  for(const co of DATA.cob){
+    if(!isSaida(co))continue;
+    const marker=String(fv(co,F.cob.numeroNF)||'');
+    if(!/^RETIRADA:/i.test(marker))continue;
+    const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
+    if(!d||monthKey(d)!==mk)continue;
+    retMes+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+  }
+  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3">'+
+    '<h2>Situação Atual — '+monthLabel(mk)+'</h2>'+
+    '<div class="kpi">'+
+    '<div class="box"><div class="l">Saldo Bancário</div><div class="v">'+fmtBRL(saldo.valor||0)+'</div><div class="l">'+(saldo.data?fmtDate(saldo.data):'—')+'</div></div>'+
+    '<div class="box green"><div class="l">Entradas (mês)</div><div class="v">'+fmtBRL(ov.entradas)+'</div></div>'+
+    '<div class="box red"><div class="l">Saídas (mês)</div><div class="v">'+fmtBRL(ov.saidas)+'</div></div>'+
+    '<div class="box orange"><div class="l">Em Aberto</div><div class="v">'+fmtBRL(ov.aberto)+'</div></div>'+
+    '<div class="box"><div class="l">Lucro Operacional</div><div class="v">'+fmtBRL(ov.lucro)+'</div></div>'+
+    '<div class="box '+(ov.lucro-retMes>=0?'green':'red')+'"><div class="l">Resultado Real</div><div class="v">'+fmtBRL(ov.lucro-retMes)+'</div><div class="l">− '+fmtBRL(retMes)+' retiradas</div></div>'+
+    '</div>'+
+    '<div class="note">Saldo bancário é o ponto de partida do fluxo de caixa. Em Aberto já está distribuído nos Recebimentos Previstos por aging. Retiradas do mês já saíram do saldo.</div>'+
+    '</div>';
+  html+='<div class="cards">'+
     '<div class="card green"><div class="label">'+t('recebidos')+'</div><div class="value">'+fmtBRL(p.recebidos)+'</div></div>'+
     '<div class="card red"><div class="label">'+t('pagamentos')+'</div><div class="value">'+fmtBRL(p.pagamentos)+'</div></div>'+
     '<div class="card blue"><div class="label">'+t('saldo')+'</div><div class="value">'+fmtBRL(p.saldo)+'</div></div>'+
