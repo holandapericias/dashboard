@@ -347,6 +347,7 @@ async function loadData(){
     for(const co of DATA.cob){const cid=fv(co,F.cob.caso);if(cid&&cid[0])(COBS_BY_CASO[cid[0]]=COBS_BY_CASO[cid[0]]||[]).push(co);}
     buildMonthSelector();
     render();
+    await autoEncerrarPosManifestacao();
     await autoFixFaltaPagamento();
     await autoMarkDevedores();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
@@ -432,8 +433,17 @@ function computeOverview(){
   return {entradas,saidas,aberto,lucro:entradas-saidas,lEnt,lSai,lAb};
 }
 
+const FASES_POS_PERICIA=['Ativo - Pós Perícia - Aguardando Laudo','Para cobrança pós perícia, falta manifestação','Ativo - Laudo já publicado'];
+const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&String(tipoPagLabel(co)).toLowerCase().indexOf('inicia')>=0);
+const hasFinalCob=cobs=>cobs.some(co=>!isSaida(co)&&(String(tipoPagLabel(co)).toLowerCase().indexOf('final')>=0||String(tipoPagLabel(co)).indexOf('100')>=0));
+function caseRemarcFee(caso){
+  const dp=fv(caso,F.caso.dataPericia);
+  const n=Array.isArray(dp)?dp.length:(dp?1:0);
+  return Math.max(0,n-1)*500;
+}
+
 function computeCobrar(){
-  const enc=[],ini=[],conf=[];
+  const enc=[],ini=[],finais=[],conf=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
     if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue;
@@ -441,19 +451,55 @@ function computeCobrar(){
     const fmt=fv(c,F.caso.formato);
     const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
     const needsConfirm=cliConfirmarOfCaso(c);
+    const cobs=COBS_BY_CASO[c.id]||[];
     if(isEnc){
-      const item={caso:c,valor:num(fv(c,F.caso.valor)),tipo:is5050?t('fmt50'):t('fmt100')};
+      const remarc=caseRemarcFee(c);
+      const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
+      const item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
       if(needsConfirm)conf.push(item);else enc.push(item);
-    }else if(is5050&&fase&&fase.indexOf('Ativo')>=0){
-      const cobs=COBS_BY_CASO[c.id]||[];
+    }else if(is5050&&fase&&fase.indexOf('Ativo')>=0&&FASES_POS_PERICIA.indexOf(fase)<0){
       const hasEntrada=cobs.some(co=>!isSaida(co)&&num(fv(co,F.cob.valorReceber))>0);
       if(!hasEntrada){
-        const item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50%'};
+        const item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50% Iniciais'};
         if(needsConfirm)conf.push(item);else ini.push(item);
+      }
+    }else if(is5050&&FASES_POS_PERICIA.indexOf(fase)>=0){
+      // Categoria 3: 50% Finais pós-perícia
+      if(hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
+        const remarc=caseRemarcFee(c);
+        const item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
+        if(needsConfirm)conf.push(item);else finais.push(item);
       }
     }
   }
-  return {enc,ini,conf};
+  return {enc,ini,finais,conf};
+}
+
+// Auto-encerrar casos cuja manifestação ao laudo passou há mais de 3 dias
+async function autoEncerrarPosManifestacao(){
+  const t0=today();const t3=new Date(t0);t3.setDate(t3.getDate()-3);
+  const fixed=[];
+  for(const c of DATA.casos){
+    const fase=fv(c,F.caso.fase);
+    if(FASES_POS_PERICIA.indexOf(fase)<0)continue;
+    const prazos=PRAZOS_BY_CASO[c.id]||[];
+    const hasManifPassed=prazos.some(p=>{
+      const tp=fv(p,F.prazo.tipo);
+      const tipoStr=(Array.isArray(tp)?tp.join(' '):String(tp||'')).toLowerCase();
+      if(tipoStr.indexOf('manifest')<0||tipoStr.indexOf('laudo')<0)return false;
+      const d=parseDate(fv(p,F.prazo.data));
+      return d&&d<t3;
+    });
+    if(!hasManifPassed)continue;
+    try{
+      const fields={};fields[F.caso.fase]='Encerrado PARA COBRANÇA';
+      await patchRecord(TBL.casos,c.id,fields);
+      c.fields[F.caso.fase]='Encerrado PARA COBRANÇA';
+      c._autoEncerrado=true;
+      fixed.push(c);
+    }catch(e){}
+  }
+  for(const c of fixed)showToast('Auto-encerrado: '+casoNome(c),false);
 }
 
 function computePendentes(){
@@ -730,14 +776,20 @@ async function handleSave(btn){
         await createRecord(TBL.cob,fields);
       }
     }else if(type==='pay'){
+      const cobId=form.dataset.cobid;
       const fields={};fields[F.cob.recebido]=true;
       const d=form.querySelector('[name=dRec]').value;if(d)fields[F.cob.dataReceb]=d;
-      await patchRecord(TBL.cob,form.dataset.cobid,fields);
-      // Se era devedor, mudar fase para Encerrado - Pago
+      await patchRecord(TBL.cob,cobId,fields);
+      // Lógica de transição de fase
       const casoId=form.dataset.casoid;
       if(casoId){
         const c=casoById(casoId);
-        if(c&&fv(c,F.caso.fase)==='Devedor'){
+        const cob=DATA.cob.find(x=>x.id===cobId);
+        const tp=cob?String(tipoPagLabel(cob)).toLowerCase():'';
+        const isInicial=tp.indexOf('inicia')>=0;
+        const fase=c?fv(c,F.caso.fase):'';
+        const terminal=fase==='Encerrado PARA COBRANÇA'||fase==='Encerrado - Falta Pagamento'||fase==='Devedor';
+        if(c&&!isInicial&&terminal){
           const cf={};cf[F.caso.fase]='Encerrado - Pago';
           await patchRecord(TBL.casos,casoId,cf);
         }
@@ -935,8 +987,9 @@ function renderCobrar(){
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
   let html=sortToolbar();
   if(g.conf.length)html+='<div class="section warn"><h2>⚠ '+t('sConf')+' — '+fmtBRL(sum(g.conf))+' ('+g.conf.length+')</h2>'+caseTable(g.conf,{cols:['case','client','phase','type','value'],prefix:'cf',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>'+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>1. '+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>2. '+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>3. 50% Finais Pós-Perícia — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
   return html;
 }
 
