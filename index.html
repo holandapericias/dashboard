@@ -651,18 +651,49 @@ function computePrevisao(){
     }
   }
   events.sort((a,b)=>a.date-b.date);
-  let acc=0;let minSaldo=0;let minDate=t0;
+  const saldoInicial=getSaldo().valor||0;
+  let acc=saldoInicial;let minSaldo=saldoInicial;let minDate=t0;
   for(const e of events){acc+=e.entrada-e.saida;e.saldo=acc;if(acc<minSaldo){minSaldo=acc;minDate=e.date;}}
   const recebidos=jaCobrados.reduce((s,x)=>s+x.esperado,0)+cobrPrev.reduce((s,x)=>s+x.valor*x.prob,0);
   const pagamentos=pericias+custosFixos+retiradasMed;
   const saldo=recebidos-pagamentos;
-  // Retirada segura = min cashflow - 1 mês custos fixos (não pode ser negativa)
-  const retirada=Math.max(0,minSaldo+recebidos-custosFixos); // mínimo simulado + extras
-  // Melhor: retirada = max(0, minSaldo - custosFixos) mas considerando que minSaldo já incorpora tudo
-  const retiradaSegura=Math.max(0,minSaldo-custosFixos+recebidos);
-  // Simplificação: minSaldo representa pior ponto ao longo de 30d. Reserva = custosFixos.
-  const retiradaFinal=Math.max(0,minSaldo-custosFixos);
-  return {jaCobrados,cobrPrev,lPag,lCF,custosFixos,retiradasMed,pericias,events,minSaldo,minDate,recebidos,pagamentos,saldo,retirada:Math.max(0,retiradaFinal+recebidos)};
+  // Retirada segura: ponto mais baixo do saldo projetado - reserva de 1 mês de custos fixos
+  const retirada=Math.max(0,minSaldo-custosFixos);
+  return {jaCobrados,cobrPrev,lPag,lCF,custosFixos,retiradasMed,pericias,events,minSaldo,minDate,recebidos,pagamentos,saldo,retirada,saldoInicial};
+}
+
+// ========== SALDO / SNAPSHOTS (localStorage) ==========
+function getSaldo(){try{return JSON.parse(localStorage.getItem('hp_saldo')||'{}');}catch(e){return {};}}
+function setSaldo(valor,data){localStorage.setItem('hp_saldo',JSON.stringify({valor:parseFloat(valor)||0,data:data||todayISO()}));}
+function getSnapshots(){try{return JSON.parse(localStorage.getItem('hp_snapshots')||'[]');}catch(e){return [];}}
+function addSnapshot(s){const arr=getSnapshots().filter(x=>x.mes!==s.mes);arr.push(s);arr.sort((a,b)=>a.mes.localeCompare(b.mes));localStorage.setItem('hp_snapshots',JSON.stringify(arr));}
+
+function fecharMes(){
+  const mk=SELECTED_MONTH||monthKey(new Date());
+  const saldoFinal=prompt('Saldo bancário no fechamento do mês '+monthLabel(mk)+' (R$):');
+  if(saldoFinal===null)return;
+  const val=parseFloat(saldoFinal)||0;
+  // Calcular receita / saídas operacionais / retiradas do mês
+  let receita=0,saidasOp=0,retiradas=0;
+  for(const co of DATA.cob){
+    if(isSaida(co)){
+      const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
+      if(!d||monthKey(d)!==mk)continue;
+      const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+      const marker=String(fv(co,F.cob.numeroNF)||'');
+      if(/^RETIRADA:/i.test(marker))retiradas+=v;
+      else saidasOp+=v;
+    }else if(fv(co,F.cob.recebido)===true){
+      const d=fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca);
+      if(!d||monthKey(d)!==mk)continue;
+      receita+=num(fv(co,F.cob.valorReceber));
+    }
+  }
+  const resultado=receita-saidasOp-retiradas;
+  addSnapshot({mes:mk,saldoFinal:val,receita,saidasOp,retiradas,resultado,data:todayISO()});
+  setSaldo(val,todayISO());
+  showToast('Mês '+monthLabel(mk)+' fechado. Resultado: '+fmtBRL(resultado),false);
+  render();
 }
 
 function computeAlerts(){
@@ -833,6 +864,13 @@ async function handleSave(btn){
       const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
       const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
       await patchRecord(TBL.casos,form.dataset.casoid,fields);
+    }else if(type==='saldo'){
+      const val=parseFloat(form.querySelector('[name=val]').value)||0;
+      const d=form.querySelector('[name=d]').value||todayISO();
+      setSaldo(val,d);
+      msg.textContent=t('saved');msg.className='msg ok';
+      setTimeout(render,400);
+      return;
     }else if(type==='pedido'){
       const numPedido=form.querySelector('[name=numPedido]').value.trim();
       if(!numPedido){msg.textContent='Digite o número';msg.className='msg err';return;}
@@ -959,11 +997,35 @@ function renderOverview(){
     const extra=x.type==='vencida60'?' ('+x.dias+'d)':(x.type==='periciaProx'?' ('+fmtDate(x.data)+')':'');
     return '<div class="alert '+cls+'"><strong>'+lbl+':</strong> '+esc(x.caso?casoNome(x.caso):'—')+extra+'</div>';
   }).join('');
-  return '<div class="cards">'+
+  // Saldo bancário + retiradas do mês
+  const saldo=getSaldo();
+  const mk=SELECTED_MONTH||monthKey(new Date());
+  let retMes=0;
+  for(const co of DATA.cob){
+    if(!isSaida(co))continue;
+    const marker=String(fv(co,F.cob.numeroNF)||'');
+    if(!/^RETIRADA:/i.test(marker))continue;
+    const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
+    if(!d||monthKey(d)!==mk)continue;
+    retMes+=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+  }
+  const resultadoReal=OV.lucro-retMes;
+  const saldoCard='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">'+
+    '<div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Saldo Bancário (Caixa Econômica)</div>'+
+    '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(saldo.valor||0)+'</div>'+
+    '<div style="font-size:12px;color:#6b7c8c">'+(saldo.data?'Atualizado em '+fmtDate(saldo.data):'Nunca atualizado')+'</div></div>'+
+    '<div style="flex:1;max-width:360px"><div class="form" data-form="saldo" style="margin:0;background:#fff">'+
+    '<div><label>Valor</label><input name="val" type="number" step="0.01" value="'+(saldo.valor||'')+'"></div>'+
+    '<div><label>Data do extrato</label><input name="d" type="date" value="'+(saldo.data||todayISO())+'"></div>'+
+    '<div class="actions"><button class="btn green" data-act="save">Atualizar Saldo</button><button class="btn" data-act="fecharMes" style="margin-left:auto">Fechar Mês</button><span class="msg"></span></div>'+
+    '</div></div></div></div>';
+  return saldoCard+'<div class="cards">'+
     card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
     card('sai','red',t('saidasLbl'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
     card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • últimos 30d')+
-    card('lu','blue',t('lucro'),OV.lucro,monthLabel(SELECTED_MONTH))+
+    card('lu','blue','Lucro Operacional',OV.lucro,'Entradas − Saídas')+
+    '<div class="card '+(resultadoReal>=0?'green':'red')+'"><div class="label">Resultado Real</div><div class="value">'+fmtBRL(resultadoReal)+'</div><div class="sub">− '+fmtBRL(retMes)+' retiradas</div></div>'+
     '</div>'+exp+
     '<div class="section"><h2>'+t('alerts')+'</h2>'+alertHtml+'</div>'+
     '<div class="section"><h2>'+t('distFase')+'</h2>'+
@@ -1238,7 +1300,7 @@ function renderPrevisao(){
     '</div>';
   // Retirada segura
   html+='<div class="section"><h2>'+t('retirada')+'</h2>'+
-    '<div class="note">O ponto mais baixo do seu saldo nos próximos 30 dias é <strong>'+fmtBRL(p.minSaldo)+'</strong> em '+fmtDate(p.minDate)+'. Subtraindo <strong>'+fmtBRL(p.custosFixos)+'</strong> de reserva (1 mês de custos fixos), a retirada segura é <strong>'+fmtBRL(p.retirada)+'</strong>.</div>'+
+    '<div class="note">Saldo atual: <strong>'+fmtBRL(p.saldoInicial)+'</strong> → Ponto mais baixo em 30d: <strong>'+fmtBRL(p.minSaldo)+'</strong> em '+fmtDate(p.minDate)+' → Reserva (1 mês de custos fixos): <strong>'+fmtBRL(p.custosFixos)+'</strong> → <strong>Retirada segura: '+fmtBRL(p.retirada)+'</strong></div>'+
     '<div class="kpi"><div class="box green"><div class="l">'+t('recebidos')+'</div><div class="v">'+fmtBRL(p.recebidos)+'</div></div>'+
     '<div class="box red"><div class="l">'+t('pagamentos')+'</div><div class="v">'+fmtBRL(p.pagamentos)+'</div></div>'+
     '<div class="box"><div class="l">'+t('saldo')+'</div><div class="v">'+fmtBRL(p.saldo)+'</div></div>'+
@@ -1334,6 +1396,12 @@ function renderFPA(){
     (cfs.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     cfs.sort((a,b)=>num(fv(b,F.cf.valor))-num(fv(a,F.cf.valor))).map(c=>'<tr><td>'+esc(fv(c,F.cf.nome)||'—')+'</td><td class="right">'+(fv(c,F.cf.dia)||'—')+'</td><td class="right">'+fmtBRL(num(fv(c,F.cf.valor)))+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
     '</div>';
+  // Evolução mensal (snapshots)
+  const snaps=getSnapshots();
+  html+='<div class="section"><h2>Evolução Mensal (Fechamentos)</h2>'+
+    (snaps.length?'<table><thead><tr><th>Mês</th><th class="right">Receita</th><th class="right">Saídas Op.</th><th class="right">Retiradas</th><th class="right">Resultado</th><th class="right">Saldo Final</th></tr></thead><tbody>'+
+    snaps.slice().reverse().map(s=>'<tr><td>'+monthLabel(s.mes)+'</td><td class="right">'+fmtBRL(s.receita)+'</td><td class="right">'+fmtBRL(s.saidasOp)+'</td><td class="right">'+fmtBRL(s.retiradas)+'</td><td class="right"><strong>'+fmtBRL(s.resultado)+'</strong></td><td class="right">'+fmtBRL(s.saldoFinal)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Nenhum mês fechado ainda. Use "Fechar Mês" na Visão Geral.</div>')+
+    '</div>';
   return html;
 }
 
@@ -1350,6 +1418,7 @@ function attachHandlers(){
   });
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
+  document.querySelectorAll('[data-act="fecharMes"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();fecharMes();};});
   const ss=document.getElementById('sortSel');
   if(ss)ss.onchange=e=>{SORT_MODE=e.target.value;render();};
 }
