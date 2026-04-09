@@ -284,6 +284,24 @@ function showToast(msg,warn){
   setTimeout(()=>d.remove(),6000);
 }
 
+async function autoFixFaltaPagamento(){
+  // Casos em "Encerrado PARA COBRANÇA" que já têm cobrança de Entrada com NF emitida → mover para "Encerrado - Falta Pagamento"
+  const fixed=[];
+  for(const c of DATA.casos){
+    if(fv(c,F.caso.fase)!=='Encerrado PARA COBRANÇA')continue;
+    const cobs=COBS_BY_CASO[c.id]||[];
+    const hasNF=cobs.some(co=>!isSaida(co)&&fv(co,F.cob.nfEmitida)===true);
+    if(!hasNF)continue;
+    try{
+      const fields={};fields[F.caso.fase]='Encerrado - Falta Pagamento';
+      await patchRecord(TBL.casos,c.id,fields);
+      c.fields[F.caso.fase]='Encerrado - Falta Pagamento';
+      fixed.push(c);
+    }catch(e){}
+  }
+  for(const c of fixed)showToast('Corrigido → Falta Pagamento: '+casoNome(c),false);
+}
+
 async function autoMarkDevedores(){
   const t0=today();const changes=[];
   const toUpdateCob=[];const toUpdateCaso=new Set();
@@ -329,7 +347,8 @@ async function loadData(){
     for(const co of DATA.cob){const cid=fv(co,F.cob.caso);if(cid&&cid[0])(COBS_BY_CASO[cid[0]]=COBS_BY_CASO[cid[0]]||[]).push(co);}
     buildMonthSelector();
     render();
-    autoMarkDevedores();
+    await autoFixFaltaPagamento();
+    await autoMarkDevedores();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
 
