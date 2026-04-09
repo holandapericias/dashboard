@@ -146,6 +146,7 @@ tr.cf-row.neg td{background:#fdecec}
   <button data-tab="pendentes"></button>
   <button data-tab="devedores"></button>
   <button data-tab="saidas"></button>
+  <button data-tab="historico"></button>
   <button data-tab="previsao"></button>
   <button data-tab="fpa"></button>
 </nav>
@@ -156,7 +157,7 @@ tr.cf-row.neg td{background:#fdecec}
 <script>
 // ========== I18N ==========
 const I18N={
-pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",previsao:"Previsão 30d",fpa:"FP&A",
+pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",historico:"Histórico",previsao:"Previsão 30d",fpa:"FP&A",
 entradas:"Entradas",saidasLbl:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
 case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",
 forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",
@@ -177,7 +178,7 @@ saved:"Salvo!",saveErr:"Erro",autoDev:"Caso movido para Devedor automaticamente"
 sStepCasos:"casos",sStepCob:"cobranças",sStepCli:"clientes",sStepPrazo:"prazos",sStepCF:"custos fixos",
 prob:"Prob",esperado:"Esperado",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
 event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado"},
-en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",previsao:"Next 30d",fpa:"FP&A",
+en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",historico:"History",previsao:"Next 30d",fpa:"FP&A",
 entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
 case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
 forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",
@@ -208,10 +209,12 @@ caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I
 cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',numeroNF:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI'},
 cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC',ref:'fldDLgDwqCwlyVUy3'},
 prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
-cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'}
+cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'},
+assist:{nome:'fldaYZAZioP0rVl4O'}
 };
+F.cob.assist='fld18er35haoa5vHt';
 const BASE='appTEAYT5TYhnQwTn';
-const TBL={casos:'Casos',cob:'Cobranças',cli:'Clientes',prazo:'Prazos',cf:'tblmcxyRVtn2LYqLU'};
+const TBL={casos:'Casos',cob:'Cobranças',cli:'Clientes',prazo:'Prazos',cf:'tblmcxyRVtn2LYqLU',assist:'tblK0oBCU9EmeXwLf'};
 
 // ========== AUTH ==========
 const ENC_TOKEN='U2FsdGVkX194UJtfpYg8cvCjBafdRCJf+su7nO9ExDKeqIXt/lKaoQI7C5kekd6UwjyXN1YGhS+H4adcmq3lJAWhcC87lYckPgJPOdrMjJzukyH3U463Oio5GPJQpmzrljMBrJcs+TrT42ix9Ji8WQ==';
@@ -236,7 +239,7 @@ document.getElementById('loginBtn').onclick=async()=>{
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
 
 // ========== DATA ==========
-const DATA={casos:[],cob:[],cli:[],prazo:[],cf:[]};
+const DATA={casos:[],cob:[],cli:[],prazo:[],cf:[],assist:[]};
 const PRAZOS_BY_CASO={};
 const COBS_BY_CASO={};
 
@@ -340,7 +343,8 @@ async function loadData(){
     const pCli=fetchAll(TBL.cli).then(r=>{DATA.cli=r;mark('ldCli',r.length+' '+t('sStepCli'));});
     const pPrazo=fetchAll(TBL.prazo).then(r=>{DATA.prazo=r;mark('ldPrazo',r.length+' '+t('sStepPrazo'));});
     const pCF=fetchAll(TBL.cf).then(r=>{DATA.cf=r;mark('ldCF',r.length+' '+t('sStepCF'));}).catch(()=>{DATA.cf=[];mark('ldCF','—');});
-    await Promise.all([pCasos,pCob,pCli,pPrazo,pCF]);
+    const pAssist=fetchAll(TBL.assist).then(r=>{DATA.assist=r;}).catch(()=>{DATA.assist=[];});
+    await Promise.all([pCasos,pCob,pCli,pPrazo,pCF,pAssist]);
     for(const k in PRAZOS_BY_CASO)delete PRAZOS_BY_CASO[k];
     for(const k in COBS_BY_CASO)delete COBS_BY_CASO[k];
     for(const p of DATA.prazo){const cid=fv(p,F.prazo.caso);if(cid&&cid[0])(PRAZOS_BY_CASO[cid[0]]=PRAZOS_BY_CASO[cid[0]]||[]).push(p);}
@@ -369,6 +373,8 @@ const nowStamp=()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');retu
 
 const casoById=id=>DATA.casos.find(c=>c.id===id);
 const cliById=id=>DATA.cli.find(c=>c.id===id);
+const assistById=id=>DATA.assist.find(a=>a.id===id);
+const assistNameOfCob=co=>{const ids=fv(co,F.cob.assist);if(!ids||!ids[0])return '';const a=assistById(ids[0]);return a?(fv(a,F.assist.nome)||''):'';};
 const casoNome=r=>fv(r,F.caso.nome)||'(sem nome)';
 const casoProcesso=r=>fv(r,F.caso.processo)||'';
 const cliOfCaso=c=>{const cid=fv(c,F.caso.cliente);if(!cid||!cid[0])return null;return cliById(cid[0]);};
@@ -411,7 +417,11 @@ function computeOverview(){
         let isRet=false;
         if(/^RETIRADA:/i.test(marker)){nome='Adiantamento pró-labore: '+marker.replace(/^RETIRADA:\s*/i,'');isRet=true;}
         else if(/^CF:/i.test(marker)){nome='Custo fixo: '+marker.replace(/^CF:\s*/i,'');}
-        else if(!nome)nome=marker||'—';
+        else{
+          const assist=assistNameOfCob(co);
+          if(assist)nome='Assistente: '+assist+(nome?' — '+nome:'');
+          else if(!nome)nome='—';
+        }
         lSai.push({nome,valor:v,data:dp||dc,cob:co,pago:fv(co,F.cob.pago)===true,isRet});
       }
     }else if(fv(co,F.cob.recebido)===true){
@@ -770,6 +780,10 @@ function caseRoadmap(caso){
     const last=s.dates[s.dates.length-1];
     s.display=last;s.status=last<t0?'done':'future';
   }
+  // Se alguma etapa posterior está concluída, etapas anteriores vazias viram "done" implícito
+  let lastDoneIdx=-1;
+  for(let i=0;i<stages.length;i++)if(stages[i].status==='done')lastDoneIdx=i;
+  for(let i=0;i<lastDoneIdx;i++)if(stages[i].status==='future'&&stages[i].dates.length===0)stages[i].status='done';
   let found=false;for(const s of stages)if(s.status!=='done'&&!found){s.status='current';found=true;}
   const remarc=Math.max(0,pDates.length-1);
   const done=stages.filter(s=>s.status==='done').length;
@@ -934,6 +948,7 @@ function render(){
   else if(TAB==='pendentes')c.innerHTML=renderPendentes();
   else if(TAB==='devedores')c.innerHTML=renderDevedores();
   else if(TAB==='saidas')c.innerHTML=renderSaidas();
+  else if(TAB==='historico')c.innerHTML=renderHistorico();
   else if(TAB==='previsao')c.innerHTML=renderPrevisao();
   else if(TAB==='fpa')c.innerHTML=renderFPA();
   attachHandlers();
@@ -1039,7 +1054,7 @@ function renderOverview(){
   return saldoCard+'<div class="cards">'+
     card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
     card('sai','red',t('saidasLbl'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
-    card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • últimos 30d')+
+    card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • em aberto')+
     card('lu','blue','Lucro Operacional',OV.lucro,'Entradas − Saídas')+
     '<div class="card '+(resultadoReal>=0?'green':'red')+'"><div class="label">Resultado Real</div><div class="value">'+fmtBRL(resultadoReal)+'</div><div class="sub">− '+fmtBRL(retMes)+' retiradas</div></div>'+
     '</div>'+exp+
@@ -1283,6 +1298,62 @@ function renderSaidas(){
   return html;
 }
 
+let HIST_FROM=null,HIST_TO=null;
+function renderHistorico(){
+  const now=new Date();
+  if(!HIST_FROM){const d=new Date(now.getFullYear(),now.getMonth()-2,1);HIST_FROM=d.toISOString().slice(0,10);}
+  if(!HIST_TO)HIST_TO=todayISO();
+  const from=parseDate(HIST_FROM),to=parseDate(HIST_TO);
+  const rows=[];
+  let totEnt=0,totSai=0;
+  for(const co of DATA.cob){
+    if(isSaida(co)){
+      const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
+      if(!d||d<from||d>to)continue;
+      const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+      const marker=String(fv(co,F.cob.numeroNF)||'');
+      let nome=fv(co,F.cob.nome)||'';
+      let cat='Saída';
+      if(/^RETIRADA:/i.test(marker)){nome='Adiantamento pró-labore: '+marker.replace(/^RETIRADA:\s*/i,'');cat='Retirada';}
+      else if(/^CF:/i.test(marker)){nome='Custo fixo: '+marker.replace(/^CF:\s*/i,'');cat='Custo Fixo';}
+      else{
+        const a=assistNameOfCob(co);
+        if(a)nome='Assistente: '+a+(nome?' — '+nome:'');
+      }
+      rows.push({data:d,tipo:'saida',cat,nome,valor:v});
+      totSai+=v;
+    }else if(fv(co,F.cob.recebido)===true){
+      const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));
+      if(!d||d<from||d>to)continue;
+      const v=num(fv(co,F.cob.valorReceber));
+      rows.push({data:d,tipo:'entrada',cat:'Entrada',nome:fv(co,F.cob.nome)||'—',valor:v});
+      totEnt+=v;
+    }
+  }
+  rows.sort((a,b)=>b.data-a.data);
+  const saldo=totEnt-totSai;
+  let html='<div class="section"><h2>Histórico de Entradas e Saídas</h2>'+
+    '<div class="toolbar">'+
+    '<label>De: <input type="date" id="histFrom" value="'+HIST_FROM+'"></label>'+
+    '<label>Até: <input type="date" id="histTo" value="'+HIST_TO+'"></label>'+
+    '<button class="btn" id="histApply">Aplicar</button>'+
+    '</div>'+
+    '<div class="kpi">'+
+    '<div class="box green"><div class="l">Entradas</div><div class="v">'+fmtBRL(totEnt)+'</div></div>'+
+    '<div class="box red"><div class="l">Saídas</div><div class="v">'+fmtBRL(totSai)+'</div></div>'+
+    '<div class="box '+(saldo>=0?'green':'red')+'"><div class="l">Saldo</div><div class="v">'+fmtBRL(saldo)+'</div></div>'+
+    '<div class="box"><div class="l">Operações</div><div class="v">'+rows.length+'</div></div>'+
+    '</div>'+
+    (rows.length?'<table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="right">Entrada</th><th class="right">Saída</th></tr></thead><tbody>'+
+    rows.map(r=>{
+      const tagCls=r.tipo==='entrada'?'green':(r.cat==='Retirada'?'orange':(r.cat==='Custo Fixo'?'blue':'red'));
+      const nameStyle=r.cat==='Retirada'?' style="font-style:italic;color:#a35a07"':'';
+      return '<tr><td>'+fmtDate(r.data)+'</td><td><span class="tag '+tagCls+'">'+r.cat+'</span></td><td'+nameStyle+'>'+esc(r.nome)+'</td><td class="right">'+(r.tipo==='entrada'?fmtBRL(r.valor):'')+'</td><td class="right">'+(r.tipo==='saida'?fmtBRL(r.valor):'')+'</td></tr>';
+    }).join('')+'</tbody></table>':'<div class="empty">Nenhuma operação no período</div>')+
+    '</div>';
+  return html;
+}
+
 function renderPrevisao(){
   const p=computePrevisao();
   const ov=computeOverview();
@@ -1463,6 +1534,8 @@ function attachHandlers(){
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
   document.querySelectorAll('[data-act="fecharMes"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();fecharMes();};});
+  const ha=document.getElementById('histApply');
+  if(ha)ha.onclick=()=>{HIST_FROM=document.getElementById('histFrom').value;HIST_TO=document.getElementById('histTo').value;render();};
   const ss=document.getElementById('sortSel');
   if(ss)ss.onchange=e=>{SORT_MODE=e.target.value;render();};
 }
