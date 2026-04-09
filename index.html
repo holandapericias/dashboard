@@ -423,18 +423,20 @@ function computeOverview(){
       }
     }
   }
-  const t0=today();const t30=new Date(t0);t30.setDate(t30.getDate()-30);
+  // Em Aberto = mesmos critérios da aba Pendentes
+  const t0=today();
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.nfEmitida)!==true)continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
-    const d=parseDate(fv(co,F.cob.dataCobranca));
-    if(!d||d<t30||d>t0)continue;
-    const v=num(fv(co,F.cob.valorReceber));if(v<=0)continue;
-    aberto+=v;
+    if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     if(c&&fv(c,F.caso.fase)==='Devedor')continue;
-    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:d,cob:co,dias:daysBetween(d,t0),caso:c});
+    const d=parseDate(fv(co,F.cob.dataCobranca));
+    const dias=d?daysBetween(d,t0):0;
+    if(d&&dias>90)continue;
+    aberto+=num(fv(co,F.cob.valorReceber));
+    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:num(fv(co,F.cob.valorReceber)),data:d,cob:co,dias,caso:c});
   }
   return {entradas,saidas,aberto,lucro:entradas-saidas,lEnt,lSai,lAb};
 }
