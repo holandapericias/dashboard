@@ -847,7 +847,7 @@ async function handleSave(btn){
       const d=form.querySelector('[name=d]').value||todayISO();
       const name=form.dataset.cfname;
       const fields={};
-      fields[F.cob.nome]=name;
+      fields[F.cob.numeroNF]='CF: '+name;
       fields[F.cob.tipo]='Saída';
       fields[F.cob.tipoPag]='Custo Fixo';
       fields[F.cob.valorPag]=val;
@@ -859,7 +859,7 @@ async function handleSave(btn){
       const d=form.querySelector('[name=d]').value;
       const desc=form.querySelector('[name=desc]').value;
       const fields={};
-      fields[F.cob.nome]=desc||'Retirada pessoal';
+      fields[F.cob.numeroNF]='RETIRADA: '+(desc||'Retirada pessoal');
       fields[F.cob.tipo]='Saída';
       fields[F.cob.tipoPag]='Pró-labore';
       fields[F.cob.valorPag]=val;
@@ -1123,10 +1123,16 @@ function renderSaidas(){
   const retiradas=DATA.cob.filter(co=>{
     if(!isSaida(co))return false;
     const tp=tipoCob(co);
-    if(tp.indexOf('labore')<0&&tp.indexOf('retirada')<0)return false;
+    const marker=String(fv(co,F.cob.numeroNF)||'');
+    if(tp.indexOf('labore')<0&&tp.indexOf('retirada')<0&&!/^RETIRADA:/i.test(marker))return false;
     const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
     return d&&monthKey(d)===mk;
   });
+  const retiradaDesc=co=>{
+    const m=String(fv(co,F.cob.numeroNF)||'');
+    if(/^RETIRADA:/i.test(m))return m.replace(/^RETIRADA:\s*/i,'');
+    return fv(co,F.cob.nome)||'Retirada';
+  };
 
   let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
     (assist.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
@@ -1149,9 +1155,14 @@ function renderSaidas(){
     if(!isSaida(co)||fv(co,F.cob.pago)!==true)continue;
     const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
     if(!d||monthKey(d)!==mk)continue;
-    const tp=tipoCob(co);
-    if(tp.indexOf('custo')<0&&tp.indexOf('fixo')<0)continue;
-    const nm=String(fv(co,F.cob.nome)||'').toLowerCase().trim();
+    const marker=String(fv(co,F.cob.numeroNF)||'');
+    let nm='';
+    if(/^CF:/i.test(marker))nm=marker.replace(/^CF:\s*/i,'').toLowerCase().trim();
+    else{
+      const tp=tipoCob(co);
+      if(tp.indexOf('custo')<0&&tp.indexOf('fixo')<0)continue;
+      nm=String(fv(co,F.cob.nome)||'').toLowerCase().trim();
+    }
     if(nm)cfPayments[nm]=co;
   }
   html+='<div class="section"><h2>B. '+t('secCF')+' — '+fmtBRL(cfTotal)+' ('+cfs.length+')</h2>'+
@@ -1188,7 +1199,7 @@ function renderSaidas(){
     '<div><label>'+t('descricao')+'</label><input name="desc" placeholder="Ex: conta de luz"></div>'+
     '<div class="actions"><button class="btn orange" data-act="save">'+t('btnRegistrarSaida')+'</button><span class="msg"></span></div></div>'+
     (retiradas.length?'<table><thead><tr><th>'+t('descricao')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    retiradas.map(co=>'<tr><td>'+esc(fv(co,F.cob.nome)||'—')+'</td><td>'+fmtDate(fv(co,F.cob.dataPag))+'</td><td class="right">'+fmtBRL(num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber)))+'</td></tr>').join('')+'</tbody></table>':'')+
+    retiradas.map(co=>'<tr><td>'+esc(retiradaDesc(co))+'</td><td>'+fmtDate(fv(co,F.cob.dataPag))+'</td><td class="right">'+fmtBRL(num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber)))+'</td></tr>').join('')+'</tbody></table>':'')+
     '</div>';
   return html;
 }
