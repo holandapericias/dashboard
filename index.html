@@ -228,15 +228,25 @@ async function decryptToken(pw){
   const key=await crypto.subtle.importKey('raw',bits.slice(0,32),{name:'AES-CBC'},false,['decrypt']);
   return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-CBC',iv:bits.slice(32,48)},key,ct));
 }
+function enterApp(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadData();
+}
 document.getElementById('loginBtn').onclick=async()=>{
   const pw=document.getElementById('pw').value;const err=document.getElementById('loginErr');err.textContent='';
   try{TK=await decryptToken(pw);if(!TK.startsWith('pat'))throw 0;
-    document.getElementById('login').style.display='none';
-    document.getElementById('app').style.display='block';
-    loadData();
+    try{localStorage.setItem('hp_tk',TK);}catch(e){}
+    enterApp();
   }catch(e){err.textContent='Senha incorreta / Wrong password';}
 };
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+// Auto-login se já autenticou neste dispositivo
+(function(){
+  try{const saved=localStorage.getItem('hp_tk');
+    if(saved&&saved.startsWith('pat')){TK=saved;enterApp();}
+  }catch(e){}
+})();
 
 // ========== DATA ==========
 const DATA={casos:[],cob:[],cli:[],prazo:[],cf:[],assist:[]};
