@@ -387,6 +387,7 @@ const tipoPagLabel=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return Stri
 // ========== MONTH ==========
 let SELECTED_MONTH=null;
 let SORT_MODE='date';
+let FILTER_CLIENT='';
 function buildMonthSelector(){
   const set=new Set();
   for(const c of DATA.cob){
@@ -1199,7 +1200,11 @@ function renderPendentes(){
       '<div style="margin-top:8px;font-size:12px;color:#6b7c8c;font-style:italic">Verifique seu extrato bancário a partir desta data.</div>'+
       '</div></div>';
   }
-  return banner+sortToolbar()+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
+  const filtered=FILTER_CLIENT?list.filter(r=>r.caso&&cliNomeOfCaso(r.caso).toLowerCase().indexOf(FILTER_CLIENT.toLowerCase())>=0):list;
+  const filtTotal=filtered.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
+  const clients=[...new Set(list.map(r=>r.caso?cliNomeOfCaso(r.caso):'—'))].sort();
+  const filterBar='<div class="toolbar"><label>'+t('client')+': <select id="filterClient"><option value="">Todos ('+list.length+')</option>'+clients.map(c=>'<option value="'+esc(c)+'"'+(FILTER_CLIENT===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div>';
+  return banner+sortToolbar()+filterBar+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(filtTotal)+' ('+filtered.length+(FILTER_CLIENT?' de '+list.length:'')+')</h2>'+caseTable(filtered,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
 function renderDevedores(){
@@ -1523,7 +1528,7 @@ function renderFPA(){
 }
 
 function attachHandlers(){
-  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;EXPANDED_CARD=null;EXPANDED_ROW=null;render();});
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;EXPANDED_CARD=null;EXPANDED_ROW=null;FILTER_CLIENT='';render();});
   document.querySelectorAll('.card[data-card]').forEach(card=>{
     card.onclick=()=>{const k=card.dataset.card;EXPANDED_CARD=EXPANDED_CARD===k?null:k;EXPANDED_ROW=null;render();};
   });
@@ -1536,6 +1541,8 @@ function attachHandlers(){
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
   document.querySelectorAll('[data-act="fecharMes"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();fecharMes();};});
+  const fc=document.getElementById('filterClient');
+  if(fc)fc.onchange=()=>{FILTER_CLIENT=fc.value;render();};
   const ha=document.getElementById('histApply');
   if(ha)ha.onclick=()=>{HIST_FROM=document.getElementById('histFrom').value;HIST_TO=document.getElementById('histTo').value;render();};
   const ss=document.getElementById('sortSel');
