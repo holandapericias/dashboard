@@ -950,7 +950,7 @@ let OV=null;
 function render(){
   document.querySelectorAll('nav button').forEach(b=>{
     const hasAssistPend=b.dataset.tab==='saidas'&&DATA.cob.some(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
-    b.textContent=t(b.dataset.tab)+(hasAssistPend?' ⚠':'');
+    b.innerHTML=t(b.dataset.tab)+(hasAssistPend?' <span style="color:#f0c800;text-shadow:0 0 2px rgba(0,0,0,.3)">⚠</span>':'');
     b.classList.toggle('active',b.dataset.tab===TAB);
   });
   document.getElementById('langSel').value=LANG;
