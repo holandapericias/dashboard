@@ -160,7 +160,7 @@ const I18N={
 pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",historico:"Histórico",previsao:"Previsão 30d",fpa:"FP&A",
 entradas:"Entradas",saidasLbl:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
 case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",
-forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",
+forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",assistPend:"Assistente técnico pendente de pagamento",
 noData:"Sem dados",loading:"Carregando",err:"Erro",allMonths:"Todos os meses",
 sortBy:"Ordenar por",sortDate:"Data",sortClient:"Cliente",
 s50:"50% Iniciais",sEnc:"Encerrados — Emitir NF",sConf:"Confirmar com Cliente",
@@ -181,7 +181,7 @@ event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado"},
 en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",historico:"History",previsao:"Next 30d",fpa:"FP&A",
 entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
 case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
-forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",
+forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",assistPend:"Assistant payment pending",
 noData:"No data",loading:"Loading",err:"Error",allMonths:"All months",
 sortBy:"Sort by",sortDate:"Date",sortClient:"Client",
 s50:"Pending 50% Upfront",sEnc:"Closed — Issue Invoice",sConf:"Confirm with Client",
@@ -749,6 +749,15 @@ function computeAlerts(){
     const cid=fv(p,F.prazo.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     a.push({type:'periciaProx',caso:c,data:d});
   }
+  // Assistentes pendentes de pagamento
+  for(const co of DATA.cob){
+    if(!isSaida(co)||fv(co,F.cob.pago)===true)continue;
+    const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+    if(v<=0)continue;
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    const assist=assistNameOfCob(co);
+    a.push({type:'assistPend',caso:c,cob:co,assist:assist||'—',valor:v});
+  }
   return a;
 }
 
@@ -940,7 +949,8 @@ let OV=null;
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>{
-    b.textContent=t(b.dataset.tab);
+    const hasAssistPend=b.dataset.tab==='saidas'&&DATA.cob.some(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
+    b.textContent=t(b.dataset.tab)+(hasAssistPend?' ⚠':'');
     b.classList.toggle('active',b.dataset.tab===TAB);
   });
   document.getElementById('langSel').value=LANG;
@@ -1018,9 +1028,12 @@ function renderOverview(){
       }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   }
   const alertHtml=a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>{
-    const lbl={forgot50:t('forgot50'),vencida60:t('vencida60'),periciaProx:t('periciaProx')}[x.type];
-    const cls=x.type==='forgot50'||x.type==='vencida60'?'red':'';
-    const extra=x.type==='vencida60'?' ('+x.dias+'d)':(x.type==='periciaProx'?' ('+fmtDate(x.data)+')':'');
+    const lbl={forgot50:t('forgot50'),vencida60:t('vencida60'),periciaProx:t('periciaProx'),assistPend:t('assistPend')}[x.type];
+    const cls=x.type==='forgot50'||x.type==='vencida60'?'red':(x.type==='assistPend'?'':'');
+    let extra='';
+    if(x.type==='vencida60')extra=' ('+x.dias+'d)';
+    else if(x.type==='periciaProx')extra=' ('+fmtDate(x.data)+')';
+    else if(x.type==='assistPend')extra=' — '+esc(x.assist)+' • '+fmtBRL(x.valor);
     return '<div class="alert '+cls+'"><strong>'+lbl+':</strong> '+esc(x.caso?casoNome(x.caso):'—')+extra+'</div>';
   }).join('');
   // Saldo bancário + retiradas do mês
