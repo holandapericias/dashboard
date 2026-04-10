@@ -205,7 +205,7 @@ const t=k=>I18N[LANG][k]||k;
 
 // ========== FIELDS ==========
 const F={
-caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I',formato:'fldorcMm83hAOgwmp',cliente:'fld7ddtpPu5BrgIoL',processo:'fldzUYMqa3SNmcaiy',dataPericia:'fld1SIT1qCgOrzvwE',obs:'fld82hJx9whlWhMhs'},
+caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I',formato:'fldorcMm83hAOgwmp',cliente:'fld7ddtpPu5BrgIoL',processo:'fldzUYMqa3SNmcaiy',dataPericia:'fld1SIT1qCgOrzvwE',obs:'fld82hJx9whlWhMhs',manifNos:'fldOM9NiLOlvUkHta'},
 cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',numeroNF:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI'},
 cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC',ref:'fldDLgDwqCwlyVUy3'},
 prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
@@ -478,7 +478,7 @@ function pedidoJaRecebido(caso){
   const obs=String(fv(caso,F.caso.obs)||'');
   return /pedido n[ºo°]?\s*\S+\s*recebido/i.test(obs);
 }
-const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&String(tipoPagLabel(co)).toLowerCase().indexOf('inicia')>=0);
+const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&fv(co,F.cob.recebido)===true&&String(tipoPagLabel(co)).toLowerCase().indexOf('inicia')>=0);
 const hasFinalCob=cobs=>cobs.some(co=>!isSaida(co)&&(String(tipoPagLabel(co)).toLowerCase().indexOf('final')>=0||String(tipoPagLabel(co)).indexOf('100')>=0));
 function caseRemarcFee(caso){
   const dp=fv(caso,F.caso.dataPericia);
@@ -498,7 +498,14 @@ function computeCobrar(){
     const needsPedido=pInfo&&!pedidoJaRecebido(c);
     const cobs=COBS_BY_CASO[c.id]||[];
     let item=null,destCat=null;
-    if(isEnc){
+    // Cat 3 check first: 50/50 with iniciais paid, finais missing — across multiple phases
+    const fasesFinal5050=['Encerrado PARA COBRANÇA','Encerrado - Falta Pagamento'];
+    const fasesFinal5050All=FASES_POS_PERICIA.concat(fasesFinal5050);
+    if(is5050&&fasesFinal5050All.indexOf(fase)>=0&&hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
+      const remarc=caseRemarcFee(c);
+      item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
+      destCat=finais;
+    }else if(isEnc){
       const remarc=caseRemarcFee(c);
       const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
       item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
@@ -508,12 +515,6 @@ function computeCobrar(){
       if(!hasEntrada){
         item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50% Iniciais'};
         destCat=ini;
-      }
-    }else if(is5050&&FASES_POS_PERICIA.indexOf(fase)>=0){
-      if(hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
-        const remarc=caseRemarcFee(c);
-        item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
-        destCat=finais;
       }
     }
     if(!item)continue;
@@ -1087,6 +1088,7 @@ function caseTable(rows,opts){
           if(n>1)extra+=' <span class="tag orange">'+(n-1)+' remarc</span>';
         }
         if(r.cob&&fv(r.cob,F.cob.nfRetida)===true)extra+=' <span class="tag red">'+t('nfRetida')+'</span>';
+        if(r.caso&&fv(r.caso,F.caso.manifNos)===true)extra+=' <span class="tag gray">manifestação sem nós</span>';
         return '<td>'+caseCell(r.caso)+extra+'</td>';
       }
       if(k==='client')return '<td>'+esc(r.caso?cliNomeOfCaso(r.caso):'—')+'</td>';
