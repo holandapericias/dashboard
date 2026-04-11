@@ -693,8 +693,26 @@ function computePrevisao(){
 }
 
 // ========== SALDO / SNAPSHOTS (localStorage) ==========
-function getSaldo(){try{return JSON.parse(localStorage.getItem('hp_saldo')||'{}');}catch(e){return {};}}
+function getSaldoRaw(){try{return JSON.parse(localStorage.getItem('hp_saldo')||'{}');}catch(e){return {};}}
 function setSaldo(valor,data){localStorage.setItem('hp_saldo',JSON.stringify({valor:parseFloat(valor)||0,data:data||todayISO()}));}
+function getSaldo(){
+  const raw=getSaldoRaw();
+  if(!raw.data||!raw.valor&&raw.valor!==0)return raw;
+  const base=raw.valor;const desde=parseDate(raw.data);if(!desde)return raw;
+  let delta=0;
+  for(const co of DATA.cob){
+    if(isSaida(co)){
+      const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
+      if(!d||d<=desde)continue;
+      if(fv(co,F.cob.pago)===true)delta-=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+    }else if(fv(co,F.cob.recebido)===true){
+      const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));
+      if(!d||d<=desde)continue;
+      delta+=num(fv(co,F.cob.valorReceber));
+    }
+  }
+  return {valor:base+delta,data:raw.data,base:base,delta:delta};
+}
 function getSnapshots(){try{return JSON.parse(localStorage.getItem('hp_snapshots')||'[]');}catch(e){return [];}}
 function addSnapshot(s){const arr=getSnapshots().filter(x=>x.mes!==s.mes);arr.push(s);arr.sort((a,b)=>a.mes.localeCompare(b.mes));localStorage.setItem('hp_snapshots',JSON.stringify(arr));}
 
@@ -1063,9 +1081,10 @@ function renderOverview(){
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">'+
     '<div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Saldo Bancário (Caixa Econômica)</div>'+
     '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(saldo.valor||0)+'</div>'+
-    '<div style="font-size:12px;color:#6b7c8c">'+(saldo.data?'Atualizado em '+fmtDate(saldo.data):'Nunca atualizado')+'</div></div>'+
+    '<div style="font-size:12px;color:#6b7c8c">'+(saldo.data?'Extrato base: '+fmtDate(saldo.data)+' • '+fmtBRL(saldo.base||saldo.valor||0):'Nunca atualizado')+
+    (saldo.delta?' <span style="color:'+(saldo.delta>=0?'#22a06b':'#d64545')+'">('+(saldo.delta>=0?'+':'')+fmtBRL(saldo.delta)+' desde então)</span>':'')+'</div></div>'+
     '<div style="flex:1;max-width:360px"><div class="form" data-form="saldo" style="margin:0;background:#fff">'+
-    '<div><label>Valor</label><input name="val" type="number" step="0.01" value="'+(saldo.valor||'')+'"></div>'+
+    '<div><label>Valor</label><input name="val" type="number" step="0.01" value="'+(getSaldoRaw().valor||'')+'"></div>'+
     '<div><label>Data do extrato</label><input name="d" type="date" value="'+(saldo.data||todayISO())+'"></div>'+
     '<div class="actions"><button class="btn green" data-act="save">Atualizar Saldo</button><button class="btn" data-act="fecharMes" style="margin-left:auto">Fechar Mês</button><span class="msg"></span></div>'+
     '</div></div></div>'+
