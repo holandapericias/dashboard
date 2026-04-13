@@ -457,7 +457,9 @@ function computeOverview(){
     const dias=d?daysBetween(d,t0):0;
     if(d&&dias>90)continue;
     aberto+=num(fv(co,F.cob.valorReceber));
-    lAb.push({nome:fv(co,F.cob.nome)||'—',valor:num(fv(co,F.cob.valorReceber)),data:d,cob:co,dias,caso:c});
+    const nfN=fv(co,F.cob.numeroNF);
+    const abNome=c?casoNome(c):(fv(co,F.cob.nome)||'—');
+    lAb.push({nome:abNome,nf:nfN,cli:c?cliNomeOfCaso(c):'—',proc:c?casoProcesso(c):'',valor:num(fv(co,F.cob.valorReceber)),data:d,cob:co,dias,caso:c});
   }
   return {entradas,saidas,aberto,lucro:entradas-saidas,lEnt,lSai,lAb};
 }
@@ -1033,19 +1035,25 @@ function renderOverview(){
     const map={ent:OV.lEnt,sai:OV.lSai,ab:OV.lAb,lu:OV.lEnt.concat(OV.lSai)};
     const titles={ent:t('entradas'),sai:t('saidasLbl'),ab:t('aberto'),lu:t('lucro')};
     const arr=map[EXPANDED_CARD].slice().sort((x,y)=>(new Date(y.data||0))-(new Date(x.data||0)));
+    const isAb=EXPANDED_CARD==='ab';
+    const isSai=EXPANDED_CARD==='sai';
+    const abHeaders=isAb?'<th>'+t('client')+'</th><th>NF</th><th class="right">'+t('days')+'</th>':'';
+    const saiHeaders=isSai?'<th>Status</th>':'';
     exp='<div class="section"><h2>'+titles[EXPANDED_CARD]+'</h2>'+
-      (arr.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th>'+(EXPANDED_CARD==='ab'?'<th class="right">'+t('days')+'</th>':'')+(EXPANDED_CARD==='sai'?'<th>Status</th>':'')+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
+      (arr.length?'<table><thead><tr><th>'+t('case')+'</th>'+abHeaders+'<th>'+t('date')+'</th>'+saiHeaders+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
       arr.map((x,i)=>{
         const rid='ov-'+EXPANDED_CARD+'-'+i;
         const expRow=EXPANDED_ROW===rid;
         const nameStyle=x.isRet?' style="font-style:italic;color:#a35a07"':'';
-        let row='<tr class="clickable'+(expRow?' expanded':'')+'" data-row="'+rid+'"><td'+nameStyle+'>'+esc(x.nome)+'</td><td>'+fmtDate(x.data)+'</td>';
-        if(EXPANDED_CARD==='ab')row+='<td class="right">'+daysBadge(x.dias)+'</td>';
-        if(EXPANDED_CARD==='sai')row+='<td>'+(x.pago?'<span class="tag green">Pago</span>':'<span class="tag orange">Pendente</span>')+'</td>';
+        const procHtml=x.proc?'<div class="proc">'+esc(x.proc)+'</div>':'';
+        let row='<tr class="clickable'+(expRow?' expanded':'')+'" data-row="'+rid+'"><td'+nameStyle+'>'+esc(x.nome)+procHtml+'</td>';
+        if(isAb)row+='<td>'+esc(x.cli||'—')+'</td><td>'+(x.nf?esc(x.nf):'—')+'</td><td class="right">'+daysBadge(x.dias)+'</td>';
+        row+='<td>'+fmtDate(x.data)+'</td>';
+        if(isSai)row+='<td>'+(x.pago?'<span class="tag green">Pago</span>':'<span class="tag orange">Pendente</span>')+'</td>';
         row+='<td class="right">'+fmtBRL(x.valor)+'</td></tr>';
         if(expRow&&x.cob){
           const cid=fv(x.cob,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-          const cols=2+(EXPANDED_CARD==='ab'?1:0)+(EXPANDED_CARD==='sai'?1:0)+1;
+          const cols=2+(isAb?3:0)+(isSai?1:0)+1;
           let det='';
           if(c)det+=renderRoadmap(c);
           if(EXPANDED_CARD==='sai'&&!x.pago)det+=renderPaidForm(x.cob);
