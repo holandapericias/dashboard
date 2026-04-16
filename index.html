@@ -210,7 +210,7 @@ cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrv
 cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC',ref:'fldDLgDwqCwlyVUy3'},
 prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
 cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'},
-assist:{nome:'fldaYZAZioP0rVl4O'}
+assist:{nome:'fldaYZAZioP0rVl4O',esp:'fldKZJvPLcO56iRMK',email:'fld0WW3RfuJJRbd9n',fone:'fldAcouFHEHO7KwlZ',local:'fldcnq8lrMMLyTnBG',pix:'fldF4Y5ATZAGNHYM4'}
 };
 F.cob.assist='fld18er35haoa5vHt';
 const BASE='appTEAYT5TYhnQwTn';
@@ -385,6 +385,7 @@ const casoById=id=>DATA.casos.find(c=>c.id===id);
 const cliById=id=>DATA.cli.find(c=>c.id===id);
 const assistById=id=>DATA.assist.find(a=>a.id===id);
 const assistNameOfCob=co=>{const ids=fv(co,F.cob.assist);if(!ids||!ids[0])return '';const a=assistById(ids[0]);return a?(fv(a,F.assist.nome)||''):'';};
+const assistOfCob=co=>{const ids=fv(co,F.cob.assist);if(!ids||!ids[0])return null;return assistById(ids[0]);};
 const casoNome=r=>fv(r,F.caso.nome)||'(sem nome)';
 const casoProcesso=r=>fv(r,F.caso.processo)||'';
 const cliOfCaso=c=>{const cid=fv(c,F.caso.cliente);if(!cid||!cid[0])return null;return cliById(cid[0]);};
@@ -1286,17 +1287,35 @@ function renderSaidas(){
   };
 
   let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
-    (assist.length?'<table><thead><tr><th>'+t('case')+'</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    (assist.length?'<table><thead><tr><th>Assistente</th><th>'+t('case')+'</th><th>Chave PIX</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     assist.map((co,i)=>{
       const rid='sa-'+i;const exp=EXPANDED_ROW===rid;
       const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
       const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-      let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
+      const a=assistOfCob(co);
+      const aNome=a?(fv(a,F.assist.nome)||'—'):'—';
+      const aEsp=a?(fv(a,F.assist.esp)||''):'';
+      const aPix=a?(fv(a,F.assist.pix)||''):'';
+      const aFone=a?(fv(a,F.assist.fone)||''):'';
+      const aEmail=a?(fv(a,F.assist.email)||''):'';
+      const aLocal=a?(fv(a,F.assist.local)||''):'';
+      const assistCell='<div><strong>'+esc(aNome)+'</strong></div>'+(aEsp?'<div class="proc">'+esc(aEsp)+(aLocal?' • '+esc(aLocal):'')+'</div>':'');
+      const pixCell=aPix?'<div style="font-family:monospace;font-size:12px">'+esc(aPix)+'</div>':'<span class="tag red">Sem PIX</span>';
+      let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+assistCell+'</td><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+pixCell+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
       if(exp){
-        let det='';if(c)det+=renderRoadmap(c);
+        let det='<h4>Dados do Assistente</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:13px;background:#fff;padding:12px;border-radius:6px;border:1px solid #e0eaf1">'+
+          '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Nome</div><div><strong>'+esc(aNome)+'</strong></div></div>'+
+          (aEsp?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Especialidade</div><div>'+esc(aEsp)+'</div></div>':'')+
+          (aPix?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Chave PIX</div><div style="font-family:monospace">'+esc(aPix)+'</div></div>':'<div style="color:#d64545"><strong>⚠ Sem chave PIX cadastrada</strong></div>')+
+          (aFone?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Telefone</div><div>'+esc(aFone)+'</div></div>':'')+
+          (aEmail?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Email</div><div>'+esc(aEmail)+'</div></div>':'')+
+          (aLocal?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Local de Atuação</div><div>'+esc(aLocal)+'</div></div>':'')+
+          '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Valor a Pagar</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#d64545">'+fmtBRL(v)+'</div></div>'+
+          '</div>';
+        if(c)det+=renderRoadmap(c);
         det+=renderPaidForm(co);
         if(c)det+=renderNoteForm(c);
-        row+='<tr><td colspan="3" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
+        row+='<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
       }
       return row;
     }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
