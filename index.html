@@ -715,11 +715,11 @@ function getSaldo(){
   for(const co of DATA.cob){
     if(isSaida(co)){
       const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
-      if(!d||d<=desde)continue;
+      if(!d||d<desde)continue;
       if(fv(co,F.cob.pago)===true)delta-=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     }else if(fv(co,F.cob.recebido)===true){
       const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));
-      if(!d||d<=desde)continue;
+      if(!d||d<desde)continue;
       delta+=num(fv(co,F.cob.valorReceber));
     }
   }
