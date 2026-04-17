@@ -299,6 +299,12 @@ async function createRecord(table,fields){
   if(!r.ok)throw new Error('HTTP '+r.status+': '+(await r.text()));
   return r.json();
 }
+async function deleteRecord(table,recordId){
+  const url='https://api.airtable.com/v0/'+BASE+'/'+encodeURIComponent(table)+'/'+recordId;
+  const r=await fetch(url,{method:'DELETE',headers:{Authorization:'Bearer '+TK}});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+}
 
 function setLoader(){
   document.getElementById('content').innerHTML='<div class="loader"><div class="sp"></div>'+
@@ -986,6 +992,15 @@ async function handleSave(btn){
       const caso=casoById(form.dataset.casoid);const cur=fv(caso,F.caso.obs)||'';
       const fields={};fields[F.caso.obs]='['+nowStamp()+'] '+txt+'\n'+cur;
       await patchRecord(TBL.casos,form.dataset.casoid,fields);
+    }else if(type==='editcob'){
+      const cobId=form.dataset.cobid;const tipo=form.dataset.tipo;
+      const val=parseFloat(form.querySelector('[name=val]').value)||0;
+      const d=form.querySelector('[name=d]').value;
+      const fields={};
+      if(tipo==='entrada'){if(val)fields[F.cob.valorReceber]=val;if(d)fields[F.cob.dataReceb]=d;}
+      else{if(val)fields[F.cob.valorPag]=val;if(d)fields[F.cob.dataPag]=d;}
+      await patchRecord(TBL.cob,cobId,fields);
+      EDITING_COB=null;
     }else if(type==='saldo'){
       const val=parseFloat(form.querySelector('[name=val]').value)||0;
       const d=form.querySelector('[name=d]').value||todayISO();
@@ -1099,7 +1114,7 @@ function renderOverview(){
     const abHeaders=isAb?'<th>'+t('client')+'</th><th>NF</th><th class="right">'+t('days')+'</th>':'';
     const saiHeaders=isSai?'<th>Status</th>':'';
     exp='<div class="section"><h2>'+titles[EXPANDED_CARD]+'</h2>'+
-      (arr.length?'<table><thead><tr><th>'+t('case')+'</th>'+abHeaders+'<th>'+t('date')+'</th>'+saiHeaders+'<th class="right">'+t('amount')+'</th></tr></thead><tbody>'+
+      (arr.length?'<table><thead><tr><th>'+t('case')+'</th>'+abHeaders+'<th>'+t('date')+'</th>'+saiHeaders+'<th class="right">'+t('amount')+'</th><th></th></tr></thead><tbody>'+
       arr.map((x,i)=>{
         const rid='ov-'+EXPANDED_CARD+'-'+i;
         const expRow=EXPANDED_ROW===rid;
@@ -1109,10 +1124,10 @@ function renderOverview(){
         if(isAb)row+='<td>'+esc(x.cli||'—')+'</td><td>'+(x.nf?esc(x.nf):'—')+'</td><td class="right">'+daysBadge(x.dias)+'</td>';
         row+='<td>'+fmtDate(x.data)+'</td>';
         if(isSai)row+='<td>'+(x.pago?'<span class="tag green">Pago</span>':'<span class="tag orange">Pendente</span>')+'</td>';
-        row+='<td class="right">'+fmtBRL(x.valor)+'</td></tr>';
+        row+='<td class="right">'+fmtBRL(x.valor)+'</td><td><button class="btn" style="padding:2px 6px;font-size:10px" data-editcob="'+x.cob.id+'">✏️</button> <button class="btn" style="padding:2px 6px;font-size:10px;background:#d64545" data-delcob="'+x.cob.id+'">🗑️</button></td></tr>';
         if(expRow&&x.cob){
           const cid=fv(x.cob,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-          const cols=2+(isAb?3:0)+(isSai?1:0)+1;
+          const cols=3+(isAb?3:0)+(isSai?1:0);
           let det='';
           if(c)det+=renderRoadmap(c);
           if(EXPANDED_CARD==='sai'&&!x.pago)det+=renderPaidForm(x.cob);
@@ -1503,60 +1518,181 @@ function renderSaidas(){
   return html;
 }
 
-let HIST_FROM=null,HIST_TO=null;
-function renderHistorico(){
-  const now=new Date();
-  if(!HIST_FROM){const d=new Date(now.getFullYear(),now.getMonth()-2,1);HIST_FROM=d.toISOString().slice(0,10);}
-  if(!HIST_TO)HIST_TO=todayISO();
-  const from=parseDate(HIST_FROM),to=parseDate(HIST_TO);
+let HIST_FROM=null,HIST_TO=null,EDITING_COB=null;
+function histRows(from,to){
   const rows=[];
-  let totEnt=0,totSai=0;
   for(const co of DATA.cob){
     if(isSaida(co)){
       const d=parseDate(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
       if(!d||d<from||d>to)continue;
       const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
       const marker=String(fv(co,F.cob.numeroNF)||'');
-      let nome=fv(co,F.cob.nome)||'';
-      let cat='Saída';
-      if(/^RETIRADA:/i.test(marker)){nome='Adiantamento pró-labore: '+marker.replace(/^RETIRADA:\s*/i,'');cat='Retirada';}
-      else if(/^CF:/i.test(marker)){nome='Custo fixo: '+marker.replace(/^CF:\s*/i,'');cat='Custo Fixo';}
-      else{
-        const a=assistNameOfCob(co);
-        if(a)nome='Assistente: '+a+(nome?' — '+nome:'');
-      }
-      rows.push({data:d,tipo:'saida',cat,nome,valor:v});
-      totSai+=v;
+      let nome=fv(co,F.cob.nome)||'';let cat=t('saida');
+      if(/^RETIRADA:/i.test(marker)){nome=t('adtProLabore')+': '+marker.replace(/^RETIRADA:\s*/i,'');cat=t('adtProLabore');}
+      else if(/^CF:/i.test(marker)){nome=t('custoFixo')+': '+marker.replace(/^CF:\s*/i,'');cat=t('custoFixo');}
+      else{const a=assistNameOfCob(co);if(a)nome='Assist: '+a+(nome?' — '+nome:'');}
+      rows.push({data:d,tipo:'saida',cat,nome,valor:v,co});
     }else if(fv(co,F.cob.recebido)===true){
       const d=parseDate(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca));
       if(!d||d<from||d>to)continue;
-      const v=num(fv(co,F.cob.valorReceber));
-      rows.push({data:d,tipo:'entrada',cat:'Entrada',nome:fv(co,F.cob.nome)||'—',valor:v});
-      totEnt+=v;
+      rows.push({data:d,tipo:'entrada',cat:t('entrada'),nome:fv(co,F.cob.nome)||'—',valor:num(fv(co,F.cob.valorReceber)),co});
     }
   }
   rows.sort((a,b)=>b.data-a.data);
+  return rows;
+}
+
+function renderHistorico(){
+  const now=new Date();
+  if(!HIST_FROM){const d=new Date(now.getFullYear(),now.getMonth()-2,1);HIST_FROM=d.toISOString().slice(0,10);}
+  if(!HIST_TO)HIST_TO=todayISO();
+  const from=parseDate(HIST_FROM),to=parseDate(HIST_TO);
+  const rows=histRows(from,to);
+  let totEnt=0,totSai=0;
+  for(const r of rows){if(r.tipo==='entrada')totEnt+=r.valor;else totSai+=r.valor;}
   const saldo=totEnt-totSai;
+  // Caixa mensal
+  const snaps=getSnapshots();
+  const fromK=monthKey(from),toK=monthKey(to);
+  const relevantSnaps=snaps.filter(s=>s.mes>=fromK&&s.mes<=toK);
   let html='<div class="section"><h2>'+t('entSai')+'</h2>'+
     '<div class="toolbar">'+
     '<label>'+t('de')+': <input type="date" id="histFrom" value="'+HIST_FROM+'"></label>'+
     '<label>'+t('ate')+': <input type="date" id="histTo" value="'+HIST_TO+'"></label>'+
     '<button class="btn" id="histApply">'+t('aplicar')+'</button>'+
+    '<input type="file" id="extratoFile" accept=".csv,.ofx,.txt" style="display:none">'+
+    '<button class="btn" id="extratoBtn" style="margin-left:auto" title="Upload extrato CSV/OFX">📄 Extrato</button>'+
     '</div>'+
     '<div class="kpi">'+
-    '<div class="box green"><div class="l">Entradas</div><div class="v">'+fmtBRL(totEnt)+'</div></div>'+
-    '<div class="box red"><div class="l">Saídas</div><div class="v">'+fmtBRL(totSai)+'</div></div>'+
-    '<div class="box '+(saldo>=0?'green':'red')+'"><div class="l">Saldo</div><div class="v">'+fmtBRL(saldo)+'</div></div>'+
+    '<div class="box green"><div class="l">'+t('entradas')+'</div><div class="v">'+fmtBRL(totEnt)+'</div></div>'+
+    '<div class="box red"><div class="l">'+t('saidasLbl')+'</div><div class="v">'+fmtBRL(totSai)+'</div></div>'+
+    '<div class="box '+(saldo>=0?'green':'red')+'"><div class="l">'+t('saldo')+'</div><div class="v">'+fmtBRL(saldo)+'</div></div>'+
     '<div class="box"><div class="l">'+t('operacoes')+'</div><div class="v">'+rows.length+'</div></div>'+
-    '</div>'+
-    (rows.length?'<table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="right">Entrada</th><th class="right">Saída</th></tr></thead><tbody>'+
-    rows.map(r=>{
-      const tagCls=r.tipo==='entrada'?'green':(r.cat==='Retirada'?'orange':(r.cat==='Custo Fixo'?'blue':'red'));
-      const nameStyle=r.cat==='Retirada'?' style="font-style:italic;color:#a35a07"':'';
-      return '<tr><td>'+fmtDate(r.data)+'</td><td><span class="tag '+tagCls+'">'+r.cat+'</span></td><td'+nameStyle+'>'+esc(r.nome)+'</td><td class="right">'+(r.tipo==='entrada'?fmtBRL(r.valor):'')+'</td><td class="right">'+(r.tipo==='saida'?fmtBRL(r.valor):'')+'</td></tr>';
-    }).join('')+'</tbody></table>':'<div class="empty">Nenhuma operação no período</div>')+
+    '</div>';
+  // Caixa inicial/final por mês
+  if(relevantSnaps.length){
+    html+='<h3>Caixa por Mês</h3><table><thead><tr><th>Mês</th><th class="right">Caixa Inicial</th><th class="right">Receita</th><th class="right">Saídas</th><th class="right">Retiradas</th><th class="right">Caixa Final</th><th class="right">Δ</th></tr></thead><tbody>'+
+      relevantSnaps.map(s=>'<tr><td>'+monthLabel(s.mes)+'</td><td class="right">'+fmtBRL(s.saldoAnterior||0)+'</td><td class="right">'+fmtBRL(s.receita)+'</td><td class="right">'+fmtBRL(s.saidasOp)+'</td><td class="right">'+fmtBRL(s.retiradas)+'</td><td class="right"><strong>'+fmtBRL(s.saldoFinal)+'</strong></td><td class="right" style="color:'+(s.diff!=null&&Math.abs(s.diff)>1?'#d64545':'#22a06b')+'">'+(s.diff!=null?(Math.abs(s.diff)<1?'✓':fmtBRL(s.diff)):'—')+'</td></tr>').join('')+'</tbody></table>';
+  }
+  // Extrato comparison area
+  html+='<div id="extratoResult"></div>';
+  // Transactions
+  html+=(rows.length?'<table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="right">'+t('entrada')+'</th><th class="right">'+t('saida')+'</th><th></th></tr></thead><tbody>'+
+    rows.map((r,i)=>{
+      const tagCls=r.tipo==='entrada'?'green':(r.cat===t('adtProLabore')?'orange':(r.cat===t('custoFixo')?'blue':'red'));
+      const nameStyle=r.cat===t('adtProLabore')?' style="font-style:italic;color:#a35a07"':'';
+      const editing=EDITING_COB===r.co.id;
+      let row='<tr><td>'+fmtDate(r.data)+'</td><td><span class="tag '+tagCls+'">'+r.cat+'</span></td><td'+nameStyle+'>'+esc(r.nome)+'</td><td class="right">'+(r.tipo==='entrada'?fmtBRL(r.valor):'')+'</td><td class="right">'+(r.tipo==='saida'?fmtBRL(r.valor):'')+'</td><td><button class="btn" style="padding:2px 8px;font-size:11px" data-editcob="'+r.co.id+'">✏️</button> <button class="btn" style="padding:2px 8px;font-size:11px;background:#d64545" data-delcob="'+r.co.id+'">🗑️</button></td></tr>';
+      if(editing){
+        const co=r.co;
+        const vE=r.tipo==='entrada'?num(fv(co,F.cob.valorReceber)):num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+        const dE=r.tipo==='entrada'?(fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca)):(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca));
+        row+='<tr><td colspan="6" style="padding:0"><div class="detail"><div class="form" data-form="editcob" data-cobid="'+co.id+'" data-tipo="'+r.tipo+'">'+
+          '<div><label>'+t('value')+'</label><input name="val" type="number" step="0.01" value="'+vE+'"></div>'+
+          '<div><label>'+t('date')+'</label><input name="d" type="date" value="'+(dE?String(dE).slice(0,10):'')+'"></div>'+
+          '<div class="actions"><button class="btn green" data-act="save">Salvar</button><button class="btn" data-act="cancelEdit" style="background:#7a8a99">Cancelar</button><span class="msg"></span></div>'+
+          '</div></div></td></tr>';
+      }
+      return row;
+    }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
     '</div>';
   return html;
+}
+
+// Parse bank statement CSV/OFX
+function parseExtrato(text,filename){
+  const ext=filename.split('.').pop().toLowerCase();
+  const transactions=[];
+  if(ext==='ofx'){
+    // Basic OFX parser
+    const re=/<STMTTRN>([\s\S]*?)<\/STMTTRN>/gi;let m;
+    while((m=re.exec(text))!==null){
+      const b=m[1];
+      const val=parseFloat((b.match(/<TRNAMT>([^<\n]+)/)||[])[1])||0;
+      const ds=(b.match(/<DTPOSTED>(\d{8})/)||[])[1];
+      const memo=(b.match(/<MEMO>([^<\n]+)/)||[])[1]||'';
+      const data=ds?ds.slice(0,4)+'-'+ds.slice(4,6)+'-'+ds.slice(6,8):null;
+      transactions.push({data,valor:Math.abs(val),tipo:val>=0?'entrada':'saida',desc:memo.trim()});
+    }
+  }else{
+    // CSV: try common formats (Caixa, generic)
+    const lines=text.split(/\r?\n/).filter(l=>l.trim());
+    const sep=text.indexOf(';')>=0?';':',';
+    for(const line of lines){
+      const cols=line.split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
+      // Try to find date + value columns
+      let data=null,valor=0,desc='';
+      for(const c of cols){
+        if(/^\d{2}[\/\-]\d{2}[\/\-]\d{4}$/.test(c)){const p=c.split(/[\/\-]/);data=p[2]+'-'+p[1]+'-'+p[0];}
+        else if(/^\d{4}-\d{2}-\d{2}$/.test(c))data=c;
+        else if(/^-?[\d.,]+$/.test(c)&&c.length>1){const v=parseFloat(c.replace(/\./g,'').replace(',','.'));if(!isNaN(v)&&Math.abs(v)>0.01)valor=v;}
+        else if(c.length>3&&!data)desc=c;
+      }
+      if(data&&valor!==0)transactions.push({data,valor:Math.abs(valor),tipo:valor>=0?'entrada':'saida',desc});
+    }
+  }
+  return transactions;
+}
+
+function reconcileExtrato(bankTxns){
+  // Compare bank transactions with registered ones
+  const from=parseDate(HIST_FROM),to=parseDate(HIST_TO);
+  const regRows=histRows(from,to);
+  const matched=[],unmatched=[];
+  const usedReg=new Set();
+  for(const bt of bankTxns){
+    const bd=bt.data;const bv=bt.valor;
+    let found=false;
+    for(let i=0;i<regRows.length;i++){
+      if(usedReg.has(i))continue;
+      const r=regRows[i];
+      const rd=fmtDate(r.data).replace(/\//g,'-');
+      if(r.tipo===bt.tipo&&Math.abs(r.valor-bv)<0.02&&bd===bt.data){found=true;usedReg.add(i);matched.push({bank:bt,reg:r});break;}
+    }
+    if(!found)unmatched.push(bt);
+  }
+  const notInBank=regRows.filter((r,i)=>!usedReg.has(i));
+  return {matched,unmatched,notInBank};
+}
+
+async function handleExtrato(file){
+  const text=await file.text();
+  const txns=parseExtrato(text,file.name);
+  if(!txns.length){showToast('Nenhuma transação encontrada no arquivo.',true);return;}
+  const result=reconcileExtrato(txns);
+  const el=document.getElementById('extratoResult');
+  let html='<div class="section" style="border:2px solid #00AEEF"><h2>📄 Conciliação do Extrato ('+txns.length+' transações)</h2>'+
+    '<div class="kpi"><div class="box green"><div class="l">Conciliados</div><div class="v">'+result.matched.length+'</div></div>'+
+    '<div class="box orange"><div class="l">Só no extrato</div><div class="v">'+result.unmatched.length+'</div></div>'+
+    '<div class="box red"><div class="l">Só no dashboard</div><div class="v">'+result.notInBank.length+'</div></div></div>';
+  if(result.unmatched.length){
+    html+='<h3>⚠ Transações no extrato NÃO registradas no dashboard</h3>'+
+      '<table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th class="right">Valor</th><th></th></tr></thead><tbody>'+
+      result.unmatched.map((u,i)=>'<tr><td>'+esc(u.data)+'</td><td>'+esc(u.desc)+'</td><td><span class="tag '+(u.tipo==='entrada'?'green':'red')+'">'+u.tipo+'</span></td><td class="right">'+fmtBRL(u.valor)+'</td><td><button class="btn green" style="font-size:11px;padding:3px 8px" data-addextrato="'+i+'">Cadastrar</button></td></tr>').join('')+'</tbody></table>';
+    el._unmatched=result.unmatched;
+  }
+  if(result.notInBank.length){
+    html+='<h3>⚠ Registros no dashboard NÃO encontrados no extrato</h3>'+
+      '<table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th class="right">Valor</th></tr></thead><tbody>'+
+      result.notInBank.map(r=>'<tr style="background:#fdecec"><td>'+fmtDate(r.data)+'</td><td>'+esc(r.nome)+'</td><td>'+r.tipo+'</td><td class="right">'+fmtBRL(r.valor)+'</td></tr>').join('')+'</tbody></table>';
+  }
+  html+='</div>';
+  el.innerHTML=html;
+  // Attach cadastrar buttons
+  el.querySelectorAll('[data-addextrato]').forEach(btn=>{
+    btn.onclick=async()=>{
+      const idx=parseInt(btn.dataset.addextrato);
+      const u=el._unmatched[idx];if(!u)return;
+      const fields={};
+      if(u.tipo==='entrada'){
+        fields[F.cob.tipo]='Entrada';fields[F.cob.valorReceber]=u.valor;fields[F.cob.dataCobranca]=u.data;fields[F.cob.recebido]=true;fields[F.cob.dataReceb]=u.data;
+      }else{
+        fields[F.cob.tipo]='Saída';fields[F.cob.valorPag]=u.valor;fields[F.cob.dataPag]=u.data;fields[F.cob.pago]=true;
+        fields[F.cob.numeroNF]='RETIRADA: '+u.desc;
+      }
+      try{await createRecord(TBL.cob,fields);btn.textContent='✓';btn.disabled=true;showToast(t('saved'));}catch(e){showToast(t('saveErr')+': '+e.message,true);}
+    };
+  });
 }
 
 function renderPrevisao(){
@@ -1743,6 +1879,15 @@ function attachHandlers(){
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
   document.querySelectorAll('[data-act="fecharMes"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();fecharMes();};});
+  document.querySelectorAll('[data-editcob]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();EDITING_COB=EDITING_COB===b.dataset.editcob?null:b.dataset.editcob;render();};});
+  document.querySelectorAll('[data-delcob]').forEach(b=>{b.onclick=async ev=>{
+    ev.stopPropagation();
+    if(!confirm('Excluir este registro?'))return;
+    try{await deleteRecord(TBL.cob,b.dataset.delcob);showToast(t('saved'));loadData();}catch(e){showToast(t('saveErr')+': '+e.message,true);}
+  };});
+  document.querySelectorAll('[data-act="cancelEdit"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();EDITING_COB=null;render();};});
+  const eb=document.getElementById('extratoBtn');const ef=document.getElementById('extratoFile');
+  if(eb&&ef){eb.onclick=()=>ef.click();ef.onchange=()=>{if(ef.files[0])handleExtrato(ef.files[0]);};}
   const tlr=document.getElementById('toggleLastRec');
   if(tlr)tlr.onclick=()=>{const l=document.getElementById('lastRecList');if(l)l.style.display=l.style.display==='none'?'block':'none';};
   const fc=document.getElementById('filterClient');
