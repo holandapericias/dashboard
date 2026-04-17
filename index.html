@@ -177,7 +177,18 @@ btnSaveNF:"Salvar NF",btnSavePay:"Marcar Recebido",btnPaid:"Marcar Pago",btnAddN
 saved:"Salvo!",saveErr:"Erro",autoDev:"Caso movido para Devedor automaticamente",
 sStepCasos:"casos",sStepCob:"cobranças",sStepCli:"clientes",sStepPrazo:"prazos",sStepCF:"custos fixos",
 prob:"Prob",esperado:"Esperado",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
-event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado"},
+event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado",
+saldoBanc:"Saldo Bancário (Caixa Econômica)",atualizarSaldo:"Atualizar Saldo",fecharMesBtn:"Fechar Mês",extratoBase:"Extrato base",nuncaAtualizado:"Nunca atualizado",desdeThen:"desde então",
+retiradaLucro:"Retirada de Lucro",registrarRetirada:"Registrar Retirada de Lucro",lucroOp:"Lucro Operacional",resultReal:"Resultado Real",retiradas:"retiradas",
+totalCobrar:"Total a Cobrar (todas as categorias)",finais50:"50% Finais Pós-Perícia",solicitarPedido:"SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO",
+ultimoReceb:"Último recebimento registrado",nesteD:"neste dia",verifiqueExtrato:"Verifique seu extrato bancário a partir desta data.",totalDia:"Total do dia",
+mediaCli:"média",restante:"restante",atrasoCli:"Atraso",mediaPag:"Média Cliente",
+periciaProx30:"Perícias próximos 30d",valorCerto:"Valor certo",estimado:"Estimado",retPesMedia:"Retiradas pessoais (média 3m)",
+evolMensal:"Evolução Mensal (Fechamentos)",nenhumFech:"Nenhum mês fechado ainda. Use Fechar Mês na Visão Geral.",conciliado:"conciliado",
+usarFecharMes:"Use Fechar Mês no topo para conciliar com o extrato bancário.",
+assistDados:"Dados do Assistente",chavePix:"Chave PIX",semPix:"Sem PIX cadastrada",especialidade:"Especialidade",localAtuacao:"Local de Atuação",valorPagar:"Valor a Pagar",
+instrucao:"Instrução",pedidoRecebido:"Pedido Recebido — Mover para Emitir NF",numPedido:"Nº do Pedido / Autorização",
+entSai:"Entradas e Saídas",de:"De",ate:"Até",aplicar:"Aplicar",operacoes:"Operações",custoFixo:"Custo Fixo",adtProLabore:"Adiantamento pró-labore"},
 en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",historico:"History",previsao:"Next 30d",fpa:"FP&A",
 entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
 case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
@@ -196,6 +207,17 @@ aging:"Receivables Aging",top10:"Top 10 Clients",monthly:"Annual Summary",dso:"D
 nfNum:"Invoice #",nfValor:"Invoice Amount",dataCob:"Billing Date",dataRec:"Receipt Date",dataPag:"Payment Date",obs:"Comment",
 btnSaveNF:"Save Invoice",btnSavePay:"Mark Received",btnPaid:"Mark Paid",btnAddNote:"Add",
 saved:"Saved!",saveErr:"Error",autoDev:"Case auto-moved to Overdue",
+saldoBanc:"Bank Balance (Caixa Econômica)",atualizarSaldo:"Update Balance",fecharMesBtn:"Close Month",extratoBase:"Statement base",nuncaAtualizado:"Never updated",desdeThen:"since then",
+retiradaLucro:"Profit Withdrawal",registrarRetirada:"Log Profit Withdrawal",lucroOp:"Operating Profit",resultReal:"Net Result",retiradas:"withdrawals",
+totalCobrar:"Total to Bill (all categories)",finais50:"50% Final Post-Inspection",solicitarPedido:"REQUEST PO / AUTHORIZATION",
+ultimoReceb:"Last recorded receipt",nesteD:"on this day",verifiqueExtrato:"Check your bank statement from this date.",totalDia:"Day total",
+mediaCli:"avg",restante:"remaining",atrasoCli:"Overdue",mediaPag:"Client Avg",
+periciaProx30:"Inspections next 30d",valorCerto:"Confirmed",estimado:"Estimated",retPesMedia:"Personal draws (3m avg)",
+evolMensal:"Monthly Evolution (Closings)",nenhumFech:"No months closed yet. Use Close Month in Overview.",conciliado:"reconciled",
+usarFecharMes:"Use Close Month at the top to reconcile with bank statement.",
+assistDados:"Assistant Details",chavePix:"PIX Key",semPix:"No PIX on file",especialidade:"Specialty",localAtuacao:"Location",valorPagar:"Amount Due",
+instrucao:"Instructions",pedidoRecebido:"PO Received — Move to Issue Invoice",numPedido:"PO / Authorization #",
+entSai:"Income and Expenses",de:"From",ate:"To",aplicar:"Apply",operacoes:"Transactions",custoFixo:"Fixed Cost",adtProLabore:"Owner draw",
 sStepCasos:"cases",sStepCob:"invoices",sStepCli:"clients",sStepPrazo:"deadlines",sStepCF:"fixed costs",
 prob:"Prob",esperado:"Expected",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d",aging90:"90+d",
 event:"Event",entrada:"In",saida:"Out",saldoAc:"Running Balance"}
@@ -1107,7 +1129,7 @@ function renderOverview(){
     if(x.type==='vencida60')extra=' ('+x.dias+'d)';
     else if(x.type==='periciaProx')extra=' ('+fmtDate(x.data)+')';
     else if(x.type==='assistPend')extra=' — '+esc(x.assist)+' • '+fmtBRL(x.valor);
-    else if(x.type==='fechamento')return '<div class="alert red"><strong>⚠ '+lbl+':</strong> '+esc(x.mes)+'. Use "Fechar Mês" no topo para conciliar com o extrato bancário.</div>';
+    else if(x.type==='fechamento')return '<div class="alert red"><strong>⚠ '+lbl+':</strong> '+esc(x.mes)+'. '+t('usarFecharMes')+'</div>';
     return '<div class="alert '+cls+'"><strong>'+lbl+':</strong> '+esc(x.caso?casoNome(x.caso):'—')+extra+'</div>';
   }).join('');
   // Saldo bancário + retiradas do mês
@@ -1125,28 +1147,28 @@ function renderOverview(){
   const resultadoReal=OV.lucro-retMes;
   const saldoCard='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3">'+
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">'+
-    '<div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Saldo Bancário (Caixa Econômica)</div>'+
+    '<div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">'+t('saldoBanc')+'</div>'+
     '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(saldo.valor||0)+'</div>'+
-    '<div style="font-size:12px;color:#6b7c8c">'+(saldo.data?'Extrato base: '+fmtDate(saldo.data)+' • '+fmtBRL(saldo.base||saldo.valor||0):'Nunca atualizado')+
-    (saldo.delta?' <span style="color:'+(saldo.delta>=0?'#22a06b':'#d64545')+'">('+(saldo.delta>=0?'+':'')+fmtBRL(saldo.delta)+' desde então)</span>':'')+'</div></div>'+
+    '<div style="font-size:12px;color:#6b7c8c">'+(saldo.data?t('extratoBase')+': '+fmtDate(saldo.data)+' • '+fmtBRL(saldo.base||saldo.valor||0):t('nuncaAtualizado'))+
+    (saldo.delta?' <span style="color:'+(saldo.delta>=0?'#22a06b':'#d64545')+'">('+(saldo.delta>=0?'+':'')+fmtBRL(saldo.delta)+' '+t('desdeThen')+')</span>':'')+'</div></div>'+
     '<div style="flex:1;max-width:360px"><div class="form" data-form="saldo" style="margin:0;background:#fff">'+
     '<div><label>Valor</label><input name="val" type="number" step="0.01" value="'+(getSaldoRaw().valor||'')+'"></div>'+
     '<div><label>Data do extrato</label><input name="d" type="date" value="'+(saldo.data||todayISO())+'"></div>'+
-    '<div class="actions"><button class="btn green" data-act="save">Atualizar Saldo</button><button class="btn" data-act="fecharMes" style="margin-left:auto">Fechar Mês</button><span class="msg"></span></div>'+
+    '<div class="actions"><button class="btn green" data-act="save">'+t('atualizarSaldo')+'</button><button class="btn" data-act="fecharMes" style="margin-left:auto">'+t('fecharMesBtn')+'</button><span class="msg"></span></div>'+
     '</div></div></div>'+
-    '<div style="margin-top:14px;border-top:1px solid #c8e8d3;padding-top:14px"><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600;margin-bottom:6px">Retirada de Lucro — '+monthLabel(SELECTED_MONTH||monthKey(new Date()))+' (Total: '+fmtBRL(retMes)+')</div>'+
+    '<div style="margin-top:14px;border-top:1px solid #c8e8d3;padding-top:14px"><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600;margin-bottom:6px">'+t('retiradaLucro')+' — '+monthLabel(SELECTED_MONTH||monthKey(new Date()))+' (Total: '+fmtBRL(retMes)+')</div>'+
     '<div class="form" data-form="retirada" style="margin:0;background:#fff">'+
     '<div><label>Valor</label><input name="val" type="number" step="0.01"></div>'+
     '<div><label>Data</label><input name="d" type="date" value="'+todayISO()+'"></div>'+
     '<div><label>Descrição</label><input name="desc" placeholder="Ex: pró-labore abril"></div>'+
-    '<div class="actions"><button class="btn orange" data-act="save">Registrar Retirada de Lucro</button><span class="msg"></span></div>'+
+    '<div class="actions"><button class="btn orange" data-act="save">'+t('registrarRetirada')+'</button><span class="msg"></span></div>'+
     '</div></div></div>';
   return saldoCard+'<div class="cards">'+
     card('ent','green',t('entradas'),OV.entradas,OV.lEnt.length+' • '+monthLabel(SELECTED_MONTH))+
     card('sai','red',t('saidasLbl'),OV.saidas,OV.lSai.length+' • '+monthLabel(SELECTED_MONTH))+
     card('ab','orange',t('aberto'),OV.aberto,OV.lAb.length+' • em aberto')+
-    card('lu','blue','Lucro Operacional',OV.lucro,'Entradas − Saídas')+
-    '<div class="card '+(resultadoReal>=0?'green':'red')+'"><div class="label">Resultado Real</div><div class="value">'+fmtBRL(resultadoReal)+'</div><div class="sub">− '+fmtBRL(retMes)+' retiradas</div></div>'+
+    card('lu','blue',t('lucroOp'),OV.lucro,t('entradas')+' − '+t('saidasLbl'))+
+    '<div class="card '+(resultadoReal>=0?'green':'red')+'"><div class="label">'+t('resultReal')+'</div><div class="value">'+fmtBRL(resultadoReal)+'</div><div class="sub">− '+fmtBRL(retMes)+' '+t('retiradas')+'</div></div>'+
     '</div>'+exp+
     '<div class="section"><h2>'+t('alerts')+'</h2>'+alertHtml+'</div>'+
     '<div class="section"><h2>'+t('distFase')+'</h2>'+
@@ -1190,7 +1212,7 @@ function caseTable(rows,opts){
         if(r.clientDSO!=null){
           const restante=Math.max(0,r.clientDSO-r.dias);
           const cls=restante<=7?'green':(restante<=20?'blue':'gray');
-          dsoHtml='<div style="font-size:10px;color:#6b7c8c;margin-top:2px">média '+r.clientDSO+'d → ~'+restante+'d</div>';
+          dsoHtml='<div style="font-size:10px;color:#6b7c8c;margin-top:2px">'+t('mediaCli')+' '+r.clientDSO+'d → ~'+restante+'d</div>';
         }
         return '<td class="right">'+daysBadge(r.dias)+dsoHtml+'</td>';
       }
@@ -1216,11 +1238,11 @@ function renderCobrar(){
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
   const grandTotal=sum(g.enc)+sum(g.ini)+sum(g.finais)+sum(g.pedido);
   const grandCount=g.enc.length+g.ini.length+g.finais.length+g.pedido.length;
-  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Total a Cobrar (todas as categorias)</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(grandTotal)+'</div><div style="font-size:12px;color:#6b7c8c">'+grandCount+' casos</div></div><div style="font-size:12px;color:#6b7c8c;line-height:1.6"><div>1. Encerrados: <strong>'+fmtBRL(sum(g.enc))+'</strong></div><div>2. 50% Iniciais: <strong>'+fmtBRL(sum(g.ini))+'</strong></div><div>3. 50% Finais: <strong>'+fmtBRL(sum(g.finais))+'</strong></div><div>4. Solicitar Pedido: <strong>'+fmtBRL(sum(g.pedido))+'</strong></div></div></div></div>';
+  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">'+t('totalCobrar')+'</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(grandTotal)+'</div><div style="font-size:12px;color:#6b7c8c">'+grandCount+' casos</div></div><div style="font-size:12px;color:#6b7c8c;line-height:1.6"><div>1. Encerrados: <strong>'+fmtBRL(sum(g.enc))+'</strong></div><div>2. 50% Iniciais: <strong>'+fmtBRL(sum(g.ini))+'</strong></div><div>3. 50% Finais: <strong>'+fmtBRL(sum(g.finais))+'</strong></div><div>4. Solicitar Pedido: <strong>'+fmtBRL(sum(g.pedido))+'</strong></div></div></div></div>';
   html+=sortToolbar();
   html+='<div class="section"><h2>1. '+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
   html+='<div class="section"><h2>2. '+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>3. 50% Finais Pós-Perícia — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>3. '+t('finais50')+' — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
   html+=renderPedidoSection(g.pedido,sum(g.pedido));
   return html;
 }
@@ -1337,15 +1359,15 @@ function renderPendentes(){
     const sameDayList=receivedOnDate(fv(last.cob,F.cob.dataReceb));
     const hasMore=sameDayList.length>1;
     banner='<div class="section" style="background:#eaf7f0;border-left:4px solid #22a06b">'+
-      '<h2 style="color:#1a7a4f;cursor:pointer" id="toggleLastRec">✓ Último recebimento registrado '+(hasMore?'<span style="font-size:14px">▼ ('+sameDayList.length+' neste dia)</span>':'')+'</h2>'+
+      '<h2 style="color:#1a7a4f;cursor:pointer" id="toggleLastRec">✓ '+t('ultimoReceb')+' '+(hasMore?'<span style="font-size:14px">▼ ('+sameDayList.length+' '+t('nesteD')+')</span>':'')+'</h2>'+
       '<div style="font-size:14px;color:#003c56">'+
       '<strong>'+fmtDate(last.data)+'</strong> — '+esc(fv(last.cob,F.cob.nome)||'—')+
       '<div style="margin-top:4px;font-size:13px;color:#6b7c8c">Cliente: '+esc(cli)+' • Valor: <strong>'+fmtBRL(v)+'</strong>'+(nfNum?' • NF '+esc(nfNum):'')+'</div>'+
-      '<div style="margin-top:8px;font-size:12px;color:#6b7c8c;font-style:italic">Verifique seu extrato bancário a partir desta data.</div>'+
+      '<div style="margin-top:8px;font-size:12px;color:#6b7c8c;font-style:italic">'+t('verifiqueExtrato')+'</div>'+
       '</div>'+
       (hasMore?'<div id="lastRecList" style="display:none;margin-top:10px"><table><thead><tr><th>Caso</th><th>Cliente</th><th>NF</th><th class="right">Valor</th></tr></thead><tbody>'+
         sameDayList.map(x=>'<tr><td>'+esc(x.nome)+'</td><td>'+esc(x.cli)+'</td><td>'+esc(x.nf||'—')+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+
-        '</tbody></table><div style="font-size:12px;color:#6b7c8c;margin-top:6px">Total do dia: <strong>'+fmtBRL(sameDayList.reduce((s,x)=>s+x.valor,0))+'</strong></div></div>':'')+
+        '</tbody></table><div style="font-size:12px;color:#6b7c8c;margin-top:6px">'+t('totalDia')+': <strong>'+fmtBRL(sameDayList.reduce((s,x)=>s+x.valor,0))+'</strong></div></div>':'')+
       '</div>';
   }
   // DSO por cliente nas linhas
@@ -1515,17 +1537,17 @@ function renderHistorico(){
   }
   rows.sort((a,b)=>b.data-a.data);
   const saldo=totEnt-totSai;
-  let html='<div class="section"><h2>Histórico de Entradas e Saídas</h2>'+
+  let html='<div class="section"><h2>'+t('entSai')+'</h2>'+
     '<div class="toolbar">'+
-    '<label>De: <input type="date" id="histFrom" value="'+HIST_FROM+'"></label>'+
-    '<label>Até: <input type="date" id="histTo" value="'+HIST_TO+'"></label>'+
-    '<button class="btn" id="histApply">Aplicar</button>'+
+    '<label>'+t('de')+': <input type="date" id="histFrom" value="'+HIST_FROM+'"></label>'+
+    '<label>'+t('ate')+': <input type="date" id="histTo" value="'+HIST_TO+'"></label>'+
+    '<button class="btn" id="histApply">'+t('aplicar')+'</button>'+
     '</div>'+
     '<div class="kpi">'+
     '<div class="box green"><div class="l">Entradas</div><div class="v">'+fmtBRL(totEnt)+'</div></div>'+
     '<div class="box red"><div class="l">Saídas</div><div class="v">'+fmtBRL(totSai)+'</div></div>'+
     '<div class="box '+(saldo>=0?'green':'red')+'"><div class="l">Saldo</div><div class="v">'+fmtBRL(saldo)+'</div></div>'+
-    '<div class="box"><div class="l">Operações</div><div class="v">'+rows.length+'</div></div>'+
+    '<div class="box"><div class="l">'+t('operacoes')+'</div><div class="v">'+rows.length+'</div></div>'+
     '</div>'+
     (rows.length?'<table><thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th class="right">Entrada</th><th class="right">Saída</th></tr></thead><tbody>'+
     rows.map(r=>{
@@ -1555,12 +1577,12 @@ function renderPrevisao(){
   let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3">'+
     '<h2>Situação Atual — '+monthLabel(mk)+'</h2>'+
     '<div class="kpi">'+
-    '<div class="box"><div class="l">Saldo Bancário</div><div class="v">'+fmtBRL(saldo.valor||0)+'</div><div class="l">'+(saldo.data?fmtDate(saldo.data):'—')+'</div></div>'+
+    '<div class="box"><div class="l">'+t('saldoBanc')+'</div><div class="v">'+fmtBRL(saldo.valor||0)+'</div><div class="l">'+(saldo.data?fmtDate(saldo.data):'—')+'</div></div>'+
     '<div class="box green"><div class="l">Entradas (mês)</div><div class="v">'+fmtBRL(ov.entradas)+'</div></div>'+
     '<div class="box red"><div class="l">Saídas (mês)</div><div class="v">'+fmtBRL(ov.saidas)+'</div></div>'+
     '<div class="box orange"><div class="l">Em Aberto</div><div class="v">'+fmtBRL(ov.aberto)+'</div></div>'+
-    '<div class="box"><div class="l">Lucro Operacional</div><div class="v">'+fmtBRL(ov.lucro)+'</div></div>'+
-    '<div class="box '+(ov.lucro-retMes>=0?'green':'red')+'"><div class="l">Resultado Real</div><div class="v">'+fmtBRL(ov.lucro-retMes)+'</div><div class="l">− '+fmtBRL(retMes)+' retiradas</div></div>'+
+    '<div class="box"><div class="l">'+t('lucroOp')+'</div><div class="v">'+fmtBRL(ov.lucro)+'</div></div>'+
+    '<div class="box '+(ov.lucro-retMes>=0?'green':'red')+'"><div class="l">'+t('resultReal')+'</div><div class="v">'+fmtBRL(ov.lucro-retMes)+'</div><div class="l">− '+fmtBRL(retMes)+' '+t('retiradas')+'</div></div>'+
     '</div>'+
     '<div class="note">Saldo bancário é o ponto de partida do fluxo de caixa. Em Aberto já está distribuído nos Recebimentos Previstos por aging. Retiradas do mês já saíram do saldo.</div>'+
     '</div>';
@@ -1582,13 +1604,13 @@ function renderPrevisao(){
     '</div>';
   // Pagamentos
   html+='<div class="section"><h2>'+t('pagamentos')+'</h2>'+
-    '<h3>Perícias próximos 30d — '+fmtBRL(p.pericias)+'</h3>'+
+    '<h3>'+t('periciaProx30')+' — '+fmtBRL(p.pericias)+'</h3>'+
     (p.lPag.length?'<table><thead><tr><th>'+t('date')+'</th><th>'+t('case')+'</th><th>Valor</th><th class="right">R$</th></tr></thead><tbody>'+
-    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+fmtDate(x.data)+'</td><td>'+esc(x.nome)+'</td><td><span class="tag '+(x.certo?'green':'orange')+'">'+(x.certo?'Valor certo':'Estimado')+'</span></td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
+    p.lPag.sort((a,b)=>a.data-b.data).map(x=>'<tr><td>'+fmtDate(x.data)+'</td><td>'+esc(x.nome)+'</td><td><span class="tag '+(x.certo?'green':'orange')+'">'+(x.certo?t('valorCerto'):t('estimado'))+'</span></td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
     '<h3>'+t('custosAtivos')+' — '+fmtBRL(p.custosFixos)+'</h3>'+
     (p.lCF.length?'<table><thead><tr><th>Nome</th><th class="right">Dia</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     p.lCF.map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+(x.dia||'—')+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">—</div>')+
-    '<div style="margin-top:10px;font-size:13px"><strong>Retiradas pessoais (média 3m):</strong> '+fmtBRL(p.retiradasMed)+'</div>'+
+    '<div style="margin-top:10px;font-size:13px"><strong>'+t('retPesMedia')+':</strong> '+fmtBRL(p.retiradasMed)+'</div>'+
     '</div>';
   // Cashflow
   html+='<div class="section"><h2>'+t('cashflow')+'</h2>'+
@@ -1696,13 +1718,13 @@ function renderFPA(){
     '</div>';
   // Evolução mensal (snapshots)
   const snaps=getSnapshots();
-  html+='<div class="section"><h2>Evolução Mensal (Fechamentos)</h2>'+
+  html+='<div class="section"><h2>'+t('evolMensal')+'</h2>'+
     (snaps.length?'<table><thead><tr><th>Mês</th><th class="right">Receita</th><th class="right">Saídas Op.</th><th class="right">Retiradas</th><th class="right">Resultado</th><th class="right">Saldo Final</th></tr></thead><tbody>'+
     snaps.slice().reverse().map(s=>{
       const diffHtml=s.diff!=null?'<div style="font-size:10px;color:'+(Math.abs(s.diff)<1?'#22a06b':'#d64545')+'">'+
-        (Math.abs(s.diff)<1?'✓ conciliado':'Δ '+fmtBRL(s.diff))+'</div>':'';
+        (Math.abs(s.diff)<1?'✓ '+t('conciliado'):'Δ '+fmtBRL(s.diff))+'</div>':'';
       return '<tr><td>'+monthLabel(s.mes)+'</td><td class="right">'+fmtBRL(s.receita)+'</td><td class="right">'+fmtBRL(s.saidasOp)+'</td><td class="right">'+fmtBRL(s.retiradas)+'</td><td class="right"><strong>'+fmtBRL(s.resultado)+'</strong></td><td class="right">'+fmtBRL(s.saldoFinal||0)+diffHtml+'</td></tr>';
-    }).join('')+'</tbody></table>':'<div class="empty">Nenhum mês fechado ainda. Use "Fechar Mês" na Visão Geral.</div>')+
+    }).join('')+'</tbody></table>':'<div class="empty">'+t('nenhumFech')+'</div>')+
     '</div>';
   return html;
 }
