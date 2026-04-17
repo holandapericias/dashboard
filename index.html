@@ -160,7 +160,7 @@ const I18N={
 pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",historico:"Histórico",previsao:"Previsão 30d",fpa:"FP&A",
 entradas:"Entradas",saidasLbl:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
 case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",
-forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",assistPend:"Assistente técnico pendente de pagamento",
+forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",assistPend:"Assistente técnico pendente de pagamento",fechamento:"Fechamento de caixa pendente",
 noData:"Sem dados",loading:"Carregando",err:"Erro",allMonths:"Todos os meses",
 sortBy:"Ordenar por",sortDate:"Data",sortClient:"Cliente",
 s50:"50% Iniciais",sEnc:"Encerrados — Emitir NF",sConf:"Confirmar com Cliente",
@@ -181,7 +181,7 @@ event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado"},
 en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",historico:"History",previsao:"Next 30d",fpa:"FP&A",
 entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
 case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
-forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",assistPend:"Assistant payment pending",
+forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",assistPend:"Assistant payment pending",fechamento:"Cash closing pending",
 noData:"No data",loading:"Loading",err:"Error",allMonths:"All months",
 sortBy:"Sort by",sortDate:"Date",sortClient:"Client",
 s50:"Pending 50% Upfront",sEnc:"Closed — Issue Invoice",sConf:"Confirm with Client",
@@ -360,6 +360,7 @@ async function loadData(){
     for(const p of DATA.prazo){const cid=fv(p,F.prazo.caso);if(cid&&cid[0])(PRAZOS_BY_CASO[cid[0]]=PRAZOS_BY_CASO[cid[0]]||[]).push(p);}
     for(const co of DATA.cob){const cid=fv(co,F.cob.caso);if(cid&&cid[0])(COBS_BY_CASO[cid[0]]=COBS_BY_CASO[cid[0]]||[]).push(co);}
     buildMonthSelector();
+    CLIENT_DSO=computeClientDSO();
     render();
     await autoEncerrarPosManifestacao();
     await autoFixFaltaPagamento();
@@ -633,8 +634,16 @@ function computePrevisao(){
     const age=d?daysBetween(d,t0):0;
     let p;if(age<30)p=0.9;else if(age<60)p=0.7;else if(age<90)p=0.4;else continue;
     const dso=20;
-    const expectedDate=new Date(t0);expectedDate.setDate(expectedDate.getDate()+Math.max(5,dso-age));
-    jaCobrados.push({nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),valor:v,prob:p,esperado:v*p,age,cob:co,expectedDate});
+    // Usar DSO real do cliente se disponível
+    const cliName=c?cliNomeOfCaso(c):'';
+    const cliDSO=CLIENT_DSO[cliName];
+    const avgDias=cliDSO?cliDSO.avg:20;
+    const restante=Math.max(3,avgDias-age);
+    // Se o cliente geralmente leva mais de 30 dias a partir de agora, probabilidade cai
+    if(restante>30)p=Math.min(p,0.15);
+    else if(restante>20)p=Math.min(p,0.4);
+    const expectedDate=new Date(t0);expectedDate.setDate(expectedDate.getDate()+restante);
+    jaCobrados.push({nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),cli:cliName,valor:v,prob:p,esperado:v*p,age,cob:co,expectedDate,avgDias,restante});
   }
   // B) Cobranças previstas: perícias agendadas próximos 30d em casos 50/50 sem parte final cobrada → vão gerar cobrança
   const cobrPrev=[];
@@ -719,32 +728,54 @@ function getSaldo(){
 function getSnapshots(){try{return JSON.parse(localStorage.getItem('hp_snapshots')||'[]');}catch(e){return [];}}
 function addSnapshot(s){const arr=getSnapshots().filter(x=>x.mes!==s.mes);arr.push(s);arr.sort((a,b)=>a.mes.localeCompare(b.mes));localStorage.setItem('hp_snapshots',JSON.stringify(arr));}
 
-function fecharMes(){
-  const mk=SELECTED_MONTH||monthKey(new Date());
-  const saldoFinal=prompt('Saldo bancário no fechamento do mês '+monthLabel(mk)+' (R$):');
-  if(saldoFinal===null)return;
-  const val=parseFloat(saldoFinal)||0;
-  // Calcular receita / saídas operacionais / retiradas do mês
-  let receita=0,saidasOp=0,retiradas=0;
+function monthData(mk){
+  let receita=0,saidasOp=0,retiradas=0;const entList=[],saiList=[];
   for(const co of DATA.cob){
     if(isSaida(co)){
       const d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);
       if(!d||monthKey(d)!==mk)continue;
       const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
       const marker=String(fv(co,F.cob.numeroNF)||'');
-      if(/^RETIRADA:/i.test(marker))retiradas+=v;
-      else saidasOp+=v;
+      if(/^RETIRADA:/i.test(marker))retiradas+=v;else saidasOp+=v;
+      saiList.push({nome:fv(co,F.cob.nome)||marker||'—',valor:v,data:d});
     }else if(fv(co,F.cob.recebido)===true){
       const d=fv(co,F.cob.dataReceb)||fv(co,F.cob.dataCobranca);
       if(!d||monthKey(d)!==mk)continue;
-      receita+=num(fv(co,F.cob.valorReceber));
+      const v=num(fv(co,F.cob.valorReceber));
+      receita+=v;
+      entList.push({nome:fv(co,F.cob.nome)||'—',valor:v,data:d});
     }
   }
-  const resultado=receita-saidasOp-retiradas;
-  addSnapshot({mes:mk,saldoFinal:val,receita,saidasOp,retiradas,resultado,data:todayISO()});
+  return {receita,saidasOp,retiradas,resultado:receita-saidasOp-retiradas,entList,saiList};
+}
+
+function fecharMes(){
+  const mk=SELECTED_MONTH||monthKey(new Date());
+  const saldoFinal=prompt('Saldo bancário conforme extrato no fim de '+monthLabel(mk)+' (R$):');
+  if(saldoFinal===null)return;
+  const val=parseFloat(saldoFinal)||0;
+  const md=monthData(mk);
+  // Conciliação: saldo anterior + receita - saídas - retiradas = saldo esperado
+  const snaps=getSnapshots();
+  const prev=snaps.filter(s=>s.mes<mk).sort((a,b)=>b.mes.localeCompare(a.mes))[0];
+  const saldoAnterior=prev?prev.saldoFinal:0;
+  const esperado=saldoAnterior+md.receita-md.saidasOp-md.retiradas;
+  const diff=val-esperado;
+  addSnapshot({mes:mk,saldoFinal:val,saldoAnterior,receita:md.receita,saidasOp:md.saidasOp,retiradas:md.retiradas,resultado:md.resultado,esperado,diff,data:todayISO()});
   setSaldo(val,todayISO());
-  showToast('Mês '+monthLabel(mk)+' fechado. Resultado: '+fmtBRL(resultado),false);
+  let msg='Mês '+monthLabel(mk)+' fechado. Resultado: '+fmtBRL(md.resultado)+'.';
+  if(Math.abs(diff)>1)msg+=' Diferença extrato: '+fmtBRL(diff)+' ('+fmtBRL(val)+' real vs '+fmtBRL(esperado)+' esperado).';
+  showToast(msg,Math.abs(diff)>100);
   render();
+}
+
+function needsFechamento(){
+  const now=new Date();
+  // Verifica se o mês anterior foi fechado
+  const prev=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const prevK=monthKey(prev);
+  const snaps=getSnapshots();
+  return now.getDate()>=5&&!snaps.some(s=>s.mes===prevK);
 }
 
 function computeAlerts(){
@@ -788,6 +819,11 @@ function computeAlerts(){
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     const assist=assistNameOfCob(co);
     a.push({type:'assistPend',caso:c,cob:co,assist:assist||'—',valor:v});
+  }
+  // Alerta de fechamento de caixa pendente
+  if(needsFechamento()){
+    const prev=new Date();prev.setMonth(prev.getMonth()-1);
+    a.unshift({type:'fechamento',mes:monthLabel(monthKey(prev))});
   }
   return a;
 }
@@ -1065,12 +1101,13 @@ function renderOverview(){
       }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   }
   const alertHtml=a.length===0?'<div class="empty">'+t('noData')+'</div>':a.map(x=>{
-    const lbl={forgot50:t('forgot50'),vencida60:t('vencida60'),periciaProx:t('periciaProx'),assistPend:t('assistPend')}[x.type];
-    const cls=x.type==='forgot50'||x.type==='vencida60'?'red':(x.type==='assistPend'?'':'');
+    const lbl={forgot50:t('forgot50'),vencida60:t('vencida60'),periciaProx:t('periciaProx'),assistPend:t('assistPend'),fechamento:t('fechamento')}[x.type];
+    const cls=x.type==='forgot50'||x.type==='vencida60'?'red':(x.type==='fechamento'?'red':'');
     let extra='';
     if(x.type==='vencida60')extra=' ('+x.dias+'d)';
     else if(x.type==='periciaProx')extra=' ('+fmtDate(x.data)+')';
     else if(x.type==='assistPend')extra=' — '+esc(x.assist)+' • '+fmtBRL(x.valor);
+    else if(x.type==='fechamento')return '<div class="alert red"><strong>⚠ '+lbl+':</strong> '+esc(x.mes)+'. Use "Fechar Mês" no topo para conciliar com o extrato bancário.</div>';
     return '<div class="alert '+cls+'"><strong>'+lbl+':</strong> '+esc(x.caso?casoNome(x.caso):'—')+extra+'</div>';
   }).join('');
   // Saldo bancário + retiradas do mês
@@ -1148,7 +1185,15 @@ function caseTable(rows,opts){
       if(k==='type')return '<td><span class="tag blue">'+(r.tipo||'—')+'</span></td>';
       if(k==='tipoPag'){const tp=r.cob?tipoPagLabel(r.cob):'';return '<td>'+(tp?'<span class="tag purple">'+esc(tp)+'</span>':'—')+'</td>';}
       if(k==='date')return '<td>'+fmtDate(r.cob?fv(r.cob,F.cob.dataCobranca):null)+'</td>';
-      if(k==='days')return '<td class="right">'+daysBadge(r.dias)+'</td>';
+      if(k==='days'){
+        let dsoHtml='';
+        if(r.clientDSO!=null){
+          const restante=Math.max(0,r.clientDSO-r.dias);
+          const cls=restante<=7?'green':(restante<=20?'blue':'gray');
+          dsoHtml='<div style="font-size:10px;color:#6b7c8c;margin-top:2px">média '+r.clientDSO+'d → ~'+restante+'d</div>';
+        }
+        return '<td class="right">'+daysBadge(r.dias)+dsoHtml+'</td>';
+      }
       if(k==='value')return '<td class="right">'+fmtBRL(r.valor!=null?r.valor:(r.cob?num(fv(r.cob,F.cob.valorReceber)):0))+'</td>';
       return '<td></td>';
     }).join('');
@@ -1220,6 +1265,38 @@ function renderPedidoSection(rows,total){
     '</div>';
 }
 
+// ========== DSO POR CLIENTE ==========
+function computeClientDSO(){
+  // Agrupa dias de pagamento por cliente, exclui outliers >180d
+  const byCli={};
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.recebido)!==true)continue;
+    const dc=parseDate(fv(co,F.cob.dataCobranca));
+    const dr=parseDate(fv(co,F.cob.dataReceb));
+    if(!dc||!dr)continue;
+    const dias=daysBetween(dc,dr);
+    if(dias<0||dias>180)continue; // exclui outliers
+    const cid=fv(co,F.cob.caso);if(!cid||!cid[0])continue;
+    const c=casoById(cid[0]);if(!c)continue;
+    const cl=cliNomeOfCaso(c);
+    (byCli[cl]=byCli[cl]||[]).push(dias);
+  }
+  const result={};
+  for(const cl in byCli){
+    const arr=byCli[cl];
+    if(!arr.length)continue;
+    // Remove outlier: >2x a mediana
+    arr.sort((a,b)=>a-b);
+    const med=arr[Math.floor(arr.length/2)];
+    const filtered=arr.filter(d=>d<=Math.max(med*2.5,60));
+    const avg=filtered.length?Math.round(filtered.reduce((s,d)=>s+d,0)/filtered.length):0;
+    result[cl]={avg,count:filtered.length};
+  }
+  return result;
+}
+let CLIENT_DSO={};
+
 function lastReceivedCob(){
   let best=null,bestD=null;
   for(const co of DATA.cob){
@@ -1230,6 +1307,20 @@ function lastReceivedCob(){
     if(!bestD||d>bestD){bestD=d;best=co;}
   }
   return best?{cob:best,data:bestD}:null;
+}
+function receivedOnDate(dateStr){
+  const target=dateStr?dateStr.slice(0,10):null;
+  if(!target)return [];
+  const out=[];
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.recebido)!==true)continue;
+    const d=fv(co,F.cob.dataReceb);
+    if(!d||String(d).slice(0,10)!==target)continue;
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    out.push({cob:co,caso:c,nome:c?casoNome(c):(fv(co,F.cob.nome)||'—'),cli:c?cliNomeOfCaso(c):'—',valor:num(fv(co,F.cob.valorReceber)),nf:fv(co,F.cob.numeroNF)||''});
+  }
+  return out;
 }
 
 function renderPendentes(){
@@ -1243,18 +1334,34 @@ function renderPendentes(){
     const cli=c?cliNomeOfCaso(c):'—';
     const v=num(fv(last.cob,F.cob.valorReceber));
     const nfNum=fv(last.cob,F.cob.numeroNF)||'';
+    const sameDayList=receivedOnDate(fv(last.cob,F.cob.dataReceb));
+    const hasMore=sameDayList.length>1;
     banner='<div class="section" style="background:#eaf7f0;border-left:4px solid #22a06b">'+
-      '<h2 style="color:#1a7a4f">✓ Último recebimento registrado</h2>'+
+      '<h2 style="color:#1a7a4f;cursor:pointer" id="toggleLastRec">✓ Último recebimento registrado '+(hasMore?'<span style="font-size:14px">▼ ('+sameDayList.length+' neste dia)</span>':'')+'</h2>'+
       '<div style="font-size:14px;color:#003c56">'+
       '<strong>'+fmtDate(last.data)+'</strong> — '+esc(fv(last.cob,F.cob.nome)||'—')+
       '<div style="margin-top:4px;font-size:13px;color:#6b7c8c">Cliente: '+esc(cli)+' • Valor: <strong>'+fmtBRL(v)+'</strong>'+(nfNum?' • NF '+esc(nfNum):'')+'</div>'+
       '<div style="margin-top:8px;font-size:12px;color:#6b7c8c;font-style:italic">Verifique seu extrato bancário a partir desta data.</div>'+
-      '</div></div>';
+      '</div>'+
+      (hasMore?'<div id="lastRecList" style="display:none;margin-top:10px"><table><thead><tr><th>Caso</th><th>Cliente</th><th>NF</th><th class="right">Valor</th></tr></thead><tbody>'+
+        sameDayList.map(x=>'<tr><td>'+esc(x.nome)+'</td><td>'+esc(x.cli)+'</td><td>'+esc(x.nf||'—')+'</td><td class="right">'+fmtBRL(x.valor)+'</td></tr>').join('')+
+        '</tbody></table><div style="font-size:12px;color:#6b7c8c;margin-top:6px">Total do dia: <strong>'+fmtBRL(sameDayList.reduce((s,x)=>s+x.valor,0))+'</strong></div></div>':'')+
+      '</div>';
+  }
+  // DSO por cliente nas linhas
+  for(const r of list){
+    if(!r.caso)continue;
+    const cl=cliNomeOfCaso(r.caso);
+    const dso=CLIENT_DSO[cl];
+    r.clientDSO=dso?dso.avg:null;
   }
   const filtered=FILTER_CLIENT?list.filter(r=>r.caso&&cliNomeOfCaso(r.caso).toLowerCase().indexOf(FILTER_CLIENT.toLowerCase())>=0):list;
   const filtTotal=filtered.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
   const clients=[...new Set(list.map(r=>r.caso?cliNomeOfCaso(r.caso):'—'))].sort();
-  const filterBar='<div class="toolbar"><label>'+t('client')+': <select id="filterClient"><option value="">Todos ('+list.length+')</option>'+clients.map(c=>'<option value="'+esc(c)+'"'+(FILTER_CLIENT===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label></div>';
+  const filterBar='<div class="toolbar"><label>'+t('client')+': <select id="filterClient"><option value="">Todos ('+list.length+')</option>'+clients.map(c=>{
+    const dso=CLIENT_DSO[c];const dsoLabel=dso?' (média '+dso.avg+'d)':'';
+    return '<option value="'+esc(c)+'"'+(FILTER_CLIENT===c?' selected':'')+'>'+esc(c)+dsoLabel+'</option>';
+  }).join('')+'</select></label></div>';
   return banner+sortToolbar()+filterBar+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(filtTotal)+' ('+filtered.length+(FILTER_CLIENT?' de '+list.length:'')+')</h2>'+caseTable(filtered,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
@@ -1465,8 +1572,8 @@ function renderPrevisao(){
     '</div>';
   // Parte 1 - Já cobrados
   html+='<div class="section"><h2>'+t('recebidos')+' — '+t('jaCobrados')+'</h2>'+
-    (p.jaCobrados.length?'<table><thead><tr><th>'+t('case')+'</th><th class="right">'+t('days')+'</th><th class="right">'+t('prob')+'</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
-    p.jaCobrados.sort((a,b)=>b.esperado-a.esperado).map(x=>'<tr><td>'+esc(x.nome)+'</td><td class="right">'+x.age+'d</td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
+    (p.jaCobrados.length?'<table><thead><tr><th>Caso / Cliente</th><th class="right">Atraso</th><th class="right">Média Cliente</th><th class="right">'+t('prob')+'</th><th class="right">'+t('value')+'</th><th class="right">'+t('esperado')+'</th></tr></thead><tbody>'+
+    p.jaCobrados.sort((a,b)=>a.restante-b.restante).map(x=>'<tr><td>'+esc(x.nome)+'<div class="proc">'+esc(x.cli)+'</div></td><td class="right">'+x.age+'d</td><td class="right"><span class="tag blue">'+x.avgDias+'d</span><div style="font-size:10px;color:#6b7c8c">~'+x.restante+'d</div></td><td class="right">'+Math.round(x.prob*100)+'%</td><td class="right">'+fmtBRL(x.valor)+'</td><td class="right">'+fmtBRL(x.esperado)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+
     '</div>';
   // Cobranças previstas
   html+='<div class="section"><h2>'+t('cobrPrev')+'</h2>'+
@@ -1591,7 +1698,11 @@ function renderFPA(){
   const snaps=getSnapshots();
   html+='<div class="section"><h2>Evolução Mensal (Fechamentos)</h2>'+
     (snaps.length?'<table><thead><tr><th>Mês</th><th class="right">Receita</th><th class="right">Saídas Op.</th><th class="right">Retiradas</th><th class="right">Resultado</th><th class="right">Saldo Final</th></tr></thead><tbody>'+
-    snaps.slice().reverse().map(s=>'<tr><td>'+monthLabel(s.mes)+'</td><td class="right">'+fmtBRL(s.receita)+'</td><td class="right">'+fmtBRL(s.saidasOp)+'</td><td class="right">'+fmtBRL(s.retiradas)+'</td><td class="right"><strong>'+fmtBRL(s.resultado)+'</strong></td><td class="right">'+fmtBRL(s.saldoFinal)+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Nenhum mês fechado ainda. Use "Fechar Mês" na Visão Geral.</div>')+
+    snaps.slice().reverse().map(s=>{
+      const diffHtml=s.diff!=null?'<div style="font-size:10px;color:'+(Math.abs(s.diff)<1?'#22a06b':'#d64545')+'">'+
+        (Math.abs(s.diff)<1?'✓ conciliado':'Δ '+fmtBRL(s.diff))+'</div>':'';
+      return '<tr><td>'+monthLabel(s.mes)+'</td><td class="right">'+fmtBRL(s.receita)+'</td><td class="right">'+fmtBRL(s.saidasOp)+'</td><td class="right">'+fmtBRL(s.retiradas)+'</td><td class="right"><strong>'+fmtBRL(s.resultado)+'</strong></td><td class="right">'+fmtBRL(s.saldoFinal||0)+diffHtml+'</td></tr>';
+    }).join('')+'</tbody></table>':'<div class="empty">Nenhum mês fechado ainda. Use "Fechar Mês" na Visão Geral.</div>')+
     '</div>';
   return html;
 }
@@ -1610,6 +1721,8 @@ function attachHandlers(){
   document.querySelectorAll('.detail').forEach(d=>d.onclick=e=>e.stopPropagation());
   document.querySelectorAll('[data-act="save"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();handleSave(b);};});
   document.querySelectorAll('[data-act="fecharMes"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();fecharMes();};});
+  const tlr=document.getElementById('toggleLastRec');
+  if(tlr)tlr.onclick=()=>{const l=document.getElementById('lastRecList');if(l)l.style.display=l.style.display==='none'?'block':'none';};
   const fc=document.getElementById('filterClient');
   if(fc)fc.onchange=()=>{FILTER_CLIENT=fc.value;render();};
   const ha=document.getElementById('histApply');
