@@ -1477,23 +1477,29 @@ function renderSaidas(){
     return fv(co,F.cob.nome)||'Retirada';
   };
 
-  let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
-    (assist.length?'<table><thead><tr><th>Assistente</th><th>'+t('case')+'</th><th>Chave PIX</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
-    assist.map((co,i)=>{
-      const rid='sa-'+i;const exp=EXPANDED_ROW===rid;
-      const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
-      const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-      const a=assistOfCob(co);
-      const aNome=a?(fv(a,F.assist.nome)||'—'):'—';
-      const aEsp=a?(fv(a,F.assist.esp)||''):'';
-      const aPix=a?(fv(a,F.assist.pix)||''):'';
-      const aFone=a?(fv(a,F.assist.fone)||''):'';
-      const aEmail=a?(fv(a,F.assist.email)||''):'';
-      const aLocal=a?(fv(a,F.assist.local)||''):'';
-      const assistCell='<div><strong>'+esc(aNome)+'</strong></div>'+(aEsp?'<div class="proc">'+esc(aEsp)+(aLocal?' • '+esc(aLocal):'')+'</div>':'');
-      const pixCell=aPix?'<div style="font-family:monospace;font-size:12px">'+esc(aPix)+'</div>':'<span class="tag red">Sem PIX</span>';
-      let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+assistCell+'</td><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+pixCell+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
-      if(exp){
+  // Agrupa cobranças pelo prazo (parcelas do mesmo prazo viram um bloco)
+  const assistByPrazo={};const assistOrfas=[];
+  for(const co of assist){
+    const ids=(fv(co,F.cob.prazos)||[]).map(x=>typeof x==='object'?x.id:x);
+    if(ids[0])(assistByPrazo[ids[0]]=assistByPrazo[ids[0]]||[]).push(co);
+    else assistOrfas.push(co);
+  }
+  const tipoStr=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return Array.isArray(v)?v.map(t=>typeof t==='object'?t.name:t).join(' '):String(v);};
+  const renderAssistSimpleRow=(co,rid)=>{
+    const exp=EXPANDED_ROW===rid;
+    const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
+    const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
+    const a=assistOfCob(co);
+    const aNome=a?(fv(a,F.assist.nome)||'—'):'—';
+    const aEsp=a?(fv(a,F.assist.esp)||''):'';
+    const aPix=a?(fv(a,F.assist.pix)||''):'';
+    const aFone=a?(fv(a,F.assist.fone)||''):'';
+    const aEmail=a?(fv(a,F.assist.email)||''):'';
+    const aLocal=a?(fv(a,F.assist.local)||''):'';
+    const assistCell='<div><strong>'+esc(aNome)+'</strong></div>'+(aEsp?'<div class="proc">'+esc(aEsp)+(aLocal?' • '+esc(aLocal):'')+'</div>':'');
+    const pixCell=aPix?'<div style="font-family:monospace;font-size:12px">'+esc(aPix)+'</div>':'<span class="tag red">Sem PIX</span>';
+    let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+assistCell+'</td><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+pixCell+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
+    if(exp){
         let det='<h4>Dados do Assistente</h4><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:13px;background:#fff;padding:12px;border-radius:6px;border:1px solid #e0eaf1">'+
           '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Nome</div><div><strong>'+esc(aNome)+'</strong></div></div>'+
           (aEsp?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Especialidade</div><div>'+esc(aEsp)+'</div></div>':'')+
@@ -1509,7 +1515,59 @@ function renderSaidas(){
         row+='<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
       }
       return row;
-    }).join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+    };
+  const renderAssistGroupedRow=(cobs,prazoId,baseRid)=>{
+    const ehInicial=co=>/inicia/i.test(tipoStr(co));
+    const ini=cobs.find(ehInicial)||cobs[0];
+    const fin=cobs.find(co=>co!==ini)||cobs[1];
+    const totalGrupo=cobs.reduce((s,co)=>s+(num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber))),0);
+    const cidLink=fv(ini,F.cob.caso);const c=cidLink&&cidLink[0]?casoById(cidLink[0]):null;
+    const a=assistOfCob(ini);
+    const aNome=a?(fv(a,F.assist.nome)||'—'):'—';
+    const aEsp=a?(fv(a,F.assist.esp)||''):'';
+    const aPix=a?(fv(a,F.assist.pix)||''):'';
+    const assistCell='<div><strong>'+esc(aNome)+'</strong></div>'+(aEsp?'<div class="proc">'+esc(aEsp)+'</div>':'');
+    const pixCell=aPix?'<div style="font-family:monospace;font-size:12px">'+esc(aPix)+'</div>':'<span class="tag red">Sem PIX</span>';
+    const ridIni=baseRid+'-ini';const ridFin=baseRid+'-fin';
+    const expIni=EXPANDED_ROW===ridIni;const expFin=EXPANDED_ROW===ridFin;
+    const prazo=DATA.prazo.find(pp=>pp.id===prazoId);
+    const dataPericia=prazo?parseDate(fv(prazo,F.prazo.data)):null;
+    const prazosCaso=c?(PRAZOS_BY_CASO[c.id]||[]):[];
+    const preLaudoPrazo=prazosCaso.find(pp=>fv(pp,F.prazo.preLaudo)===true);
+    let dataFinal=preLaudoPrazo?parseDate(fv(preLaudoPrazo,F.prazo.data)):null;
+    if(!dataFinal&&dataPericia){dataFinal=new Date(dataPericia);dataFinal.setDate(dataFinal.getDate()+15);}
+    const vIni=num(fv(ini,F.cob.valorPag))||num(fv(ini,F.cob.valorReceber));
+    const vFin=num(fv(fin,F.cob.valorPag))||num(fv(fin,F.cob.valorReceber));
+    const subRow=(co,rid,exp,label,vParc,dParc)=>{
+      let s='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td style="padding-left:30px;color:#6b7c8c">↳ '+label+'</td><td></td><td></td><td>'+(dParc?fmtDate(dParc):'—')+'</td><td class="right">'+fmtBRL(vParc)+'</td></tr>';
+      if(exp){
+        let det='<h4>'+label+' — '+esc(aNome)+'</h4>'+
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:13px;background:#fff;padding:12px;border-radius:6px;border:1px solid #e0eaf1">'+
+          (aPix?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Chave PIX</div><div style="font-family:monospace">'+esc(aPix)+'</div></div>':'<div style="color:#d64545"><strong>⚠ Sem chave PIX cadastrada</strong></div>')+
+          '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Valor</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#d64545">'+fmtBRL(vParc)+'</div></div>'+
+          '</div>';
+        if(c)det+=renderRoadmap(c);
+        det+=renderPaidForm(co);
+        s+='<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
+      }
+      return s;
+    };
+    let html='<tr style="background:#f8fbfd"><td>'+assistCell+'</td><td>'+(c?caseCell(c):esc(fv(ini,F.cob.nome)||'—'))+'</td><td>'+pixCell+'</td><td>—</td><td class="right"><div style="font-weight:700">'+fmtBRL(totalGrupo)+'</div><div style="font-size:11px;color:#6b7c8c">'+cobs.length+' parcelas</div></td></tr>';
+    html+=subRow(ini,ridIni,expIni,'1ª parcela (50% iniciais)',vIni,dataPericia);
+    html+=subRow(fin,ridFin,expFin,'2ª parcela (50% finais)',vFin,dataFinal);
+    return html;
+  };
+  const assistRows=[];let _ridx=0;
+  for(const prazoId in assistByPrazo){
+    const cobs=assistByPrazo[prazoId];
+    if(cobs.length===2)assistRows.push(renderAssistGroupedRow(cobs,prazoId,'sa-grp-'+(_ridx++)));
+    else for(const co of cobs)assistRows.push(renderAssistSimpleRow(co,'sa-'+(_ridx++)));
+  }
+  for(const co of assistOrfas)assistRows.push(renderAssistSimpleRow(co,'sa-'+(_ridx++)));
+
+  let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
+    (assist.length?'<table><thead><tr><th>Assistente</th><th>'+t('case')+'</th><th>Chave PIX</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+    assistRows.join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
   // Match paid CF this month by name
   const cfPayments={};
   for(const co of DATA.cob){
