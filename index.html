@@ -230,11 +230,12 @@ const F={
 caso:{nome:'fldj5FBvJfRd0BC22',fase:'fld86RIjqxRbIyK2H',valor:'fldxj1JNDROjFVS0I',formato:'fldorcMm83hAOgwmp',cliente:'fld7ddtpPu5BrgIoL',processo:'fldzUYMqa3SNmcaiy',dataPericia:'fld1SIT1qCgOrzvwE',obs:'fld82hJx9whlWhMhs',manifNos:'fldOM9NiLOlvUkHta'},
 cob:{nome:'fldmEqze0enDJ9NgS',tipo:'flduuDN0KZkIxDa5E',recebido:'fldJF2iTO9MuOrvPu',valorReceber:'fldctzCHWdI5Ywslb',dataCobranca:'fld017hwmpf88pMf4',nfEmitida:'fldwiByBRFrrfqXi0',numeroNF:'fldrLevtI2kCGLtD2',valorBrutoNF:'fldbtApGvyRMw0sgk',pago:'fldseQscWInxIjkWT',tipoPag:'fldoz03J5oMdtYtvy',caso:'fldxNcSHI6NwRA1Ec',dataReceb:'flddyKZoD9Kg1i49b',nfRetida:'fldPNYtiEom533bLg',valorPag:'fldNRRnaAxXSwcyZ0',dataPag:'fldMqz2o0dokkPDKI'},
 cli:{nome:'fldPlIIeCVL1PjHuP',confirmar:'fldRJLmUby1ZcqPoC',ref:'fldDLgDwqCwlyVUy3'},
-prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa'},
+prazo:{data:'fldYl3z2vJDBxc7ql',caso:'fldJ5zNofON8zZHQO',tipo:'fldwFdFcb76bkbjD4',valorAss:'fldp3Y2x1I5EZHzyE',obs:'fldQCwpQ6tMlO5sVa',preLaudo:'fldpWvUMHzDcEqUsd',assist:'fld7FZUBM7KDz6JlK'},
 cf:{nome:'fld67rYnb0SL2bQDC',valor:'fldbjyqnsf4Q3dkkR',dia:'fldSp4bkc7I4e2mAE',ativo:'fld6dvJ1l8kbck5UT'},
-assist:{nome:'fldaYZAZioP0rVl4O',esp:'fldKZJvPLcO56iRMK',email:'fld0WW3RfuJJRbd9n',fone:'fldAcouFHEHO7KwlZ',local:'fldcnq8lrMMLyTnBG',pix:'fldF4Y5ATZAGNHYM4'}
+assist:{nome:'fldaYZAZioP0rVl4O',esp:'fldKZJvPLcO56iRMK',email:'fld0WW3RfuJJRbd9n',fone:'fldAcouFHEHO7KwlZ',local:'fldcnq8lrMMLyTnBG',pix:'fldF4Y5ATZAGNHYM4',modelo:'fld7NSkK9yeaO1Yl9'}
 };
 F.cob.assist='fld18er35haoa5vHt';
+F.cob.prazos='fldTcLs9Hbhkn4hp7';
 const BASE='appTEAYT5TYhnQwTn';
 const TBL={casos:'Casos',cob:'Cobranças',cli:'Clientes',prazo:'Prazos',cf:'tblmcxyRVtn2LYqLU',assist:'tblK0oBCU9EmeXwLf'};
 
@@ -698,11 +699,57 @@ function computePrevisao(){
     if(!d||d<t0||d>t30)continue;
     const tp=String(fv(p,F.prazo.tipo)||'').toLowerCase();
     if(tp.indexOf('perícia')<0&&tp.indexOf('pericia')<0)continue;
-    const vCerto=num(fv(p,F.prazo.valorAss));
-    const v=vCerto||800;
-    pericias+=v;
+
     const cid=fv(p,F.prazo.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    lPag.push({data:d,valor:v,nome:c?casoNome(c):'—',certo:vCerto>0});
+    const nome=c?casoNome(c):'—';
+
+    const assLink=fv(p,F.prazo.assist)||[];
+    const assId=assLink[0];
+    const ass=assId?DATA.assist.find(a=>a.id===assId):null;
+    const modelo=ass?fv(ass,F.assist.modelo):null;
+    const isDividido=modelo==='Pagamento dividido';
+
+    const cobsDoPrazo=DATA.cob.filter(co=>{
+      if(!isSaida(co))return false;
+      const ids=(fv(co,F.cob.prazos)||[]).map(x=>typeof x==='object'?x.id:x);
+      return ids.indexOf(p.id)>=0;
+    });
+
+    if(isDividido && cobsDoPrazo.length===2){
+      const tipoStr=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return Array.isArray(v)?v.map(t=>typeof t==='object'?t.name:t).join(' '):String(v);};
+      const ehInicial=co=>/inicia/i.test(tipoStr(co));
+      const ehFinal=co=>/final/i.test(tipoStr(co));
+      const ini=cobsDoPrazo.find(ehInicial);
+      const fin=cobsDoPrazo.find(ehFinal);
+
+      if(ini && fv(ini,F.cob.pago)!==true){
+        const vIni=num(fv(ini,F.cob.valorPag))||num(fv(ini,F.cob.valorReceber));
+        if(vIni>0){
+          pericias+=vIni;
+          lPag.push({data:d,valor:vIni,nome:nome+' (1ª parcela)',certo:true});
+        }
+      }
+
+      if(fin && fv(fin,F.cob.pago)!==true){
+        const vFin=num(fv(fin,F.cob.valorPag))||num(fv(fin,F.cob.valorReceber));
+        if(vFin>0){
+          const prazosCaso=c?(PRAZOS_BY_CASO[c.id]||[]):[];
+          const preLaudoPrazo=prazosCaso.find(pp=>fv(pp,F.prazo.preLaudo)===true);
+          let dFin=null;
+          if(preLaudoPrazo)dFin=parseDate(fv(preLaudoPrazo,F.prazo.data));
+          if(!dFin){dFin=new Date(d);dFin.setDate(dFin.getDate()+15);}
+          if(dFin>=t0 && dFin<=t30){
+            pericias+=vFin;
+            lPag.push({data:dFin,valor:vFin,nome:nome+' (2ª parcela)',certo:true});
+          }
+        }
+      }
+    } else {
+      const vCerto=num(fv(p,F.prazo.valorAss));
+      const v=vCerto||800;
+      pericias+=v;
+      lPag.push({data:d,valor:v,nome:nome,certo:vCerto>0});
+    }
   }
   const cfs=activeCF();
   const lCF=cfs.map(cf=>({nome:fv(cf,F.cf.nome)||'—',valor:num(fv(cf,F.cf.valor)),dia:fv(cf,F.cf.dia)||null,rec:cf}));
