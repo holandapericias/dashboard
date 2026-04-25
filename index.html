@@ -891,6 +891,14 @@ function computeAlerts(){
     if(!isSaida(co)||fv(co,F.cob.pago)===true)continue;
     const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     if(v<=0)continue;
+    const tpRaw=fv(co,F.cob.tipoPag);
+    const tpStr=tpRaw?(Array.isArray(tpRaw)?tpRaw.map(t=>typeof t==='object'?t.name:t).join(' '):String(tpRaw)):'';
+    const isFinais=/final/i.test(tpStr);
+    if(isFinais){
+      const ids=(fv(co,F.cob.prazos)||[]).map(x=>typeof x==='object'?x.id:x);
+      const prazo=ids[0]?DATA.prazo.find(p=>p.id===ids[0]):null;
+      if(!prazo||fv(prazo,F.prazo.preLaudo)!==true)continue;
+    }
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     const assist=assistNameOfCob(co);
     a.push({type:'assistPend',caso:c,cob:co,assist:assist||'—',valor:v});
