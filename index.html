@@ -374,6 +374,29 @@ async function autoMarkDevedores(){
   for(const ch of uniq)showToast(t('autoDev')+': '+casoNome(ch.caso)+' ('+ch.dias+'d)',true);
 }
 
+// Casos cobrados há meses sem NF emitida — marcação manual mantida por número de processo.
+// Se o caso reaparecer fora de Devedor (alguém moveu manualmente no Airtable), volta pra cá.
+const DEVEDORES_MANUAIS=[
+  '0000021-77.2025.5.07.0034',
+  '0001303-38.2024.5.07.0018',
+  '0001284-83.2024.5.07.0001'
+];
+async function autoMarcarDevedoresManuais(){
+  const fixed=[];
+  for(const proc of DEVEDORES_MANUAIS){
+    const c=DATA.casos.find(x=>casoProcesso(x)===proc);
+    if(!c)continue;
+    if(fv(c,F.caso.fase)==='Devedor')continue;
+    try{
+      const fields={};fields[F.caso.fase]='Devedor';
+      await patchRecord(TBL.casos,c.id,fields);
+      c.fields[F.caso.fase]='Devedor';
+      fixed.push(c);
+    }catch(e){}
+  }
+  for(const c of fixed)showToast('Forçado → Devedor: '+casoNome(c),true);
+}
+
 async function loadData(){
   setLoader();
   try{
@@ -394,6 +417,7 @@ async function loadData(){
     await autoEncerrarPosManifestacao();
     await autoFixFaltaPagamento();
     await autoMarkDevedores();
+    await autoMarcarDevedoresManuais();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
 
@@ -531,6 +555,13 @@ function caseRemarcFee(caso){
 }
 
 function computeCobrar(){
+  // Set de clientes com qualquer caso em fase Devedor — usado para alerta soft
+  const cliComDevedor=new Set();
+  for(const c of DATA.casos){
+    if(fv(c,F.caso.fase)!=='Devedor')continue;
+    const cl=fv(c,F.caso.cliente);
+    if(cl&&cl[0])cliComDevedor.add(cl[0]);
+  }
   const enc=[],ini=[],finais=[],pedido=[];
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
@@ -562,6 +593,8 @@ function computeCobrar(){
       }
     }
     if(!item)continue;
+    const cliLink=fv(c,F.caso.cliente);
+    if(cliLink&&cliLink[0]&&cliComDevedor.has(cliLink[0]))item.clienteDevedor=true;
     if(needsPedido){item.pInfo=pInfo;pedido.push(item);}
     else destCat.push(item);
   }
@@ -1270,6 +1303,7 @@ function caseTable(rows,opts){
         }
         if(r.cob&&fv(r.cob,F.cob.nfRetida)===true)extra+=' <span class="tag red">'+t('nfRetida')+'</span>';
         if(r.caso&&fv(r.caso,F.caso.manifNos)===true)extra+=' <span class="tag gray">manifestação sem nós</span>';
+        if(r.clienteDevedor)extra+=' <span class="tag red" title="Este cliente tem outro caso em fase Devedor">🚨 Cliente devedor</span>';
         return '<td>'+caseCell(r.caso)+extra+'</td>';
       }
       if(k==='client')return '<td>'+esc(r.caso?cliNomeOfCaso(r.caso):'—')+'</td>';
@@ -1333,6 +1367,7 @@ function renderPedidoSection(rows,total){
     const dp=fv(r.caso,F.caso.dataPericia);
     const np=Array.isArray(dp)?dp.length:(dp?1:0);
     if(np>1)caseExtra=' <span class="tag orange">'+(np-1)+' remarc</span>';
+    if(r.clienteDevedor)caseExtra+=' <span class="tag red" title="Este cliente tem outro caso em fase Devedor">🚨 Cliente devedor</span>';
     const tds='<td>'+caseCell(r.caso)+caseExtra+'</td>'+
       '<td>'+esc(cliNomeOfCaso(r.caso))+'</td>'+
       '<td><span class="tag yellow">'+r.pInfo.tipo+'</span></td>'+
