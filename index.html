@@ -180,7 +180,7 @@ prob:"Prob",esperado:"Esperado",aging0:"0-30d",aging30:"30-60d",aging60:"60-90d"
 event:"Evento",entrada:"Entrada",saida:"Saída",saldoAc:"Saldo Acumulado",
 saldoBanc:"Saldo Bancário (Caixa Econômica)",atualizarSaldo:"Atualizar Saldo",fecharMesBtn:"Fechar Mês",extratoBase:"Extrato base",nuncaAtualizado:"Nunca atualizado",desdeThen:"desde então",
 retiradaLucro:"Retirada de Lucro",registrarRetirada:"Registrar Retirada de Lucro",lucroOp:"Lucro Operacional",resultReal:"Resultado Real",retiradas:"retiradas",
-totalCobrar:"Total a Cobrar (todas as categorias)",finais50:"50% Finais Pós-Perícia",solicitarPedido:"SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO",
+totalCobrar:"Total a Cobrar (todas as categorias)",finais50:"50% Finais pós-perícia",finais50Manif:"50% Finais pós-manifestação",solicitarPedido:"SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO",
 ultimoReceb:"Último recebimento registrado",nesteD:"neste dia",verifiqueExtrato:"Verifique seu extrato bancário a partir desta data.",totalDia:"Total do dia",
 mediaCli:"média",restante:"restante",atrasoCli:"Atraso",mediaPag:"Média Cliente",
 periciaProx30:"Perícias próximos 30d",valorCerto:"Valor certo",estimado:"Estimado",retPesMedia:"Retiradas pessoais (média 3m)",
@@ -209,7 +209,7 @@ btnSaveNF:"Save Invoice",btnSavePay:"Mark Received",btnPaid:"Mark Paid",btnAddNo
 saved:"Saved!",saveErr:"Error",autoDev:"Case auto-moved to Overdue",
 saldoBanc:"Bank Balance (Caixa Econômica)",atualizarSaldo:"Update Balance",fecharMesBtn:"Close Month",extratoBase:"Statement base",nuncaAtualizado:"Never updated",desdeThen:"since then",
 retiradaLucro:"Profit Withdrawal",registrarRetirada:"Log Profit Withdrawal",lucroOp:"Operating Profit",resultReal:"Net Result",retiradas:"withdrawals",
-totalCobrar:"Total to Bill (all categories)",finais50:"50% Final Post-Inspection",solicitarPedido:"REQUEST PO / AUTHORIZATION",
+totalCobrar:"Total to Bill (all categories)",finais50:"50% Final Post-Inspection",finais50Manif:"50% Final Post-Response",solicitarPedido:"REQUEST PO / AUTHORIZATION",
 ultimoReceb:"Last recorded receipt",nesteD:"on this day",verifiqueExtrato:"Check your bank statement from this date.",totalDia:"Day total",
 mediaCli:"avg",restante:"remaining",atrasoCli:"Overdue",mediaPag:"Client Avg",
 periciaProx30:"Inspections next 30d",valorCerto:"Confirmed",estimado:"Estimated",retPesMedia:"Personal draws (3m avg)",
@@ -562,24 +562,57 @@ function computeCobrar(){
     const cl=fv(c,F.caso.cliente);
     if(cl&&cl[0])cliComDevedor.add(cl[0]);
   }
-  const enc=[],ini=[],finais=[],pedido=[];
+  const enc=[],ini=[],finaisPos=[],finaisManif=[],pedido=[];
+  const t0=today();
+  // Helpers de tipo de prazo
+  const prazoTipoStr=p=>{const v=fv(p,F.prazo.tipo);return Array.isArray(v)?v.join(' ').toLowerCase():String(v||'').toLowerCase();};
+  const isPrazoPericia=p=>{const s=prazoTipoStr(p);return s.indexOf('perícia')>=0||s.indexOf('pericia')>=0;};
+  const isPrazoManif=p=>{const s=prazoTipoStr(p);return s.indexOf('manifest')>=0;};
   for(const c of DATA.casos){
     const fase=fv(c,F.caso.fase);
     if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue;
     const isEnc=fase==='Encerrado PARA COBRANÇA';
     const fmt=fv(c,F.caso.formato);
-    const is5050=fmt&&String(fmt).indexOf('50/50')>=0;
+    const fmtStr=String(fmt||'').toLowerCase();
+    const is5050=fmt&&fmtStr.indexOf('50/50')>=0;
+    const is5050Manif=is5050&&(fmtStr.indexOf('pós-manifest')>=0||fmtStr.indexOf('pós manifest')>=0||fmtStr.indexOf('pos-manifest')>=0||fmtStr.indexOf('pos manifest')>=0);
+    const is5050PosPericia=is5050&&!is5050Manif; // default 50/50 = pós-perícia
     const pInfo=pedidoInfo(c);
     const needsPedido=pInfo&&!pedidoJaRecebido(c);
     const cobs=COBS_BY_CASO[c.id]||[];
     let item=null,destCat=null;
-    // Cat 3 check first: 50/50 with iniciais paid, finais missing — across multiple phases
+    // Cat 3/4 check first: 50/50 with iniciais paid, finais missing — across multiple phases
     const fasesFinal5050=['Encerrado PARA COBRANÇA','Encerrado - Falta Pagamento'];
     const fasesFinal5050All=FASES_POS_PERICIA.concat(fasesFinal5050);
     if(is5050&&fasesFinal5050All.indexOf(fase)>=0&&hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
       const remarc=caseRemarcFee(c);
-      item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
-      destCat=finais;
+      if(is5050Manif){
+        // Pós-manifestação: precisa de (A) prazo de manifestação cadastrado OU (B) >45d desde última perícia
+        const prazos=PRAZOS_BY_CASO[c.id]||[];
+        const prazosManif=prazos.filter(isPrazoManif);
+        let elegivel=false,aviso=null;
+        if(prazosManif.length>0){
+          elegivel=true;
+        }else{
+          const periciaDates=prazos.filter(isPrazoPericia).map(p=>parseDate(fv(p,F.prazo.data))).filter(Boolean).sort((a,b)=>b-a);
+          if(periciaDates.length){
+            const ultima=periciaDates[0];
+            const dias=daysBetween(ultima,t0);
+            if(dias>=45){
+              elegivel=true;
+              aviso='Sem prazo de manifestação cadastrado — '+dias+' dias desde a perícia ('+fmtDate(ultima)+')';
+            }
+          }
+        }
+        if(elegivel){
+          item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
+          if(aviso)item.aviso=aviso;
+          destCat=finaisManif;
+        }
+      }else{
+        item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
+        destCat=finaisPos;
+      }
     }else if(isEnc){
       const remarc=caseRemarcFee(c);
       const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
@@ -596,9 +629,9 @@ function computeCobrar(){
     const cliLink=fv(c,F.caso.cliente);
     if(cliLink&&cliLink[0]&&cliComDevedor.has(cliLink[0]))item.clienteDevedor=true;
     if(needsPedido){item.pInfo=pInfo;pedido.push(item);}
-    else destCat.push(item);
+    else if(destCat)destCat.push(item);
   }
-  return {enc,ini,finais,pedido};
+  return {enc,ini,finaisPos,finaisManif,pedido};
 }
 
 // Auto-encerrar casos cuja manifestação ao laudo passou há mais de 3 dias
@@ -1315,7 +1348,9 @@ function caseTable(rows,opts){
         if(r.cob&&fv(r.cob,F.cob.nfRetida)===true)extra+=' <span class="tag red">'+t('nfRetida')+'</span>';
         if(r.caso&&fv(r.caso,F.caso.manifNos)===true)extra+=' <span class="tag gray">manifestação sem nós</span>';
         if(r.clienteDevedor)extra+=' <span class="tag red" title="Este cliente tem outro caso em fase Devedor">🚨 Cliente devedor</span>';
-        return '<td>'+caseCell(r.caso)+extra+'</td>';
+        let avisoHtml='';
+        if(r.aviso)avisoHtml='<div style="color:#c62828;font-size:11px;margin-top:2px;font-weight:600">⚠ '+esc(r.aviso)+'</div>';
+        return '<td>'+caseCell(r.caso)+extra+avisoHtml+'</td>';
       }
       if(k==='client')return '<td>'+esc(r.caso?cliNomeOfCaso(r.caso):'—')+'</td>';
       if(k==='phase')return '<td>'+esc(r.caso?(fv(r.caso,F.caso.fase)||'—'):'—')+'</td>';
@@ -1351,19 +1386,20 @@ function caseTable(rows,opts){
 function renderCobrar(){
   const g=computeCobrar();
   const sum=a=>a.reduce((s,x)=>s+x.valor,0);
-  const grandTotal=sum(g.enc)+sum(g.ini)+sum(g.finais)+sum(g.pedido);
-  const grandCount=g.enc.length+g.ini.length+g.finais.length+g.pedido.length;
-  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">'+t('totalCobrar')+'</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(grandTotal)+'</div><div style="font-size:12px;color:#6b7c8c">'+grandCount+' casos</div></div><div style="font-size:12px;color:#6b7c8c;line-height:1.6"><div>1. Encerrados: <strong>'+fmtBRL(sum(g.enc))+'</strong></div><div>2. 50% Iniciais: <strong>'+fmtBRL(sum(g.ini))+'</strong></div><div>3. 50% Finais: <strong>'+fmtBRL(sum(g.finais))+'</strong></div><div>4. Solicitar Pedido: <strong>'+fmtBRL(sum(g.pedido))+'</strong></div></div></div></div>';
+  const grandTotal=sum(g.enc)+sum(g.ini)+sum(g.finaisPos)+sum(g.finaisManif)+sum(g.pedido);
+  const grandCount=g.enc.length+g.ini.length+g.finaisPos.length+g.finaisManif.length+g.pedido.length;
+  let html='<div class="section" style="background:linear-gradient(90deg,#eaf7f0,#e0f2ff);border:1px solid #c8e8d3"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px"><div><div style="font-size:12px;color:#6b7c8c;text-transform:uppercase;font-weight:600">'+t('totalCobrar')+'</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:34px;font-weight:700;color:#003c56">'+fmtBRL(grandTotal)+'</div><div style="font-size:12px;color:#6b7c8c">'+grandCount+' casos</div></div><div style="font-size:12px;color:#6b7c8c;line-height:1.6"><div>1. Encerrados: <strong>'+fmtBRL(sum(g.enc))+'</strong></div><div>2. 50% Iniciais: <strong>'+fmtBRL(sum(g.ini))+'</strong></div><div>3. '+t('finais50')+': <strong>'+fmtBRL(sum(g.finaisPos))+'</strong></div><div>4. '+t('finais50Manif')+': <strong>'+fmtBRL(sum(g.finaisManif))+'</strong></div><div>5. Solicitar Pedido: <strong>'+fmtBRL(sum(g.pedido))+'</strong></div></div></div></div>';
   html+=sortToolbar();
   html+='<div class="section"><h2>1. '+t('sEnc')+' — '+fmtBRL(sum(g.enc))+' ('+g.enc.length+')</h2>'+caseTable(g.enc,{cols:['case','client','phase','type','value'],prefix:'enc',form:'nf'})+'</div>';
   html+='<div class="section"><h2>2. '+t('s50')+' — '+fmtBRL(sum(g.ini))+' ('+g.ini.length+')</h2>'+caseTable(g.ini,{cols:['case','client','phase','type','value'],prefix:'ini',form:'nf'})+'</div>';
-  html+='<div class="section"><h2>3. '+t('finais50')+' — '+fmtBRL(sum(g.finais))+' ('+g.finais.length+')</h2>'+caseTable(g.finais,{cols:['case','client','phase','type','value'],prefix:'fin',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>3. '+t('finais50')+' — '+fmtBRL(sum(g.finaisPos))+' ('+g.finaisPos.length+')</h2>'+caseTable(g.finaisPos,{cols:['case','client','phase','type','value'],prefix:'finP',form:'nf'})+'</div>';
+  html+='<div class="section"><h2>4. '+t('finais50Manif')+' — '+fmtBRL(sum(g.finaisManif))+' ('+g.finaisManif.length+')</h2>'+caseTable(g.finaisManif,{cols:['case','client','phase','type','value'],prefix:'finM',form:'nf'})+'</div>';
   html+=renderPedidoSection(g.pedido,sum(g.pedido));
   return html;
 }
 
 function renderPedidoSection(rows,total){
-  if(!rows.length)return '<div class="section warn"><h2>📋 4. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(0)+' (0)</h2><div class="empty">'+t('noData')+'</div></div>';
+  if(!rows.length)return '<div class="section warn"><h2>📋 5. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(0)+' (0)</h2><div class="empty">'+t('noData')+'</div></div>';
   const sorted=sortRows(rows);
   let lastClient=null;
   const body=sorted.map((r,i)=>{
@@ -1398,7 +1434,7 @@ function renderPedidoSection(rows,total){
     const detTr=expanded?'<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>':'';
     return groupHead+mainTr+detTr;
   }).join('');
-  return '<div class="section warn"><h2>📋 4. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(total)+' ('+rows.length+')</h2>'+
+  return '<div class="section warn"><h2>📋 5. SOLICITAR Nº DE PEDIDO / AUTORIZAÇÃO — '+fmtBRL(total)+' ('+rows.length+')</h2>'+
     '<table><thead><tr><th>'+t('case')+'</th><th>'+t('client')+'</th><th>Pedido</th><th>'+t('type')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+body+'</tbody></table>'+
     '</div>';
 }
