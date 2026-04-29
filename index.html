@@ -447,6 +447,9 @@ const cliNomeOfCaso=c=>{const cl=cliOfCaso(c);return cl?(fv(cl,F.cli.nome)||'—
 const cliConfirmarOfCaso=c=>{const cl=cliOfCaso(c);return cl?fv(cl,F.cli.confirmar)===true:false;};
 const tipoCob=co=>{const v=fv(co,F.cob.tipo);return v?String(v).toLowerCase():'';};
 const isSaida=co=>{const tp=tipoCob(co);return tp.indexOf('saída')>=0||tp.indexOf('saida')>=0||tp.indexOf('despesa')>=0||!!fv(co,F.cob.dataPag)||!!fv(co,F.cob.valorPag);};
+// Considera pago se checkbox Pago=true OU se Data Pagamento estiver preenchida
+// (cobre o caso de marcação manual no Airtable sem checar o checkbox)
+const isCobPaga=co=>fv(co,F.cob.pago)===true||!!fv(co,F.cob.dataPag);
 const tipoPagLabel=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return String(v);};
 
 // ========== MONTH ==========
@@ -755,7 +758,7 @@ function computePrevisao(){
       const ini=cobsDoPrazo.find(ehInicial);
       const fin=cobsDoPrazo.find(ehFinal);
 
-      if(ini && fv(ini,F.cob.pago)!==true){
+      if(ini && !isCobPaga(ini)){
         const vIni=num(fv(ini,F.cob.valorPag))||num(fv(ini,F.cob.valorReceber));
         if(vIni>0){
           pericias+=vIni;
@@ -763,7 +766,7 @@ function computePrevisao(){
         }
       }
 
-      if(fin && fv(fin,F.cob.pago)!==true){
+      if(fin && !isCobPaga(fin)){
         const vFin=num(fv(fin,F.cob.valorPag))||num(fv(fin,F.cob.valorReceber));
         if(vFin>0){
           const prazosCaso=c?(PRAZOS_BY_CASO[c.id]||[]):[];
@@ -921,7 +924,7 @@ function computeAlerts(){
   }
   // Assistentes pendentes de pagamento
   for(const co of DATA.cob){
-    if(!isSaida(co)||fv(co,F.cob.pago)===true)continue;
+    if(!isSaida(co)||isCobPaga(co))continue;
     const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     if(v<=0)continue;
     const tpRaw=fv(co,F.cob.tipoPag);
@@ -1141,7 +1144,7 @@ let OV=null;
 
 function render(){
   document.querySelectorAll('nav button').forEach(b=>{
-    const hasAssistPend=b.dataset.tab==='saidas'&&DATA.cob.some(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
+    const hasAssistPend=b.dataset.tab==='saidas'&&DATA.cob.some(co=>isSaida(co)&&!isCobPaga(co));
     b.innerHTML=t(b.dataset.tab)+(hasAssistPend?' <span style="color:#f0c800;text-shadow:0 0 2px rgba(0,0,0,.3)">⚠</span>':'');
     b.classList.toggle('active',b.dataset.tab===TAB);
   });
@@ -1499,8 +1502,8 @@ function renderDevedores(){
 }
 
 function renderSaidas(){
-  // A) Assistentes pendentes
-  const assist=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
+  // A) Assistentes pendentes (esconde quem já tem pago=true OU dataPag preenchida)
+  const assist=DATA.cob.filter(co=>isSaida(co)&&!isCobPaga(co));
   const assistTotal=assist.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
   // B) Custos fixos
   const cfs=activeCF();const cfTotal=cfs.reduce((s,c)=>s+num(fv(c,F.cf.valor)),0);
