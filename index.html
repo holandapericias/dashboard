@@ -547,7 +547,14 @@ function pedidoJaRecebido(caso){
   return /pedido n[ºo°]?\s*\S+\s*recebido/i.test(obs);
 }
 const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&fv(co,F.cob.recebido)===true&&String(tipoPagLabel(co)).toLowerCase().indexOf('inicia')>=0);
-const hasFinalCob=cobs=>cobs.some(co=>!isSaida(co)&&(String(tipoPagLabel(co)).toLowerCase().indexOf('final')>=0||String(tipoPagLabel(co)).indexOf('100')>=0));
+const hasFinalCob=cobs=>cobs.some(co=>{
+  if(isSaida(co))return false;
+  const tp=String(tipoPagLabel(co)).toLowerCase();
+  if(tp.indexOf('final')>=0||tp.indexOf('100')>=0)return true;
+  // Fallback p/ cobranças legadas sem tipoPag preenchido: NF emitida e não é iniciais
+  if(fv(co,F.cob.nfEmitida)===true&&tp.indexOf('inicia')<0)return true;
+  return false;
+});
 function caseRemarcFee(caso){
   const dp=fv(caso,F.caso.dataPericia);
   const n=Array.isArray(dp)?dp.length:(dp?1:0);
