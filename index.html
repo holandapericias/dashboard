@@ -1032,12 +1032,14 @@ function renderRoadmap(caso){
 }
 
 // ========== FORMS ==========
-function renderNFForm(cob,caso){
+function renderNFForm(cob,caso,defValor,defTipoPag){
   const id=cob?cob.id:'';
   const nfNum=cob?(fv(cob,F.cob.numeroNF)||''):'';
-  const nfVal=cob?(fv(cob,F.cob.valorBrutoNF)||fv(cob,F.cob.valorReceber)||fv(caso,F.caso.valor)||''):(fv(caso,F.caso.valor)||'');
+  const fallbackVal=defValor!=null&&defValor!==''?defValor:(fv(caso,F.caso.valor)||'');
+  const nfVal=cob?(fv(cob,F.cob.valorBrutoNF)||fv(cob,F.cob.valorReceber)||fallbackVal):fallbackVal;
   const dCob=cob?(fv(cob,F.cob.dataCobranca)||todayISO()):todayISO();
-  return '<h4>'+t('btnSaveNF')+'</h4><div class="form" data-form="nf" data-cobid="'+(id||'')+'" data-casoid="'+caso.id+'">'+
+  const tipoPagAttr=defTipoPag?' data-tipopag="'+esc(defTipoPag)+'"':'';
+  return '<h4>'+t('btnSaveNF')+'</h4><div class="form" data-form="nf" data-cobid="'+(id||'')+'" data-casoid="'+caso.id+'"'+tipoPagAttr+'>'+
     '<div><label>'+t('nfNum')+'</label><input name="nfNum" value="'+esc(nfNum)+'"></div>'+
     '<div><label>'+t('nfValor')+'</label><input name="nfVal" type="number" step="0.01" value="'+nfVal+'"></div>'+
     '<div><label>'+t('dataCob')+'</label><input name="dCob" type="date" value="'+String(dCob).slice(0,10)+'"></div>'+
@@ -1083,6 +1085,8 @@ async function handleSave(btn){
       if(cobId)await patchRecord(TBL.cob,cobId,fields);
       else{
         fields[F.cob.caso]=[casoId];fields[F.cob.valorReceber]=nfVal;fields[F.cob.tipo]='Entrada';
+        const tipoPagAttr=form.dataset.tipopag||'';
+        if(tipoPagAttr)fields[F.cob.tipoPag]=tipoPagAttr;
         await createRecord(TBL.cob,fields);
       }
     }else if(type==='pay'){
@@ -1372,7 +1376,7 @@ function caseTable(rows,opts){
     let det='';
     if(expanded&&r.caso){
       det+=renderRoadmap(r.caso);
-      if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso);
+      if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
       if(opts.form==='pay'&&r.cob)det+=renderPayForm(r.cob,r.caso);
       det+=renderNoteForm(r.caso);
     }
