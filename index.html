@@ -691,9 +691,11 @@ function computeDevedores(){
   for(const co of DATA.cob){
     if(isSaida(co))continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
-    if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     const isDev=c&&fv(c,F.caso.fase)==='Devedor';
+    // Casos em fase Devedor entram independente de valorReceber/dataCobrança;
+    // a fase já é o sinal definitivo.
+    if(!isDev && num(fv(co,F.cob.valorReceber))<=0)continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));
     const dias=d?daysBetween(d,t0):0;
     if(isDev||dias>90){
