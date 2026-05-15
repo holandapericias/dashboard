@@ -531,8 +531,6 @@ function pedidoInfo(caso){
     tipo='SAP';instr='Solicitar pedido SAP 4500xxxxxx — contato: elissonete.bessa@mouradubeux.com.br';
   }else if(up.indexOf('PARANGABA')>=0){
     tipo='SAP';instr='Solicitar pedido SAP 4500xxxxxx';
-  }else if(up.indexOf('COBAP')>=0){
-    tipo='PC';instr='Solicitar Pedido de Compra (5 dígitos)';
   }else if(up.indexOf('SERVIS')>=0||up.indexOf('SERVTEC')>=0){
     tipo='PED';instr='Solicitar nº de pedido';
   }else if(cl&&fv(cl,F.cli.confirmar)===true){
