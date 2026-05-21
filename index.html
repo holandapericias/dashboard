@@ -326,76 +326,8 @@ function showToast(msg,warn){
   setTimeout(()=>d.remove(),6000);
 }
 
-async function autoFixFaltaPagamento(){
-  // Casos em "Encerrado PARA COBRANÇA" que já têm cobrança de Entrada com NF emitida → mover para "Encerrado - Falta Pagamento"
-  const fixed=[];
-  for(const c of DATA.casos){
-    if(fv(c,F.caso.fase)!=='Encerrado PARA COBRANÇA')continue;
-    const cobs=COBS_BY_CASO[c.id]||[];
-    const hasNF=cobs.some(co=>!isSaida(co)&&fv(co,F.cob.nfEmitida)===true);
-    if(!hasNF)continue;
-    try{
-      const fields={};fields[F.caso.fase]='Encerrado - Falta Pagamento';
-      await patchRecord(TBL.casos,c.id,fields);
-      c.fields[F.caso.fase]='Encerrado - Falta Pagamento';
-      fixed.push(c);
-    }catch(e){}
-  }
-  for(const c of fixed)showToast('Corrigido → Falta Pagamento: '+casoNome(c),false);
-}
-
-async function autoMarkDevedores(){
-  const t0=today();const changes=[];
-  const toUpdateCob=[];const toUpdateCaso=new Set();
-  for(const co of DATA.cob){
-    if(isSaida(co))continue;
-    if(fv(co,F.cob.nfEmitida)!==true)continue;
-    if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
-    const d=parseDate(fv(co,F.cob.dataCobranca));
-    if(!d||daysBetween(d,t0)<=90)continue;
-    const cid=fv(co,F.cob.caso);if(!cid||!cid[0])continue;
-    const c=casoById(cid[0]);if(!c)continue;
-    if(fv(c,F.caso.fase)==='Devedor'&&fv(co,F.cob.nfRetida)===true)continue;
-    changes.push({caso:c,dias:daysBetween(d,t0)});
-    if(fv(co,F.cob.nfRetida)!==true)toUpdateCob.push(co.id);
-    if(fv(c,F.caso.fase)!=='Devedor')toUpdateCaso.add(c.id);
-  }
-  for(const cid of toUpdateCaso){
-    try{const fields={};fields[F.caso.fase]='Devedor';await patchRecord(TBL.casos,cid,fields);
-      const c=casoById(cid);if(c)c.fields[F.caso.fase]='Devedor';
-    }catch(e){}
-  }
-  for(const coid of toUpdateCob){
-    try{const fields={};fields[F.cob.nfRetida]=true;await patchRecord(TBL.cob,coid,fields);
-      const co=DATA.cob.find(x=>x.id===coid);if(co)co.fields[F.cob.nfRetida]=true;
-    }catch(e){}
-  }
-  const uniq=[...new Set(changes.map(x=>x.caso.id))].map(id=>changes.find(x=>x.caso.id===id));
-  for(const ch of uniq)showToast(t('autoDev')+': '+casoNome(ch.caso)+' ('+ch.dias+'d)',true);
-}
-
-// Casos cobrados há meses sem NF emitida — marcação manual mantida por número de processo.
-// Se o caso reaparecer fora de Devedor (alguém moveu manualmente no Airtable), volta pra cá.
-const DEVEDORES_MANUAIS=[
-  '0000021-77.2025.5.07.0034',
-  '0001303-38.2024.5.07.0018',
-  '0001284-83.2024.5.07.0001'
-];
-async function autoMarcarDevedoresManuais(){
-  const fixed=[];
-  for(const proc of DEVEDORES_MANUAIS){
-    const c=DATA.casos.find(x=>casoProcesso(x)===proc);
-    if(!c)continue;
-    if(fv(c,F.caso.fase)==='Devedor')continue;
-    try{
-      const fields={};fields[F.caso.fase]='Devedor';
-      await patchRecord(TBL.casos,c.id,fields);
-      c.fields[F.caso.fase]='Devedor';
-      fixed.push(c);
-    }catch(e){}
-  }
-  for(const c of fixed)showToast('Forçado → Devedor: '+casoNome(c),true);
-}
+// Transições automáticas de fase foram movidas para o script Airtable
+// "Atualizar Fase dos Casos" — o dashboard agora apenas LÊ o campo Fase.
 
 async function loadData(){
   setLoader();
@@ -414,10 +346,6 @@ async function loadData(){
     buildMonthSelector();
     CLIENT_DSO=computeClientDSO();
     render();
-    await autoEncerrarPosManifestacao();
-    await autoFixFaltaPagamento();
-    await autoMarkDevedores();
-    await autoMarcarDevedoresManuais();
   }catch(e){document.getElementById('content').innerHTML='<div class="loader" style="color:#d64545">'+t('err')+': '+e.message+'</div>';}
 }
 
@@ -637,33 +565,6 @@ function computeCobrar(){
     else if(destCat)destCat.push(item);
   }
   return {enc,ini,finaisPos,finaisManif,pedido};
-}
-
-// Auto-encerrar casos cuja manifestação ao laudo passou há mais de 3 dias
-async function autoEncerrarPosManifestacao(){
-  const t0=today();const t3=new Date(t0);t3.setDate(t3.getDate()-3);
-  const fixed=[];
-  for(const c of DATA.casos){
-    const fase=fv(c,F.caso.fase);
-    if(FASES_POS_PERICIA.indexOf(fase)<0)continue;
-    const prazos=PRAZOS_BY_CASO[c.id]||[];
-    const hasManifPassed=prazos.some(p=>{
-      const tp=fv(p,F.prazo.tipo);
-      const tipoStr=(Array.isArray(tp)?tp.join(' '):String(tp||'')).toLowerCase();
-      if(tipoStr.indexOf('manifest')<0||tipoStr.indexOf('laudo')<0)return false;
-      const d=parseDate(fv(p,F.prazo.data));
-      return d&&d<t3;
-    });
-    if(!hasManifPassed)continue;
-    try{
-      const fields={};fields[F.caso.fase]='Encerrado PARA COBRANÇA';
-      await patchRecord(TBL.casos,c.id,fields);
-      c.fields[F.caso.fase]='Encerrado PARA COBRANÇA';
-      c._autoEncerrado=true;
-      fixed.push(c);
-    }catch(e){}
-  }
-  for(const c of fixed)showToast('Auto-encerrado: '+casoNome(c),false);
 }
 
 function computePendentes(){
@@ -1101,20 +1002,7 @@ async function handleSave(btn){
       const fields={};fields[F.cob.recebido]=true;
       const d=form.querySelector('[name=dRec]').value;if(d)fields[F.cob.dataReceb]=d;
       await patchRecord(TBL.cob,cobId,fields);
-      // Lógica de transição de fase
-      const casoId=form.dataset.casoid;
-      if(casoId){
-        const c=casoById(casoId);
-        const cob=DATA.cob.find(x=>x.id===cobId);
-        const tp=cob?String(tipoPagLabel(cob)).toLowerCase():'';
-        const isInicial=tp.indexOf('inicia')>=0;
-        const fase=c?fv(c,F.caso.fase):'';
-        const terminal=fase==='Encerrado PARA COBRANÇA'||fase==='Encerrado - Falta Pagamento'||fase==='Devedor';
-        if(c&&!isInicial&&terminal){
-          const cf={};cf[F.caso.fase]='Encerrado - Pago';
-          await patchRecord(TBL.casos,casoId,cf);
-        }
-      }
+      // Transição "Recebido → Encerrado - Pago" agora é feita pelo script Airtable.
     }else if(type==='paid'){
       const fields={};fields[F.cob.pago]=true;
       const d=form.querySelector('[name=dPag]').value;if(d)fields[F.cob.dataPag]=d;
