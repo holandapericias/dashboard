@@ -514,10 +514,17 @@ function computeCobrar(){
     const needsPedido=pInfo&&!pedidoJaRecebido(c);
     const cobs=COBS_BY_CASO[c.id]||[];
     let item=null,destCat=null;
-    // Cat 3/4 check first: 50/50 with iniciais paid, finais missing — across multiple phases
-    const fasesFinal5050=['Encerrado PARA COBRANÇA','Encerrado - Falta Pagamento'];
+    // Cat 1 SEMPRE primeiro: caso "Encerrado PARA COBRANÇA" significa trabalho concluído → emitir NF,
+    // independente do formato de pagamento. Não pode cair em Cat 3/4 ("Finais").
+    // Cat 3/4: 50/50 com iniciais paga e finais ainda não cobrados, em fases pós-perícia ou Falta Pagamento.
+    const fasesFinal5050=['Encerrado - Falta Pagamento'];
     const fasesFinal5050All=FASES_POS_PERICIA.concat(fasesFinal5050);
-    if(is5050&&fasesFinal5050All.indexOf(fase)>=0&&hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
+    if(isEnc){
+      const remarc=caseRemarcFee(c);
+      const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
+      item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
+      destCat=enc;
+    }else if(is5050&&fasesFinal5050All.indexOf(fase)>=0&&hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
       const remarc=caseRemarcFee(c);
       if(is5050Manif){
         // Pós-manifestação: precisa de (A) prazo de manifestação cadastrado OU (B) >45d desde última perícia
@@ -546,11 +553,6 @@ function computeCobrar(){
         item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
         destCat=finaisPos;
       }
-    }else if(isEnc){
-      const remarc=caseRemarcFee(c);
-      const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
-      item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
-      destCat=enc;
     }else if(is5050&&fase&&fase.indexOf('Ativo')>=0&&FASES_POS_PERICIA.indexOf(fase)<0){
       const hasEntrada=cobs.some(co=>!isSaida(co)&&num(fv(co,F.cob.valorReceber))>0);
       if(!hasEntrada){
