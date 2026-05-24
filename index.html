@@ -159,7 +159,7 @@ tr.cf-row.neg td{background:#fdecec}
 const I18N={
 pt:{overview:"Visão Geral",cobrar:"A Cobrar",pendentes:"Pendentes",devedores:"Devedores",saidas:"Saídas",historico:"Histórico",previsao:"Previsão 30d",fpa:"FP&A",
 entradas:"Entradas",saidasLbl:"Saídas",aberto:"Em Aberto",lucro:"Lucro",alerts:"Alertas",distFase:"Distribuição por Fase",
-case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",
+case:"Caso",client:"Cliente",value:"Valor",date:"Data",phase:"Fase",type:"Tipo",amount:"Valor",days:"Dias",tipoPag:"Tipo Pag.",nfNum:"NF",
 forgot50:"50% iniciais esquecidos",vencida60:"Cobrança vencida há 60+ dias",periciaProx:"Perícia nos próximos 2 dias",assistPend:"Assistente técnico pendente de pagamento",fechamento:"Fechamento de caixa pendente",
 noData:"Sem dados",loading:"Carregando",err:"Erro",allMonths:"Todos os meses",
 sortBy:"Ordenar por",sortDate:"Data",sortClient:"Cliente",
@@ -191,7 +191,7 @@ instrucao:"Instrução",pedidoRecebido:"Pedido Recebido — Mover para Emitir NF
 entSai:"Entradas e Saídas",de:"De",ate:"Até",aplicar:"Aplicar",operacoes:"Operações",custoFixo:"Custo Fixo",adtProLabore:"Adiantamento pró-labore"},
 en:{overview:"Overview",cobrar:"To Bill",pendentes:"Pending",devedores:"Overdue",saidas:"Expenses",historico:"History",previsao:"Next 30d",fpa:"FP&A",
 entradas:"Income",saidasLbl:"Expenses",aberto:"Open",lucro:"Profit",alerts:"Alerts",distFase:"Phase Distribution",
-case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",
+case:"Case",client:"Client",value:"Amount",date:"Date",phase:"Phase",type:"Type",amount:"Amount",days:"Days",tipoPag:"Pay Type",nfNum:"Invoice",
 forgot50:"Forgotten 50% upfront",vencida60:"Invoice overdue 60+ days",periciaProx:"Inspection in next 2 days",assistPend:"Assistant payment pending",fechamento:"Cash closing pending",
 noData:"No data",loading:"Loading",err:"Error",allMonths:"All months",
 sortBy:"Sort by",sortDate:"Date",sortClient:"Client",
@@ -1267,6 +1267,12 @@ function caseTable(rows,opts){
       if(k==='phase')return '<td>'+esc(r.caso?(fv(r.caso,F.caso.fase)||'—'):'—')+'</td>';
       if(k==='type')return '<td><span class="tag blue">'+(r.tipo||'—')+'</span></td>';
       if(k==='tipoPag'){const tp=r.cob?tipoPagLabel(r.cob):'';return '<td>'+(tp?'<span class="tag purple">'+esc(tp)+'</span>':'—')+'</td>';}
+      if(k==='nfNum'){
+        const n=r.cob?String(fv(r.cob,F.cob.numeroNF)||'').trim():'';
+        // Ignora marcadores internos de Saídas (CF: / RETIRADA:) — só mostra NFs reais
+        const isMarker=/^(CF:|RETIRADA:)/i.test(n);
+        return '<td>'+(n&&!isMarker?'<span class="tag blue" style="font-family:monospace">'+esc(n)+'</span>':'<span style="color:#c62828;font-size:11px">sem NF</span>')+'</td>';
+      }
       if(k==='date')return '<td>'+fmtDate(r.cob?fv(r.cob,F.cob.dataCobranca):null)+'</td>';
       if(k==='days'){
         let dsoHtml='';
@@ -1463,13 +1469,13 @@ function renderPendentes(){
     const dso=CLIENT_DSO[c];const dsoLabel=dso?' (média '+dso.avg+'d)':'';
     return '<option value="'+esc(c)+'"'+(FILTER_CLIENT===c?' selected':'')+'>'+esc(c)+dsoLabel+'</option>';
   }).join('')+'</select></label></div>';
-  return banner+sortToolbar()+filterBar+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(filtTotal)+' ('+filtered.length+(FILTER_CLIENT?' de '+list.length:'')+')</h2>'+caseTable(filtered,{cols:['case','client','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
+  return banner+sortToolbar()+filterBar+'<div class="section"><h2>'+t('pendentes')+' — '+fmtBRL(filtTotal)+' ('+filtered.length+(FILTER_CLIENT?' de '+list.length:'')+')</h2>'+caseTable(filtered,{cols:['case','client','nfNum','tipoPag','date','days','value'],prefix:'pe',form:'pay'})+'</div>';
 }
 
 function renderDevedores(){
   const list=computeDevedores();
   const total=list.reduce((s,r)=>s+num(fv(r.cob,F.cob.valorReceber)),0);
-  return sortToolbar()+'<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','tipoPag','date','days','value'],prefix:'dv',form:'pay'})+'</div>';
+  return sortToolbar()+'<div class="section"><h2>'+t('devedores')+' — '+fmtBRL(total)+' ('+list.length+')</h2>'+caseTable(list,{cols:['case','client','nfNum','tipoPag','date','days','value'],prefix:'dv',form:'pay'})+'</div>';
 }
 
 function renderSaidas(){
