@@ -574,7 +574,7 @@ function computePendentes(){
   const out=[];
   for(const co of DATA.cob){
     if(isSaida(co))continue;
-    if(fv(co,F.cob.nfEmitida)!==true)continue;
+    // NFEmitida não é mais pré-requisito; a NF pode ser adicionada na própria aba
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
@@ -1274,7 +1274,11 @@ function caseTable(rows,opts){
     if(expanded&&r.caso){
       det+=renderRoadmap(r.caso);
       if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
-      if(opts.form==='pay'&&r.cob)det+=renderPayForm(r.cob,r.caso);
+      if(opts.form==='pay'&&r.cob){
+        // Pendentes/Devedores: permite editar/adicionar NF e registrar recebimento na mesma expansão
+        det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
+        det+=renderPayForm(r.cob,r.caso);
+      }
       det+=renderNoteForm(r.caso);
     }
     const mainTr='<tr class="clickable'+(expanded?' expanded':'')+'" data-row="'+rid+'">'+tds+'</tr>';
