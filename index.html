@@ -1020,6 +1020,7 @@ async function handleSave(btn){
       const d=form.querySelector('[name=d]').value;
       const fields={};
       if(tipo==='entrada'){if(val)fields[F.cob.valorReceber]=val;if(d)fields[F.cob.dataReceb]=d;}
+      else if(tipo==='pendente'){if(val)fields[F.cob.valorReceber]=val;if(d)fields[F.cob.dataCobranca]=d;}
       else{if(val)fields[F.cob.valorPag]=val;if(d)fields[F.cob.dataPag]=d;}
       await patchRecord(TBL.cob,cobId,fields);
       EDITING_COB=null;
@@ -1275,9 +1276,21 @@ function caseTable(rows,opts){
       det+=renderRoadmap(r.caso);
       if(opts.form==='nf')det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
       if(opts.form==='pay'&&r.cob){
-        // Pendentes/Devedores: permite editar/adicionar NF e registrar recebimento na mesma expansão
-        det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
-        det+=renderPayForm(r.cob,r.caso);
+        // Pendentes/Devedores: editar/excluir + adicionar NF + registrar recebimento
+        const cobId=r.cob.id;const isEditing=EDITING_COB===cobId;
+        if(isEditing){
+          const vE=num(fv(r.cob,F.cob.valorReceber));
+          const dE=fv(r.cob,F.cob.dataCobranca);
+          det+='<h4>Editar Cobrança</h4><div class="form" data-form="editcob" data-cobid="'+cobId+'" data-tipo="pendente">'+
+            '<div><label>'+t('value')+'</label><input name="val" type="number" step="0.01" value="'+vE+'"></div>'+
+            '<div><label>Data Cobrança</label><input name="d" type="date" value="'+(dE?String(dE).slice(0,10):'')+'"></div>'+
+            '<div class="actions"><button class="btn green" data-act="save">Salvar</button><button class="btn" data-act="cancelEdit" style="background:#7a8a99">Cancelar</button><span class="msg"></span></div>'+
+            '</div>';
+        }else{
+          det+='<div style="display:flex;gap:8px;margin-bottom:12px"><button class="btn" data-editcob="'+cobId+'" style="padding:4px 10px;font-size:12px">✏️ Editar Valor/Data</button><button class="btn" data-delcob="'+cobId+'" style="padding:4px 10px;font-size:12px;background:#d64545">🗑️ Excluir Cobrança</button></div>';
+          det+=renderNFForm(r.cob,r.caso,r.valor,r.tipo);
+          det+=renderPayForm(r.cob,r.caso);
+        }
       }
       det+=renderNoteForm(r.caso);
     }
