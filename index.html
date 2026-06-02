@@ -125,9 +125,12 @@ tr.cf-row.neg td{background:#fdecec}
 <div id="login">
   <div class="box">
     <h2>Holanda Perícias</h2>
-    <input id="pw" type="password" placeholder="Senha / Password" autofocus>
+    <div style="font-size:13px;color:#5a6a78;margin-bottom:14px;line-height:1.4">Cole seu Personal Access Token do Airtable.<br>Fica salvo só neste navegador.</div>
+    <input id="pw" type="password" placeholder="patXXXXXXXXXXXXXX.XXXX…" autofocus autocomplete="off" spellcheck="false">
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7c8c;margin:-6px 0 12px;cursor:pointer"><input type="checkbox" id="showTk" style="width:auto;margin:0">Mostrar token</label>
     <button id="loginBtn">Entrar / Sign in</button>
     <div class="err" id="loginErr"></div>
+    <div style="font-size:11px;color:#8a99a8;margin-top:14px;line-height:1.4">Não tem um token? <a href="https://airtable.com/create/tokens" target="_blank" style="color:#00AEEF">Gerar em airtable.com/create/tokens</a>. Escopos: data.records:read, data.records:write, schema.bases:read. Base: Holanda Perícias - Controle.</div>
   </div>
 </div>
 
@@ -138,6 +141,7 @@ tr.cf-row.neg td{background:#fdecec}
     <select id="monthSel"></select>
     <select id="langSel"><option value="pt">Português</option><option value="en">English</option></select>
     <button id="reloadBtn" title="Reload">↻</button>
+    <button onclick="signOut()" title="Sair / Trocar token" style="background:transparent;border:1px solid #cdd9e3;color:inherit">↶ Sair</button>
   </div>
 </header>
 <nav>
@@ -240,35 +244,55 @@ const BASE='appTEAYT5TYhnQwTn';
 const TBL={casos:'Casos',cob:'Cobranças',cli:'Clientes',prazo:'Prazos',cf:'tblmcxyRVtn2LYqLU',assist:'tblK0oBCU9EmeXwLf'};
 
 // ========== AUTH ==========
-const ENC_TOKEN='U2FsdGVkX194UJtfpYg8cvCjBafdRCJf+su7nO9ExDKeqIXt/lKaoQI7C5kekd6UwjyXN1YGhS+H4adcmq3lJAWhcC87lYckPgJPOdrMjJzukyH3U463Oio5GPJQpmzrljMBrJcs+TrT42ix9Ji8WQ==';
 let TK=null;
-async function decryptToken(pw){
-  const raw=Uint8Array.from(atob(ENC_TOKEN),c=>c.charCodeAt(0));
-  if(String.fromCharCode.apply(null,raw.slice(0,8))!=='Salted__')throw 0;
-  const salt=raw.slice(8,16),ct=raw.slice(16);
-  const pk=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
-  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},pk,384);
-  const key=await crypto.subtle.importKey('raw',bits.slice(0,32),{name:'AES-CBC'},false,['decrypt']);
-  return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-CBC',iv:bits.slice(32,48)},key,ct));
+// Valida o token via Airtable /meta/whoami. Resolve com {ok, status, body}.
+async function validateToken(tk){
+  try{
+    const r=await fetch('https://api.airtable.com/v0/meta/whoami',{headers:{Authorization:'Bearer '+tk}});
+    return {ok:r.ok,status:r.status};
+  }catch(e){return {ok:false,status:0,err:e.message};}
 }
 function enterApp(){
   document.getElementById('login').style.display='none';
   document.getElementById('app').style.display='block';
   loadData();
 }
+function clearToken(){TK=null;try{localStorage.removeItem('hp_tk');}catch(e){}}
+// Exposto para o botão "Trocar token / Sair" no header
+window.signOut=function(){clearToken();location.reload();};
+
+document.getElementById('showTk').onchange=function(){document.getElementById('pw').type=this.checked?'text':'password';};
 document.getElementById('loginBtn').onclick=async()=>{
-  const pw=document.getElementById('pw').value;const err=document.getElementById('loginErr');err.textContent='';
-  try{TK=await decryptToken(pw);if(!TK.startsWith('pat'))throw 0;
-    try{localStorage.setItem('hp_tk',TK);}catch(e){}
-    enterApp();
-  }catch(e){err.textContent='Senha incorreta / Wrong password';}
+  const input=document.getElementById('pw').value.trim();
+  const err=document.getElementById('loginErr');err.textContent='';
+  const btn=document.getElementById('loginBtn');
+  if(!input.startsWith('pat')||input.length<40){err.textContent='Token inválido — começa com "pat" e tem pelo menos 40 caracteres.';return;}
+  btn.disabled=true;btn.textContent='Validando…';
+  const v=await validateToken(input);
+  btn.disabled=false;btn.textContent='Entrar / Sign in';
+  if(!v.ok){
+    if(v.status===401||v.status===403)err.textContent='Token rejeitado pelo Airtable (401/403). Confira escopos e base.';
+    else if(v.status===0)err.textContent='Falha de rede ao validar. Tenta de novo.';
+    else err.textContent='Erro inesperado validando token (HTTP '+v.status+').';
+    return;
+  }
+  TK=input;
+  try{localStorage.setItem('hp_tk',TK);}catch(e){}
+  enterApp();
 };
 document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
-// Auto-login se já autenticou neste dispositivo
-(function(){
-  try{const saved=localStorage.getItem('hp_tk');
-    if(saved&&saved.startsWith('pat')){TK=saved;enterApp();}
-  }catch(e){}
+
+// Auto-login se já autenticou neste dispositivo — valida silenciosamente antes
+(async function(){
+  let saved=null;
+  try{saved=localStorage.getItem('hp_tk');}catch(e){}
+  if(!saved||!saved.startsWith('pat'))return;
+  const v=await validateToken(saved);
+  if(v.ok){TK=saved;enterApp();return;}
+  // Token salvo virou inválido (revogado, expirou, escopo mudou) — limpa e mostra login
+  clearToken();
+  const err=document.getElementById('loginErr');
+  if(err)err.textContent='Token salvo expirou — cole um novo.';
 })();
 
 // ========== DATA ==========
