@@ -681,7 +681,7 @@ function computePrevisao(){
     if(!fmt||String(fmt).indexOf('50/50')<0)continue;
     const casoVal=num(fv(c,F.caso.valor));if(!casoVal)continue;
     const cobs=COBS_BY_CASO[c.id]||[];
-    const hasFinal=cobs.some(co=>!isSaida(co)&&tipoCob(co).indexOf('final')>=0);
+    const hasFinal=cobs.some(co=>!isSaida(co)&&/fina[il]/i.test(String(tipoPagLabel(co))));
     if(hasFinal)continue;
     const est=new Date(d);est.setDate(est.getDate()+7);
     cobrPrev.push({caso:c,valor:casoVal/2,dataEst:est,prob:0.8});
