@@ -500,7 +500,9 @@ const hasInicialPaga=cobs=>cobs.some(co=>!isSaida(co)&&fv(co,F.cob.recebido)===t
 const hasFinalCob=cobs=>cobs.some(co=>{
   if(isSaida(co))return false;
   const tp=String(tipoPagLabel(co)).toLowerCase();
-  if(tp.indexOf('final')>=0||tp.indexOf('100')>=0)return true;
+  // Regex /fina[il]/ casa "final" (EN) E "finais" (PT-BR plural) — o indexOf('final') anterior
+  // só casava "final" e perdia o nome real "50% Finais"
+  if(/fina[il]/.test(tp)||tp.indexOf('100')>=0)return true;
   // Fallback p/ cobranças legadas sem tipoPag preenchido: NF emitida e não é iniciais
   if(fv(co,F.cob.nfEmitida)===true&&tp.indexOf('inicia')<0)return true;
   return false;
@@ -511,84 +513,76 @@ function caseRemarcFee(caso){
   return Math.max(0,n-1)*500;
 }
 
+// computeCobrar — Design B (data-driven)
+// Cobranças são criadas pelos scripts Airtable nos eventos certos:
+//   - "Cobranças automáticas (API)" → cria "50% Iniciais" na criação do caso (formatos 50/50)
+//   - "Cobranças Finais (gatilho de evento)" → cria "50% Finais" pós-perícia/pós-manifestação
+//     e "100% pós-manifestação" quando o evento de manifestação vence
+// O dashboard apenas LÊ cobranças sem NF emitida e roteia por tipoPag + fase + formato.
 function computeCobrar(){
-  // Set de clientes com qualquer caso em fase Devedor — usado para alerta soft
+  // Set de clientes com qualquer caso em fase Devedor — alerta soft "Cliente devedor"
   const cliComDevedor=new Set();
   for(const c of DATA.casos){
     if(fv(c,F.caso.fase)!=='Devedor')continue;
     const cl=fv(c,F.caso.cliente);
     if(cl&&cl[0])cliComDevedor.add(cl[0]);
   }
+
   const enc=[],ini=[],finaisPos=[],finaisManif=[],pedido=[];
-  const t0=today();
-  // Helpers de tipo de prazo
-  const prazoTipoStr=p=>{const v=fv(p,F.prazo.tipo);return Array.isArray(v)?v.join(' ').toLowerCase():String(v||'').toLowerCase();};
-  const isPrazoPericia=p=>{const s=prazoTipoStr(p);return s.indexOf('perícia')>=0||s.indexOf('pericia')>=0;};
-  const isPrazoManif=p=>{const s=prazoTipoStr(p);return s.indexOf('manifest')>=0;};
-  for(const c of DATA.casos){
+
+  for(const co of DATA.cob){
+    if(isSaida(co))continue;
+    if(fv(co,F.cob.nfEmitida)===true)continue;                                      // já tem NF → não é "a cobrar"
+    if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
+    if(num(fv(co,F.cob.valorReceber))<=0)continue;
+
+    const cid=fv(co,F.cob.caso);
+    const c=cid&&cid[0]?casoById(cid[0]):null;
+    if(!c)continue;
     const fase=fv(c,F.caso.fase);
     if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue;
-    const isEnc=fase==='Encerrado PARA COBRANÇA';
+
     const fmt=fv(c,F.caso.formato);
     const fmtStr=String(fmt||'').toLowerCase();
-    const is5050=fmt&&fmtStr.indexOf('50/50')>=0;
-    const is5050Manif=is5050&&(fmtStr.indexOf('pós-manifest')>=0||fmtStr.indexOf('pós manifest')>=0||fmtStr.indexOf('pos-manifest')>=0||fmtStr.indexOf('pos manifest')>=0);
-    const is5050PosPericia=is5050&&!is5050Manif; // default 50/50 = pós-perícia
-    const pInfo=pedidoInfo(c);
-    const needsPedido=pInfo&&!pedidoJaRecebido(c);
-    const cobs=COBS_BY_CASO[c.id]||[];
-    let item=null,destCat=null;
-    // Cat 1 SEMPRE primeiro: caso "Encerrado PARA COBRANÇA" significa trabalho concluído → emitir NF,
-    // independente do formato de pagamento. Não pode cair em Cat 3/4 ("Finais").
-    // Cat 3/4: 50/50 com iniciais paga e finais ainda não cobrados, em fases pós-perícia ou Falta Pagamento.
-    const fasesFinal5050=['Encerrado - Falta Pagamento'];
-    const fasesFinal5050All=FASES_POS_PERICIA.concat(fasesFinal5050);
-    if(isEnc){
-      const remarc=caseRemarcFee(c);
-      const base=is5050?num(fv(c,F.caso.valor))/2:num(fv(c,F.caso.valor));
-      item={caso:c,valor:base+remarc,tipo:is5050?'50% Finais':t('fmt100'),remarc};
-      destCat=enc;
-    }else if(is5050&&fasesFinal5050All.indexOf(fase)>=0&&hasInicialPaga(cobs)&&!hasFinalCob(cobs)){
-      const remarc=caseRemarcFee(c);
-      if(is5050Manif){
-        // Pós-manifestação: precisa de (A) prazo de manifestação cadastrado OU (B) >45d desde última perícia
-        const prazos=PRAZOS_BY_CASO[c.id]||[];
-        const prazosManif=prazos.filter(isPrazoManif);
-        let elegivel=false,aviso=null;
-        if(prazosManif.length>0){
-          elegivel=true;
-        }else{
-          const periciaDates=prazos.filter(isPrazoPericia).map(p=>parseDate(fv(p,F.prazo.data))).filter(Boolean).sort((a,b)=>b-a);
-          if(periciaDates.length){
-            const ultima=periciaDates[0];
-            const dias=daysBetween(ultima,t0);
-            if(dias>=45){
-              elegivel=true;
-              aviso='Sem prazo de manifestação cadastrado — '+dias+' dias desde a perícia ('+fmtDate(ultima)+')';
-            }
-          }
-        }
-        if(elegivel){
-          item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
-          if(aviso)item.aviso=aviso;
-          destCat=finaisManif;
-        }
-      }else{
-        item={caso:c,valor:num(fv(c,F.caso.valor))/2+remarc,tipo:'50% Finais',remarc};
-        destCat=finaisPos;
-      }
-    }else if(is5050&&fase&&fase.indexOf('Ativo')>=0&&FASES_POS_PERICIA.indexOf(fase)<0){
-      const hasEntrada=cobs.some(co=>!isSaida(co)&&num(fv(co,F.cob.valorReceber))>0);
-      if(!hasEntrada){
-        item={caso:c,valor:num(fv(c,F.caso.valor))/2,tipo:'50% Iniciais'};
-        destCat=ini;
-      }
-    }
-    if(!item)continue;
+    const isPosManif=fmtStr.indexOf('pós-manifest')>=0||fmtStr.indexOf('pós manifest')>=0||fmtStr.indexOf('pos-manifest')>=0||fmtStr.indexOf('pos manifest')>=0;
+
+    const tpRaw=fv(co,F.cob.tipoPag);
+    const tpStr=(Array.isArray(tpRaw)?tpRaw.map(x=>x.name||x).join(' '):String(tpRaw||'')).toLowerCase();
+    const isInicial=tpStr.indexOf('inicia')>=0;
+    // /fina[il]/ casa "final" (EN) E "finais" (PT-BR). indexOf('final') sozinho perde "finais".
+    const isFinal=/fina[il]/.test(tpStr);
+    const is100=tpStr.indexOf('100')>=0;
+
+    const valor=num(fv(co,F.cob.valorReceber));
+    const tipoLabel=tpRaw
+      ?(Array.isArray(tpRaw)?tpRaw.map(x=>x.name||x).join(', '):String(tpRaw))
+      :(isInicial?'50% Iniciais':isFinal?'50% Finais':is100?t('fmt100'):'—');
+    const item={caso:c,cob:co,valor,tipo:tipoLabel};
+
     const cliLink=fv(c,F.caso.cliente);
     if(cliLink&&cliLink[0]&&cliComDevedor.has(cliLink[0]))item.clienteDevedor=true;
-    if(needsPedido){item.pInfo=pInfo;pedido.push(item);}
-    else if(destCat)destCat.push(item);
+
+    // Cat 5 — Solicitar Pedido (sequestra antes do roteamento por fase/tipo)
+    const pInfo=pedidoInfo(c);
+    if(pInfo&&!pedidoJaRecebido(c)){
+      item.pInfo=pInfo;
+      pedido.push(item);
+      continue;
+    }
+
+    // Design B — fase "Encerrado PARA COBRANÇA" prevalece (Cat 1)
+    if(fase==='Encerrado PARA COBRANÇA'){enc.push(item);continue;}
+
+    // Cat 2 — 50% Iniciais
+    if(isInicial){ini.push(item);continue;}
+
+    // Cat 3/4 — Finais (e 100% pós-manif)
+    if(isFinal||is100){
+      if(isPosManif)finaisManif.push(item);
+      else finaisPos.push(item);
+      continue;
+    }
+    // tipoPag desconhecido/vazio → não classifica (evita poluição visual)
   }
   return {enc,ini,finaisPos,finaisManif,pedido};
 }
@@ -718,7 +712,7 @@ function computePrevisao(){
     if(isDividido && cobsDoPrazo.length===2){
       const tipoStr=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return Array.isArray(v)?v.map(t=>typeof t==='object'?t.name:t).join(' '):String(v);};
       const ehInicial=co=>/inicia/i.test(tipoStr(co));
-      const ehFinal=co=>/final/i.test(tipoStr(co));
+      const ehFinal=co=>/fina[il]/i.test(tipoStr(co));
       const ini=cobsDoPrazo.find(ehInicial);
       const fin=cobsDoPrazo.find(ehFinal);
 
@@ -893,7 +887,7 @@ function computeAlerts(){
     if(v<=0)continue;
     const tpRaw=fv(co,F.cob.tipoPag);
     const tpStr=tpRaw?(Array.isArray(tpRaw)?tpRaw.map(t=>typeof t==='object'?t.name:t).join(' '):String(tpRaw)):'';
-    const isFinais=/final/i.test(tpStr);
+    const isFinais=/fina[il]/i.test(tpStr);
     if(isFinais){
       const ids=(fv(co,F.cob.prazos)||[]).map(x=>typeof x==='object'?x.id:x);
       const prazo=ids[0]?DATA.prazo.find(p=>p.id===ids[0]):null;
