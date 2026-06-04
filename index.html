@@ -1000,18 +1000,16 @@ async function handleSave(btn){
         await createRecord(TBL.cob,fields);
       }
     }else if(type==='pay'){
-      // Cobrança de Entrada: grava SOMENTE recebido + DataRecebimento.
-      // Limpa DataPagamento/ValorPagamento se vierem preenchidos por engano
-      // (são exclusivos de cobranças Saída — sua presença faz isSaida() retornar true
-      // e a cobrança some da lista de Entradas na Visão Geral).
+      // ENTRADA: grava SOMENTE Recebido + Data recebimento, atomicamente.
+      // Nunca toca em DataPag / ValorPag / Valor Líquido Recebido (campos de Saída).
       const cobId=form.dataset.cobid;
-      const fields={};fields[F.cob.recebido]=true;
-      const d=form.querySelector('[name=dRec]').value;if(d)fields[F.cob.dataReceb]=d;
-      const co=DATA.cob.find(x=>x.id===cobId);
-      if(co){
-        if(fv(co,F.cob.dataPag))fields[F.cob.dataPag]=null;
-        if(fv(co,F.cob.valorPag))fields[F.cob.valorPag]=null;
-      }
+      const dInput=form.querySelector('[name=dRec]').value;
+      // Se o input voltou vazio ou inválido (race, browser, locale), usa hoje como rede de segurança.
+      // Nunca persiste "Recebido=true sem data".
+      const dataRec=/^\d{4}-\d{2}-\d{2}$/.test(dInput) ? dInput : todayISO();
+      const fields={};
+      fields[F.cob.recebido]=true;
+      fields[F.cob.dataReceb]=dataRec;
       await patchRecord(TBL.cob,cobId,fields);
       // Transição "Recebido → Encerrado - Pago" agora é feita pelo script Airtable.
     }else if(type==='paid'){
