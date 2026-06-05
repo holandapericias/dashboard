@@ -400,6 +400,25 @@ const cliConfirmarOfCaso=c=>{const cl=cliOfCaso(c);return cl?fv(cl,F.cli.confirm
 const tipoCob=co=>{const v=fv(co,F.cob.tipo);return v?String(v).toLowerCase():'';};
 const isSaida=co=>{const tp=tipoCob(co);return tp.indexOf('saída')>=0||tp.indexOf('saida')>=0||tp.indexOf('despesa')>=0||!!fv(co,F.cob.dataPag)||!!fv(co,F.cob.valorPag);};
 const tipoPagLabel=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return String(v);};
+// Classifica o "Tipo de Pagamento" (campo tipoPag) numa categoria canônica.
+// Aceita string OU array (multipleSelects do Airtable retorna array de {id,name,color}).
+// Categorias:
+//   'inicial'    — "50% Iniciais"
+//   'final'      — "50% Finais", "50% Finais pós-perícia"
+//   'integral'   — "100% pós-manifestação", "100% do pagamento", "100%", "100% Único"
+//   'remarcacao' — "Taxa de Remarcação"
+//   'outro'      — vazio, "Entrada" genérico, ou qualquer nome não-mapeado
+function categoriaTipoPag(nomeOuArr){
+  if(!nomeOuArr)return 'outro';
+  const arr=Array.isArray(nomeOuArr)?nomeOuArr:[nomeOuArr];
+  const s=arr.map(x=>(typeof x==='object'?(x.name||''):String(x))).join(' ').toLowerCase().trim();
+  if(!s)return 'outro';
+  if(/inicia/.test(s))    return 'inicial';
+  if(/remarc/.test(s))    return 'remarcacao';
+  if(/fina[il]/.test(s))  return 'final';
+  if(/100/.test(s))       return 'integral';
+  return 'outro';
+}
 
 // ========== MONTH ==========
 let SELECTED_MONTH=null;
@@ -529,16 +548,15 @@ function computeCobrar(){
     const isPosManif=fmtStr.indexOf('pós-manifest')>=0||fmtStr.indexOf('pós manifest')>=0||fmtStr.indexOf('pos-manifest')>=0||fmtStr.indexOf('pos manifest')>=0;
 
     const tpRaw=fv(co,F.cob.tipoPag);
-    const tpStr=(Array.isArray(tpRaw)?tpRaw.map(x=>x.name||x).join(' '):String(tpRaw||'')).toLowerCase();
-    const isInicial=tpStr.indexOf('inicia')>=0;
-    // /fina[il]/ casa "final" (EN) E "finais" (PT-BR). indexOf('final') sozinho perde "finais".
-    const isFinal=/fina[il]/.test(tpStr);
-    const is100=tpStr.indexOf('100')>=0;
+    const cat=categoriaTipoPag(tpRaw);
+    const isInicial=cat==='inicial';
+    const isFinal=cat==='final';
+    const isIntegral=cat==='integral';
 
     const valor=num(fv(co,F.cob.valorReceber));
     const tipoLabel=tpRaw
       ?(Array.isArray(tpRaw)?tpRaw.map(x=>x.name||x).join(', '):String(tpRaw))
-      :(isInicial?'50% Iniciais':isFinal?'50% Finais':is100?t('fmt100'):'—');
+      :(isInicial?'50% Iniciais':isFinal?'50% Finais':isIntegral?t('fmt100'):'—');
     const item={caso:c,cob:co,valor,tipo:tipoLabel};
 
     const cliLink=fv(c,F.caso.cliente);
@@ -558,8 +576,8 @@ function computeCobrar(){
     // Cat 2 — 50% Iniciais
     if(isInicial){ini.push(item);continue;}
 
-    // Cat 3/4 — Finais (e 100% pós-manif)
-    if(isFinal||is100){
+    // Cat 3/4 — Finais (e Integrais 100% pós-manif)
+    if(isFinal||isIntegral){
       if(isPosManif)finaisManif.push(item);
       else finaisPos.push(item);
       continue;
@@ -663,7 +681,11 @@ function computePrevisao(){
     if(!fmt||String(fmt).indexOf('50/50')<0)continue;
     const casoVal=num(fv(c,F.caso.valor));if(!casoVal)continue;
     const cobs=COBS_BY_CASO[c.id]||[];
-    const hasFinal=cobs.some(co=>!isSaida(co)&&/fina[il]/i.test(String(tipoPagLabel(co))));
+    const hasFinal=cobs.some(co=>{
+      if(isSaida(co))return false;
+      const cat=categoriaTipoPag(fv(co,F.cob.tipoPag));
+      return cat==='final'||cat==='integral';
+    });
     if(hasFinal)continue;
     const est=new Date(d);est.setDate(est.getDate()+7);
     cobrPrev.push({caso:c,valor:casoVal/2,dataEst:est,prob:0.8});
