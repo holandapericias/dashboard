@@ -533,7 +533,7 @@ function computeCobrar(){
 
   for(const co of DATA.cob){
     if(isSaida(co))continue;
-    if(fv(co,F.cob.nfEmitida)===true)continue;                                      // já tem NF → não é "a cobrar"
+    if(fv(co,F.cob.nfEmitida)===true||fv(co,F.cob.numeroNF))continue;               // já tem NF (flag ou nº) → não é "a cobrar", é Pendente
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
 
@@ -592,7 +592,9 @@ function computePendentes(){
   const out=[];
   for(const co of DATA.cob){
     if(isSaida(co))continue;
-    // NFEmitida não é mais pré-requisito; a NF pode ser adicionada na própria aba
+    // SÓ entra em Pendentes quem já tem NF: flag "Foi emitida NF?" = true OU "Número NF" preenchido.
+    // Sem NF a cobrança é "a cobrar" (computeCobrar) — garante que a mesma cobrança nunca caia nas duas abas.
+    if(!(fv(co,F.cob.nfEmitida)===true||fv(co,F.cob.numeroNF)))continue;
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
@@ -1499,13 +1501,16 @@ function renderDevedores(){
 }
 
 function renderSaidas(){
-  // A) Assistentes pendentes
-  const assist=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true);
+  // Mês selecionado (NÃO o mês atual fixo) — usado por todas as seções de Saídas
+  const mk=SELECTED_MONTH||monthKey(new Date());
+  // Mês de referência de uma saída: Data do Pagamento (se paga) ou Data da cobrança/previsão (se não paga)
+  const saidaMK=co=>{const d=fv(co,F.cob.pago)===true?(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca)):(fv(co,F.cob.dataCobranca)||fv(co,F.cob.dataPag));return d?monthKey(d):null;};
+  // A) Assistentes pendentes — do mês selecionado
+  const assist=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true&&saidaMK(co)===mk);
   const assistTotal=assist.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
   // B) Custos fixos
   const cfs=activeCF();const cfTotal=cfs.reduce((s,c)=>s+num(fv(c,F.cf.valor)),0);
   // C) Retiradas do mês
-  const now=new Date();const mk=monthKey(now);
   const retiradas=DATA.cob.filter(co=>{
     if(!isSaida(co))return false;
     const tp=tipoCob(co);
