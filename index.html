@@ -598,10 +598,11 @@ function computePendentes(){
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     if(num(fv(co,F.cob.valorReceber))<=0)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
-    if(c&&fv(c,F.caso.fase)==='Devedor')continue;
+    const fase=c?fv(c,F.caso.fase):null;
+    if(fase==='Devedor'||fase==='Arquivado (serviço cancelado)'||fase==='Encerrado - Pago')continue; // exclui os 3 terminais
     const d=parseDate(fv(co,F.cob.dataCobranca));
     const dias=d?daysBetween(d,t0):0;
-    if(d&&dias>90)continue;
+    if(d&&dias>180)continue; // regra canônica: Pendente até 6 meses; depois vira Devedor (pela Fase, via automação de envelhecimento)
     out.push({caso:c,cob:co,dias});
   }
   return out;
@@ -614,12 +615,13 @@ function computeDevedores(){
     if(fv(co,F.cob.recebido)===true||fv(co,F.cob.pago)===true)continue;
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
     const isDev=c&&fv(c,F.caso.fase)==='Devedor';
-    // Casos em fase Devedor entram independente de valorReceber/dataCobrança;
-    // a fase já é o sinal definitivo.
+    // POR ENQUANTO: Devedor = Fase=Devedor OU cobrança vencida >180 dias (casa com a view DEVEDOR atual, por idade,
+    // e usa o MESMO corte de 180d do computePendentes pra não haver sobreposição). Quando a automação de
+    // envelhecimento entrar (marca Fase=Devedor aos 6 meses), isto vira só Fase=Devedor.
     if(!isDev && num(fv(co,F.cob.valorReceber))<=0)continue;
     const d=parseDate(fv(co,F.cob.dataCobranca));
     const dias=d?daysBetween(d,t0):0;
-    if(isDev||dias>90){
+    if(isDev||dias>180){
       if(!seen.has(co.id)){seen.add(co.id);out.push({caso:c,cob:co,dias});}
     }
   }
