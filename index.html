@@ -1559,6 +1559,7 @@ function renderSaidas(){
           (aLocal?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Local de Atuação</div><div>'+esc(aLocal)+'</div></div>':'')+
           '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Valor a Pagar</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#d64545">'+fmtBRL(v)+'</div></div>'+
           '</div>';
+        det+='<div style="margin-top:10px"><button class="btn" data-delcob="'+co.id+'" data-dellabel="'+esc(aNome+' — '+fmtBRL(v))+'" style="padding:4px 10px;font-size:12px;background:#d64545">🗑️ Excluir lançamento</button></div>';
         if(c)det+=renderRoadmap(c);
         det+=renderPaidForm(co);
         if(c)det+=renderNoteForm(c);
@@ -1596,6 +1597,7 @@ function renderSaidas(){
           (aPix?'<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Chave PIX</div><div style="font-family:monospace">'+esc(aPix)+'</div></div>':'<div style="color:#d64545"><strong>⚠ Sem chave PIX cadastrada</strong></div>')+
           '<div><div style="font-size:11px;color:#6b7c8c;text-transform:uppercase;font-weight:600">Valor</div><div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:700;color:#d64545">'+fmtBRL(vParc)+'</div></div>'+
           '</div>';
+        det+='<div style="margin-top:10px"><button class="btn" data-delcob="'+co.id+'" data-dellabel="'+esc(aNome+' · '+label+' · '+fmtBRL(vParc))+'" style="padding:4px 10px;font-size:12px;background:#d64545">🗑️ Excluir lançamento</button></div>';
         if(c)det+=renderRoadmap(c);
         det+=renderPaidForm(co);
         s+='<tr><td colspan="5" style="padding:0"><div class="detail">'+det+'</div></td></tr>';
@@ -2037,7 +2039,7 @@ function attachHandlers(){
   document.querySelectorAll('[data-editcob]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();EDITING_COB=EDITING_COB===b.dataset.editcob?null:b.dataset.editcob;render();};});
   document.querySelectorAll('[data-delcob]').forEach(b=>{b.onclick=async ev=>{
     ev.stopPropagation();
-    if(!confirm('Excluir este registro?'))return;
+    if(!confirm('Excluir o lançamento'+(b.dataset.dellabel?' de '+b.dataset.dellabel:'')+'? Isso remove o registro do Airtable e não dá pra desfazer.'))return;
     try{await deleteRecord(TBL.cob,b.dataset.delcob);showToast(t('saved'));loadData();}catch(e){showToast(t('saveErr')+': '+e.message,true);}
   };});
   document.querySelectorAll('[data-act="cancelEdit"]').forEach(b=>{b.onclick=ev=>{ev.stopPropagation();EDITING_COB=null;render();};});
