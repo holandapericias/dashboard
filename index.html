@@ -1505,11 +1505,17 @@ function renderDevedores(){
 function renderSaidas(){
   // Mês selecionado (NÃO o mês atual fixo) — usado por todas as seções de Saídas
   const mk=SELECTED_MONTH||monthKey(new Date());
-  // Mês de referência de uma saída: Data do Pagamento (se paga) ou Data da cobrança/previsão (se não paga)
-  const saidaMK=co=>{const d=fv(co,F.cob.pago)===true?(fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca)):(fv(co,F.cob.dataCobranca)||fv(co,F.cob.dataPag));return d?monthKey(d):null;};
+  // Mês de referência de uma saída:
+  //  - PAGA: Data do Pagamento (fallback Data da cobrança)
+  //  - NÃO paga: data do PRAZO (perícia) vinculado, p/ casar com o mês da perícia mesmo quando a
+  //    "Cobrança Solicitada" atrasou; fallback Data da cobrança / dataPag.
+  const prazoDateOfCob=co=>{const ids=(fv(co,F.cob.prazos)||[]).map(x=>typeof x==='object'?x.id:x);if(!ids.length)return null;const p=DATA.prazo.find(pp=>pp.id===ids[0]);return p?fv(p,F.prazo.data):null;};
+  const saidaMK=co=>{let d;if(fv(co,F.cob.pago)===true){d=fv(co,F.cob.dataPag)||fv(co,F.cob.dataCobranca);}else{d=prazoDateOfCob(co)||fv(co,F.cob.dataCobranca)||fv(co,F.cob.dataPag);}return d?monthKey(d):null;};
   // A) Assistentes pendentes — do mês selecionado
   const assist=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true&&saidaMK(co)===mk);
   const assistTotal=assist.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
+  // Pendentes de OUTROS meses: toda saída não paga cujo mês de referência ≠ mês selecionado (badge do mês de origem)
+  const assistOutros=DATA.cob.filter(co=>isSaida(co)&&fv(co,F.cob.pago)!==true&&saidaMK(co)!==mk);
   // B) Custos fixos
   const cfs=activeCF();const cfTotal=cfs.reduce((s,c)=>s+num(fv(c,F.cf.valor)),0);
   // C) Retiradas do mês
@@ -1535,7 +1541,7 @@ function renderSaidas(){
     else assistOrfas.push(co);
   }
   const tipoStr=co=>{const v=fv(co,F.cob.tipoPag);if(!v)return '';return Array.isArray(v)?v.map(t=>typeof t==='object'?t.name:t).join(' '):String(v);};
-  const renderAssistSimpleRow=(co,rid)=>{
+  const renderAssistSimpleRow=(co,rid,monthBadge)=>{
     const exp=EXPANDED_ROW===rid;
     const v=num(fv(co,F.cob.valorPag))||num(fv(co,F.cob.valorReceber));
     const cid=fv(co,F.cob.caso);const c=cid&&cid[0]?casoById(cid[0]):null;
@@ -1546,7 +1552,7 @@ function renderSaidas(){
     const aFone=a?(fv(a,F.assist.fone)||''):'';
     const aEmail=a?(fv(a,F.assist.email)||''):'';
     const aLocal=a?(fv(a,F.assist.local)||''):'';
-    const assistCell='<div><strong>'+esc(aNome)+'</strong></div>'+(aEsp?'<div class="proc">'+esc(aEsp)+(aLocal?' • '+esc(aLocal):'')+'</div>':'');
+    const assistCell='<div><strong>'+esc(aNome)+'</strong>'+(monthBadge?' <span class="tag orange" style="font-size:10px">'+esc(monthBadge)+'</span>':'')+'</div>'+(aEsp?'<div class="proc">'+esc(aEsp)+(aLocal?' • '+esc(aLocal):'')+'</div>':'');
     const pixCell=aPix?'<div style="font-family:monospace;font-size:12px">'+esc(aPix)+'</div>':'<span class="tag red">Sem PIX</span>';
     let row='<tr class="clickable'+(exp?' expanded':'')+'" data-row="'+rid+'"><td>'+assistCell+'</td><td>'+(c?caseCell(c):esc(fv(co,F.cob.nome)||'—'))+'</td><td>'+pixCell+'</td><td>'+fmtDate(fv(co,F.cob.dataCobranca))+'</td><td class="right">'+fmtBRL(v)+'</td></tr>';
     if(exp){
@@ -1620,6 +1626,15 @@ function renderSaidas(){
   let html='<div class="section"><h2>A. '+t('secAssist')+' — '+fmtBRL(assistTotal)+' ('+assist.length+')</h2>'+
     (assist.length?'<table><thead><tr><th>Assistente</th><th>'+t('case')+'</th><th>Chave PIX</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
     assistRows.join('')+'</tbody></table>':'<div class="empty">'+t('noData')+'</div>')+'</div>';
+  // Bloco extra: pendentes de OUTROS meses — nada pendente pode ficar invisível em nenhum mês
+  if(assistOutros.length){
+    const totalOutros=assistOutros.reduce((s,c)=>s+(num(fv(c,F.cob.valorPag))||num(fv(c,F.cob.valorReceber))),0);
+    let _oidx=0;
+    const outrosRows=assistOutros.map(co=>{const mo=saidaMK(co);return renderAssistSimpleRow(co,'sao-'+(_oidx++),mo?monthLabel(mo):'sem mês');});
+    html+='<div class="section" style="border-top:3px solid #e0a800"><h2>Pendentes de outros meses — '+fmtBRL(totalOutros)+' ('+assistOutros.length+')</h2>'+
+      '<table><thead><tr><th>Assistente</th><th>'+t('case')+'</th><th>Chave PIX</th><th>'+t('date')+'</th><th class="right">'+t('value')+'</th></tr></thead><tbody>'+
+      outrosRows.join('')+'</tbody></table></div>';
+  }
   // Match paid CF this month by name
   const cfPayments={};
   for(const co of DATA.cob){
